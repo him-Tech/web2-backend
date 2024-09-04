@@ -1,15 +1,26 @@
-import {Pool, PoolClient} from "pg";
+import { Pool, PoolClient } from "pg";
 
 import * as dotenv from "dotenv";
 
 dotenv.config();
 
 export function getPool(): Pool {
+  const {
+    POSTGRES_DB_HOST,
+    POSTGRES_DB_PORT,
+    POSTGRES_DB_USERNAME,
+    POSTGRES_DB_PASSWORD,
+    POSTGRES_DB_DATABASE,
+    NODE_ENV,
+  } = process.env;
 
-  const { POSTGRES_DB_HOST, POSTGRES_DB_PORT, POSTGRES_DB_USERNAME, POSTGRES_DB_PASSWORD, POSTGRES_DB_DATABASE, NODE_ENV } =
-      process.env;
-
-  if (!POSTGRES_DB_HOST || !POSTGRES_DB_PORT || !POSTGRES_DB_USERNAME || !POSTGRES_DB_PASSWORD || !POSTGRES_DB_DATABASE) {
+  if (
+    !POSTGRES_DB_HOST ||
+    !POSTGRES_DB_PORT ||
+    !POSTGRES_DB_USERNAME ||
+    !POSTGRES_DB_PASSWORD ||
+    !POSTGRES_DB_DATABASE
+  ) {
     throw new Error("Missing database configuration");
   }
 

@@ -36,7 +36,16 @@ export class Issue {
   openBy: OwnerId;
   body: string;
 
-  constructor(id: IssueId, repositoryId: RepositoryId, title: string, htmlUrl: string, createdAt: Date, closedAt: Date | null, openBy: OwnerId, body: string) {
+  constructor(
+    id: IssueId,
+    repositoryId: RepositoryId,
+    title: string,
+    htmlUrl: string,
+    createdAt: Date,
+    closedAt: Date | null,
+    openBy: OwnerId,
+    body: string,
+  ) {
     this.id = id;
     this.title = title;
     this.repositoryId = repositoryId;
@@ -102,26 +111,42 @@ export class Issue {
       return new Error("Invalid JSON: github_id is missing or not a string");
     }
     if (!json.github_number || typeof json.github_number !== "number") {
-      return new Error("Invalid JSON: github_number is missing or not a string");
+      return new Error(
+        "Invalid JSON: github_number is missing or not a string",
+      );
     }
-    if (!json.github_repository_id || typeof json.github_repository_id !== "number") {
-      return new Error("Invalid JSON: github_repository_id is missing or not a string");
+    if (
+      !json.github_repository_id ||
+      typeof json.github_repository_id !== "number"
+    ) {
+      return new Error(
+        "Invalid JSON: github_repository_id is missing or not a string",
+      );
     }
     if (!json.github_title || typeof json.github_title !== "string") {
       return new Error("Invalid JSON: github_title is missing or not a string");
     }
     if (!json.github_html_url || typeof json.github_html_url !== "string") {
-      return new Error("Invalid JSON: github_html_url is missing or not a string");
+      return new Error(
+        "Invalid JSON: github_html_url is missing or not a string",
+      );
     }
     if (!json.github_created_at || typeof json.github_created_at !== "string") {
-      return new Error("Invalid JSON: github_created_at is missing or not a string");
+      return new Error(
+        "Invalid JSON: github_created_at is missing or not a string",
+      );
     }
     if (json.github_closed_at && typeof json.github_closed_at !== "string") {
       // optional
       return new Error("Invalid JSON: github_closed_at is not a string");
     }
-    if (!json.github_open_by_owner_id || typeof json.github_open_by_owner_id !== "number") {
-      return new Error("Invalid JSON: github_open_by_owner_id is missing or not a number");
+    if (
+      !json.github_open_by_owner_id ||
+      typeof json.github_open_by_owner_id !== "number"
+    ) {
+      return new Error(
+        "Invalid JSON: github_open_by_owner_id is missing or not a number",
+      );
     }
     if (!json.github_body || typeof json.github_body !== "string") {
       return new Error("Invalid JSON: github_body is missing or not a string");

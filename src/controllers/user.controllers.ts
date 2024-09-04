@@ -10,7 +10,7 @@ const repo = getUserRepository();
 export class UserController {
   static async getUsers(
     request: Request,
-    response: Response<User[] | ValidationError[]>
+    response: Response<User[] | ValidationError[]>,
   ) {
     console.log("Getting all users");
     const users = await repo.getAll();
@@ -23,7 +23,7 @@ export class UserController {
 
   static async createUser(
     request: Request<{}, {}, CreateUserDto, CreateUserQueryParams>,
-    response: Response<User | ValidationError[]>
+    response: Response<User | ValidationError[]>,
   ) {
     const result = validationResult(request);
     if (!result.isEmpty()) return response.status(400).send(result.array());

@@ -32,8 +32,8 @@ class UserRepositoryImpl implements UserRepository {
           row.name,
           row.email,
           row.hashedpassword,
-          row.role
-        )
+          row.role,
+        ),
     );
   }
 
@@ -42,7 +42,7 @@ class UserRepositoryImpl implements UserRepository {
       `
             SELECT id, name, email, hashedpassword, role FROM users WHERE id = $1
         `,
-      [id.id]
+      [id.id],
     );
 
     if (result.rows.length === 0) {
@@ -55,7 +55,7 @@ class UserRepositoryImpl implements UserRepository {
       row.name,
       row.email,
       row.hashedpassword,
-      row.role
+      row.role,
     );
   }
 
@@ -67,7 +67,7 @@ class UserRepositoryImpl implements UserRepository {
                 INSERT INTO users (name, email, hashedpassword, role)
                 VALUES ($1, $2, $3, $4) RETURNING id, name, email, hashedpassword, role
             `,
-        [user.name, user.email, user.hashedpassword, "user"]
+        [user.name, user.email, user.hashedpassword, "user"],
       );
 
       const row = result.rows[0];
@@ -76,7 +76,7 @@ class UserRepositoryImpl implements UserRepository {
         row.name,
         row.email,
         row.hashedpassword,
-        row.role
+        row.role,
       );
     } finally {
       client.release(); // Always release the client
@@ -88,7 +88,7 @@ class UserRepositoryImpl implements UserRepository {
       `
             SELECT id, name, email, hashedpassword, role FROM users WHERE email = $1
         `,
-      [email]
+      [email],
     );
 
     if (result.rows.length === 0) {
@@ -101,7 +101,7 @@ class UserRepositoryImpl implements UserRepository {
       row.name,
       row.email,
       row.hashedpassword,
-      row.role
+      row.role,
     );
   }
 }

@@ -7,8 +7,13 @@ export class FinancialIssue {
   public openBy: model.Owner;
   public status: model.IssueStatus;
 
-
-  constructor(owner: model.Owner, repository: model.Repository, issue: model.Issue, openBy: model.Owner, status: model.IssueStatus) {
+  constructor(
+    owner: model.Owner,
+    repository: model.Repository,
+    issue: model.Issue,
+    openBy: model.Owner,
+    status: model.IssueStatus,
+  ) {
     this.owner = owner;
     this.repository = repository;
     this.issue = issue;

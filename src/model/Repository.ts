@@ -32,7 +32,13 @@ export class Repository {
   htmlUrl: string;
   description: string;
 
-  constructor(id: RepositoryId, ownerId: OwnerId, name: string, htmlUrl: string, description: string) {
+  constructor(
+    id: RepositoryId,
+    ownerId: OwnerId,
+    name: string,
+    htmlUrl: string,
+    description: string,
+  ) {
     this.id = id;
     this.ownerId = ownerId;
     this.name = name;
@@ -73,7 +79,13 @@ export class Repository {
       return new Error("Invalid JSON: description is missing or not a string");
     }
 
-    return new Repository(repositoryId, ownerId, json.name, json.html_url, json.description);
+    return new Repository(
+      repositoryId,
+      ownerId,
+      json.name,
+      json.html_url,
+      json.description,
+    );
   }
 
   static fromBackend(json: any): Repository | Error {
@@ -82,19 +94,34 @@ export class Repository {
       return repositoryId;
     }
     if (!json.github_owner_id || typeof json.github_owner_id !== "number") {
-      return new Error("Invalid JSON: github_owner_id is missing or not a string");
+      return new Error(
+        "Invalid JSON: github_owner_id is missing or not a string",
+      );
     }
     if (!json.github_name || typeof json.github_name !== "string") {
       return new Error("Invalid JSON: github_name is missing or not a string");
     }
     if (!json.github_html_url || typeof json.github_html_url !== "string") {
-      return new Error("Invalid JSON: github_html_url is missing or not a string");
+      return new Error(
+        "Invalid JSON: github_html_url is missing or not a string",
+      );
     }
-    if (!json.github_description || typeof json.github_description !== "string") {
-      return new Error("Invalid JSON: github_description is missing or not a string");
+    if (
+      !json.github_description ||
+      typeof json.github_description !== "string"
+    ) {
+      return new Error(
+        "Invalid JSON: github_description is missing or not a string",
+      );
     }
 
-    return new Repository(repositoryId, new OwnerId(json.github_owner_id), json.github_name, json.github_html_url, json.github_description);
+    return new Repository(
+      repositoryId,
+      new OwnerId(json.github_owner_id),
+      json.github_name,
+      json.github_html_url,
+      json.github_description,
+    );
   }
 
   // Please note

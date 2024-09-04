@@ -34,7 +34,13 @@ export class Owner {
   htmlUrl: string;
   avatarUrl: string;
 
-  constructor(id: OwnerId, type: OwnerType, name: string, url: string, avatar_url: string) {
+  constructor(
+    id: OwnerId,
+    type: OwnerType,
+    name: string,
+    url: string,
+    avatar_url: string,
+  ) {
     this.id = id;
     this.type = type;
     this.name = name;
@@ -57,8 +63,14 @@ export class Owner {
     if (!json.login || typeof json.login !== "string") {
       return new Error("Invalid JSON: login is missing or not a string");
     }
-    if (!json.type || typeof json.type !== "string" || !Object.values(OwnerType).includes(json.type)) {
-      return new Error("Invalid JSON: type is missing; or not a string; or is not the correct type");
+    if (
+      !json.type ||
+      typeof json.type !== "string" ||
+      !Object.values(OwnerType).includes(json.type)
+    ) {
+      return new Error(
+        "Invalid JSON: type is missing; or not a string; or is not the correct type",
+      );
     }
     if (!json.html_url || typeof json.html_url !== "string") {
       return new Error("Invalid JSON: html_url is missing or not a string");
@@ -67,7 +79,13 @@ export class Owner {
       return new Error("Invalid JSON: avatar_url is missing or not a string");
     }
 
-    return new Owner(owner, OwnerType[json.type as keyof typeof OwnerType], json.login, json.html_url, json.avatar_url);
+    return new Owner(
+      owner,
+      OwnerType[json.type as keyof typeof OwnerType],
+      json.login,
+      json.html_url,
+      json.avatar_url,
+    );
   }
 
   static fromBackend(json: any): Owner | Error {
@@ -78,17 +96,33 @@ export class Owner {
     if (!json.github_login || typeof json.github_login !== "string") {
       return new Error("Invalid JSON: github_login is missing or not a string");
     }
-    if (!json.github_type || typeof json.github_type !== "string" || !Object.values(OwnerType).includes(json.github_type)) {
-      return new Error("Invalid JSON: github_type is missing; or not a string; or is not the correct type");
+    if (
+      !json.github_type ||
+      typeof json.github_type !== "string" ||
+      !Object.values(OwnerType).includes(json.github_type)
+    ) {
+      return new Error(
+        "Invalid JSON: github_type is missing; or not a string; or is not the correct type",
+      );
     }
     if (!json.github_html_url || typeof json.github_html_url !== "string") {
-      return new Error("Invalid JSON: github_html_url is missing or not a string");
+      return new Error(
+        "Invalid JSON: github_html_url is missing or not a string",
+      );
     }
     if (!json.github_avatar_url || typeof json.github_avatar_url !== "string") {
-      return new Error("Invalid JSON: github_avatar_url is missing or not a string");
+      return new Error(
+        "Invalid JSON: github_avatar_url is missing or not a string",
+      );
     }
 
-    return new Owner(owner, OwnerType[json.github_type as keyof typeof OwnerType], json.github_login, json.github_html_url, json.github_avatar_url);
+    return new Owner(
+      owner,
+      OwnerType[json.github_type as keyof typeof OwnerType],
+      json.github_login,
+      json.github_html_url,
+      json.github_avatar_url,
+    );
   }
 
   toBackend() {

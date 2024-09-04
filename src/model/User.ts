@@ -9,7 +9,7 @@ export class UserId {
 }
 
 enum UserRole {
-  user = 'user'
+  user = "user",
 }
 
 export class User implements Express.User {
@@ -17,7 +17,7 @@ export class User implements Express.User {
   name: string | null;
   email: string;
   hashedpassword: string;
-  role: UserRole
+  role: UserRole;
 
   // githubAccount: string | null; // GitHub login TODO: define type
   // company: CompanyId | null; // TODO: in the future there could have several companies
@@ -27,11 +27,17 @@ export class User implements Express.User {
   // email: string; // GitHub login
   // name: string | null;
 
- constructor(id: UserId, name: string | null, email: string, hashedpassword: string, role: UserRole) {
+  constructor(
+    id: UserId,
+    name: string | null,
+    email: string,
+    hashedpassword: string,
+    role: UserRole,
+  ) {
     this.id = id;
     this.name = name;
     this.email = email;
     this.hashedpassword = hashedpassword;
     this.role = role;
- }
+  }
 }

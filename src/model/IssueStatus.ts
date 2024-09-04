@@ -2,7 +2,8 @@
 export abstract class IssueStatus {
   amountCollected: number;
   currencySymbol: string = "€";
-  currencyLogo: string = "https://cryptologos.cc/logos/solana-sol-logo.png?v=029"; //
+  currencyLogo: string =
+    "https://cryptologos.cc/logos/solana-sol-logo.png?v=029"; //
 
   constructor(amountCollected: number) {
     this.amountCollected = amountCollected;

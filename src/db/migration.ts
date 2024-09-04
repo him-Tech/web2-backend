@@ -1,27 +1,25 @@
-import {Pool} from "pg";
-
+import { Pool } from "pg";
 
 export class Migration {
+  pool: Pool;
 
-    pool: Pool;
+  constructor(pool: Pool) {
+    this.pool = pool;
+  }
 
-    constructor(pool: Pool) {
-        this.pool = pool
-    }
+  public async migrate(): Promise<void> {
+    await this.user();
+    await this.session();
+  }
 
-    public async migrate(): Promise<void> {
-        await this.user();
-        await this.session();
-    }
+  public async drop(): Promise<void> {
+    await this.dropUser();
+    await this.dropSession();
+  }
 
-    public async drop(): Promise<void> {
-        await this.dropUser();
-        await this.dropSession();
-    }
-
-    async user(): Promise<void> {
-        await this.pool.query(
-          `
+  async user(): Promise<void> {
+    await this.pool.query(
+      `
                 CREATE TABLE IF NOT EXISTS "users" (
                 "id" SERIAL PRIMARY KEY NOT NULL,
                 "name" character varying,
@@ -31,12 +29,13 @@ export class Migration {
                 "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
                 "updatedAt" TIMESTAMP NOT NULL DEFAULT now()
             )
-        `);
+        `,
+    );
   }
 
-    async session(): Promise<void> {
-        await this.pool.query(
-          ` 
+  async session(): Promise<void> {
+    await this.pool.query(
+      ` 
               CREATE TABLE IF NOT EXISTS "user_session" (
                 "sid" character varying NOT NULL COLLATE "default",
                 "sess" json NOT NULL,
@@ -45,9 +44,9 @@ export class Migration {
               WITH (OIDS=FALSE);
               ALTER TABLE "user_session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
               CREATE INDEX "IDX_session_expire" ON "user_session" ("expire");
-              `
-        )
-    }
+              `,
+    );
+  }
 
   public async dropUser(): Promise<void> {
     await this.pool.query(`DROP TABLE IF EXISTS "users"`);
