@@ -13,15 +13,13 @@ export function getPool(): Pool {
     throw new Error("Missing database configuration");
   }
 
-  console.log("s", POSTGRES_DB_PASSWORD)
   return new Pool({
     user: POSTGRES_DB_USERNAME,
     password: POSTGRES_DB_PASSWORD,
     host: POSTGRES_DB_HOST,
-    port: POSTGRES_DB_PORT as unknown as number, // TODO: fix this
+    port: Number(POSTGRES_DB_PORT), // Ensure port is converted to a number
     database: POSTGRES_DB_DATABASE,
     max: 10, // Pool max size
-    idleTimeoutMillis: 1000 // Close idle clients after 1 second
+    idleTimeoutMillis: 1000, // Close idle clients after 1 second
   });
 }
-

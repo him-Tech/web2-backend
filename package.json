@@ -16,14 +16,17 @@
 	"dependencies": {
 		"connect-pg-simple": "^9.0.1",
 		"connection-string": "^4.4.0",
+		"deep-equal": "^2.2.3",
 		"dotenv": "^16.4.5",
 		"express": "^4.18.3",
+		"express-session": "^1.18.0",
 		"express-validator": "^7.2.0",
 		"passport": "^0.7.0"
 	},
 	"devDependencies": {
 		"@types/bcrypt": "^5.0.2",
 		"@types/connect-pg-simple": "^7.0.3",
+		"@types/deep-equal": "^1.0.4",
 		"@types/express": "^4.17.21",
 		"@types/express-session": "^1.18.0",
 		"@types/jest": "^29.5.12",

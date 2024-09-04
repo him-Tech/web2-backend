@@ -22,23 +22,22 @@ export class Migration {
     async user(): Promise<void> {
         await this.pool.query(
           `
-              CREATE TABLE "users"  (
+                CREATE TABLE IF NOT EXISTS "users" (
                 "id" SERIAL PRIMARY KEY NOT NULL,
                 "name" character varying,
                 "email" character varying NOT NULL,
-                "hashedPassword" character varying NOT NULL,
-                "role"  character varying NOT NULL DEFAULT 'user',
+                "hashedpassword" character varying NOT NULL,
+                "role" character varying NOT NULL DEFAULT 'user',
                 "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
                 "updatedAt" TIMESTAMP NOT NULL DEFAULT now()
-              )
-              `
-        )
-    }
+            )
+        `);
+  }
 
     async session(): Promise<void> {
         await this.pool.query(
           ` 
-              CREATE TABLE "user_session" (
+              CREATE TABLE IF NOT EXISTS "user_session" (
                 "sid" character varying NOT NULL COLLATE "default",
                 "sess" json NOT NULL,
                 "expire" TIMESTAMP NOT NULL
@@ -50,11 +49,11 @@ export class Migration {
         )
     }
 
-    public async dropUser(): Promise<void> {
-        await this.pool.query(`DROP TABLE "users"`)
-    }
+  public async dropUser(): Promise<void> {
+    await this.pool.query(`DROP TABLE IF EXISTS "users"`);
+  }
 
-    public async dropSession(): Promise<void> {
-        await this.pool.query(`DROP TABLE "user_session"`)
-    }
+  public async dropSession(): Promise<void> {
+    await this.pool.query(`DROP TABLE IF EXISTS "user_session"`);
+  }
 }

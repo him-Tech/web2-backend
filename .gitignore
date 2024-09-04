@@ -7,6 +7,4 @@ dist
 # IDE
 .idea
 
-.env
-
 .DS_Store
