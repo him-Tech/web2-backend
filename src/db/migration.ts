@@ -24,7 +24,7 @@ export class Migration {
                 "id" SERIAL PRIMARY KEY NOT NULL,
                 "name" character varying,
                 "email" character varying NOT NULL,
-                "hashedpassword" character varying NOT NULL,
+                "hashed_password" character varying NOT NULL,
                 "role" character varying NOT NULL DEFAULT 'user',
                 "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
                 "updatedAt" TIMESTAMP NOT NULL DEFAULT now()

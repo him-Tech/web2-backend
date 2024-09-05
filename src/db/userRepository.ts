@@ -22,7 +22,7 @@ class UserRepositoryImpl implements UserRepository {
 
   async getAll(): Promise<User[]> {
     const result = await this.pool.query(`
-            SELECT id, name, email, hashedpassword, role FROM users
+            SELECT id, name, email, hashed_password, role FROM users
         `);
     // Map database rows to User instances
     return result.rows.map(
@@ -31,7 +31,7 @@ class UserRepositoryImpl implements UserRepository {
           new UserId(row.id),
           row.name,
           row.email,
-          row.hashedpassword,
+          row.hashed_password,
           row.role,
         ),
     );
@@ -40,7 +40,7 @@ class UserRepositoryImpl implements UserRepository {
   async getById(id: UserId): Promise<User> {
     const result = await this.pool.query(
       `
-            SELECT id, name, email, hashedpassword, role FROM users WHERE id = $1
+            SELECT id, name, email, hashed_password, role FROM users WHERE id = $1
         `,
       [id.id],
     );
@@ -54,7 +54,7 @@ class UserRepositoryImpl implements UserRepository {
       new UserId(row.id),
       row.name,
       row.email,
-      row.hashedpassword,
+      row.hashed_password,
       row.role,
     );
   }
@@ -64,10 +64,10 @@ class UserRepositoryImpl implements UserRepository {
     try {
       const result = await client.query(
         `
-                INSERT INTO users (name, email, hashedpassword, role)
-                VALUES ($1, $2, $3, $4) RETURNING id, name, email, hashedpassword, role
+                INSERT INTO users (name, email, hashed_password, role)
+                VALUES ($1, $2, $3, $4) RETURNING id, name, email, hashed_password, role
             `,
-        [user.name, user.email, user.hashedpassword, "user"],
+        [user.name, user.email, user.hashedPassword, "user"], // TODO: set the role
       );
 
       const row = result.rows[0];
@@ -75,7 +75,7 @@ class UserRepositoryImpl implements UserRepository {
         new UserId(row.id),
         row.name,
         row.email,
-        row.hashedpassword,
+        row.hashed_password,
         row.role,
       );
     } finally {
@@ -86,7 +86,7 @@ class UserRepositoryImpl implements UserRepository {
   async findOne(email: string): Promise<User | null> {
     const result = await this.pool.query(
       `
-            SELECT id, name, email, hashedpassword, role FROM users WHERE email = $1
+            SELECT id, name, email, hashed_password, role FROM users WHERE email = $1
         `,
       [email],
     );
@@ -100,7 +100,7 @@ class UserRepositoryImpl implements UserRepository {
       new UserId(row.id),
       row.name,
       row.email,
-      row.hashedpassword,
+      row.hashedPassword,
       row.role,
     );
   }

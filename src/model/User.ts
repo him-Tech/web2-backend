@@ -16,7 +16,7 @@ export class User implements Express.User {
   id: UserId;
   name: string | null;
   email: string;
-  hashedpassword: string;
+  hashedPassword: string;
   role: UserRole;
 
   // githubAccount: string | null; // GitHub login TODO: define type
@@ -31,13 +31,13 @@ export class User implements Express.User {
     id: UserId,
     name: string | null,
     email: string,
-    hashedpassword: string,
+    hashedPassword: string,
     role: UserRole,
   ) {
     this.id = id;
     this.name = name;
     this.email = email;
-    this.hashedpassword = hashedpassword;
+    this.hashedPassword = hashedPassword;
     this.role = role;
   }
 }

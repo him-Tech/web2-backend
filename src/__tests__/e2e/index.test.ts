@@ -52,7 +52,7 @@ describe("/api/users", () => {
     const response = await request(app).post("/api/users").send({
       name: "Adam",
       email: "adam123@example.com",
-      hashedpassword: "pasdddassword", // Correct case
+      hashedPassword: "pasdddassword", // Correct case
     });
 
     console.log("Response Body:", response.body); // Log the response body for debugging
@@ -65,7 +65,7 @@ describe("/api/users", () => {
     expect(response.body).toHaveProperty("id");
     expect(response.body).toHaveProperty("name", "Adam");
     expect(response.body).toHaveProperty("email", "adam123@example.com");
-    expect(response.body).toHaveProperty("hashedpassword"); // Correct case
+    expect(response.body).toHaveProperty("hashedPassword"); // Correct case
     expect(response.body).toHaveProperty("role", "user");
   });
 });

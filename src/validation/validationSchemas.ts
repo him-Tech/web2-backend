@@ -18,7 +18,7 @@ export const createUserValidationSchema = {
   // displayName: {
   // 	notEmpty: true,
   // },
-  hashedpassword: {
+  hashedPassword: {
     notEmpty: true,
   },
 };
