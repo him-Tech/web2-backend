@@ -3,13 +3,13 @@ import { type Express } from "express";
 import { createApp } from "../../createApp";
 import { setupTestDB } from "../jest.setup";
 
-describe("/api/users", () => {
+describe("/api/v1/users", () => {
   let app: Express = createApp();
 
   setupTestDB();
 
-  it("should return an empty array when getting /api/users", async (): Promise<void> => {
-    const response = await request(app).get("/api/users");
+  it("should return an empty array when getting /api/v1/users", async (): Promise<void> => {
+    const response = await request(app).get("/api/v1/users");
     console.log("Response Body:", response.body); // Log the response body for debugging
     console.log("Response Status:", response.status); // Log the response status for debugging
 
@@ -21,7 +21,7 @@ describe("/api/users", () => {
   });
 
   it("should create the user", async (): Promise<void> => {
-    const response = await request(app).post("/api/users").send({
+    const response = await request(app).post("/api/v1/users").send({
       name: "Adam",
       email: "adam123@example.com",
       hashedPassword: "pasdddassword", // Correct case

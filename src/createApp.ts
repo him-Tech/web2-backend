@@ -1,8 +1,9 @@
 import express from "express";
-import usersRouter from "./routes/users";
+
 import session from "express-session";
 import passport from "passport";
-import auth from "./routes/auth";
+import v1Routes from "./routes/v1";
+
 import { getPool } from "./db";
 
 export function createApp() {
@@ -20,8 +21,7 @@ export function createApp() {
       },
       store: new pgSession({
         pool: getPool(),
-        tableName: "user_session", // Use another table-name than the default "session" one
-        // Insert connect-pg-simple options here
+        tableName: "user_session",
       }),
     }),
   );
@@ -29,8 +29,7 @@ export function createApp() {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  app.use("/api/users", usersRouter);
-  app.use("/api/auth", auth);
+  app.use("/api/v1", v1Routes);
 
   return app;
 }
