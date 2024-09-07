@@ -1,7 +1,8 @@
 import { Pool } from "pg";
 import { User, UserId } from "../model";
 import { CreateUserDto } from "../dtos/CreateUser.dto";
-import { getPool } from "../db"; // Import the getPool function to use the same pool
+import { getPool } from "../db";
+
 export function getUserRepository(): UserRepository {
   return new UserRepositoryImpl(getPool()); // Use the shared pool instance
 }
@@ -20,21 +21,36 @@ class UserRepositoryImpl implements UserRepository {
     this.pool = pool;
   }
 
+  private getOneUser(rows: any[]): User {
+    if (rows.length === 0) {
+      throw new Error("User not found");
+    } else if (rows.length > 1) {
+      throw new Error("Multiple users found");
+    } else {
+      const user = User.fromRaw(rows[0]);
+      if (user instanceof Error) {
+        throw user;
+      }
+      return user;
+    }
+  }
+
+  private getUserList(rows: any[]): User[] {
+    return rows.map((r) => {
+      const user = User.fromRaw(r);
+      if (user instanceof Error) {
+        throw user;
+      }
+      return user;
+    });
+  }
+
   async getAll(): Promise<User[]> {
     const result = await this.pool.query(`
             SELECT id, name, email, hashed_password, role FROM users
         `);
-    // Map database rows to User instances
-    return result.rows.map(
-      (row: any) =>
-        new User(
-          new UserId(row.id),
-          row.name,
-          row.email,
-          row.hashed_password,
-          row.role,
-        ),
-    );
+
+    return this.getUserList(result.rows);
   }
 
   async getById(id: UserId): Promise<User> {
@@ -45,18 +61,7 @@ class UserRepositoryImpl implements UserRepository {
       [id.id],
     );
 
-    if (result.rows.length === 0) {
-      throw new Error("User not found");
-    }
-
-    const row = result.rows[0];
-    return new User(
-      new UserId(row.id),
-      row.name,
-      row.email,
-      row.hashed_password,
-      row.role,
-    );
+    return this.getOneUser(result.rows);
   }
 
   async insert(user: CreateUserDto): Promise<User> {
@@ -70,16 +75,9 @@ class UserRepositoryImpl implements UserRepository {
         [user.name, user.email, user.hashedPassword, "user"], // TODO: set the role
       );
 
-      const row = result.rows[0];
-      return new User(
-        new UserId(row.id),
-        row.name,
-        row.email,
-        row.hashed_password,
-        row.role,
-      );
+      return this.getOneUser(result.rows);
     } finally {
-      client.release(); // Always release the client
+      client.release(); // Always release the client // TODO: check where needs to be done
     }
   }
 
@@ -91,17 +89,6 @@ class UserRepositoryImpl implements UserRepository {
       [email],
     );
 
-    if (result.rows.length === 0) {
-      return null;
-    }
-
-    const row = result.rows[0];
-    return new User(
-      new UserId(row.id),
-      row.name,
-      row.email,
-      row.hashedPassword,
-      row.role,
-    );
+    return this.getOneUser(result.rows);
   }
 }

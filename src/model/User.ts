@@ -1,5 +1,3 @@
-import { CompanyId } from "./Company";
-
 export class UserId {
   id: number;
 
@@ -19,14 +17,6 @@ export class User implements Express.User {
   hashedPassword: string;
   role: UserRole;
 
-  // githubAccount: string | null; // GitHub login TODO: define type
-  // company: CompanyId | null; // TODO: in the future there could have several companies
-  // ossProject: string | null; // TODO: define type
-  //
-  //
-  // email: string; // GitHub login
-  // name: string | null;
-
   constructor(
     id: UserId,
     name: string | null,
@@ -39,5 +29,40 @@ export class User implements Express.User {
     this.email = email;
     this.hashedPassword = hashedPassword;
     this.role = role;
+  }
+
+  // githubAccount: string | null; // GitHub login TODO: define type
+  // company: CompanyId | null; // TODO: in the future there could have several companies
+  // ossProject: string | null; // TODO: define type
+  //
+  //
+  // email: string; // GitHub login
+  // name: string | null;
+
+  static fromRaw(row: any): User | Error {
+    if (!row.id || typeof row.id !== "number") {
+      return new Error("Invalid raw: id is missing or not a string");
+    }
+    if (!row.name || typeof row.name !== "string") {
+      return new Error("Invalid raw: name is missing or not a string");
+    }
+    if (!row.email || typeof row.email !== "string") {
+      return new Error("Invalid raw: email is missing or not a string");
+    }
+    if (!row.hashed_password || typeof row.hashed_password !== "string") {
+      return new Error(
+        "Invalid raw: hashed_password is missing or not a string",
+      );
+    }
+    if (!row.role || typeof row.role !== "string") {
+      return new Error("Invalid raw: role is missing or not a string");
+    }
+    return new User(
+      new UserId(row.id),
+      row.name,
+      row.email,
+      row.hashed_password,
+      row.role,
+    );
   }
 }
