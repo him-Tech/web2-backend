@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 
 const router = Router();
 
-router.post("/", passport.authenticate("local"), (request, response) => {
+router.post("/login", passport.authenticate("local"), (request, response) => {
   response.sendStatus(StatusCodes.OK);
 });
 
@@ -31,5 +31,14 @@ router.post("/logout", (request, response) => {
 //         response.sendStatus(StatusCodes.OK);
 //     }
 // );
+
+router.post("/logout", function (req, res, next) {
+  req.logout(function (err) {
+    if (err) {
+      return next(err);
+    }
+    res.redirect("/");
+  });
+});
 
 export default router;

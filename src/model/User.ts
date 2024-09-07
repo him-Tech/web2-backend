@@ -43,9 +43,6 @@ export class User implements Express.User {
     if (!row.id || typeof row.id !== "number") {
       return new Error("Invalid raw: id is missing or not a string");
     }
-    if (!row.name || typeof row.name !== "string") {
-      return new Error("Invalid raw: name is missing or not a string");
-    }
     if (!row.email || typeof row.email !== "string") {
       return new Error("Invalid raw: email is missing or not a string");
     }
@@ -59,7 +56,7 @@ export class User implements Express.User {
     }
     return new User(
       new UserId(row.id),
-      row.name,
+      row.name ? row.name : null,
       row.email,
       row.hashed_password,
       row.role,

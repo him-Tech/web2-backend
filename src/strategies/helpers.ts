@@ -3,8 +3,13 @@ import * as dotenv from "dotenv";
 
 // TODO
 const saltRounds = 10;
-dotenv.config();
-const { JWT_SECRET = "" } = process.env;
+// dotenv.config();
+//
+// if (!process.env.JWT_SECRET) {
+//   throw new Error("No JWT secret string. Set JWT_SECRET environment variable.");
+// }
+//
+// const JWT_SECRET = process.env.JWT_SECRET;
 
 export class encrypt {
   static async hashPassword(password: string) {
@@ -12,12 +17,7 @@ export class encrypt {
     return bcrypt.hashSync(password, salt);
   }
 
-  static comparePassword(hashPassword: string, password: string) {
+  static comparePassword(password: string, hashPassword: string): boolean {
     return bcrypt.compareSync(password, hashPassword);
   }
-
-  // import * as jwt from "jsonwebtoken";
-  // static generateToken(payload: payload) {
-  // 	return jwt.sign(payload, JWT_SECRET, { expiresIn: "1d" });
-  // }
 }

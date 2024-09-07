@@ -2,6 +2,7 @@ import { Pool } from "pg";
 import { User, UserId } from "../model";
 import { CreateUserDto } from "../dtos/CreateUser.dto";
 import { getPool } from "../db";
+import { encrypt } from "../strategies/helpers";
 
 export function getUserRepository(): UserRepository {
   return new UserRepositoryImpl(getPool()); // Use the shared pool instance
@@ -11,7 +12,7 @@ export interface UserRepository {
   insert(user: CreateUserDto): Promise<User>;
   getById(id: UserId): Promise<User>;
   getAll(): Promise<User[]>;
-  findOne(email: string): Promise<User | null>; // Return null if not found
+  findOne(email: string): Promise<User | null>;
 }
 
 class UserRepositoryImpl implements UserRepository {
@@ -66,13 +67,16 @@ class UserRepositoryImpl implements UserRepository {
 
   async insert(user: CreateUserDto): Promise<User> {
     const client = await this.pool.connect();
+
+    const hashedPassword = await encrypt.hashPassword(user.password);
+
     try {
       const result = await client.query(
         `
                 INSERT INTO users (name, email, hashed_password, role)
                 VALUES ($1, $2, $3, $4) RETURNING id, name, email, hashed_password, role
             `,
-        [user.name, user.email, user.hashedPassword, "user"], // TODO: set the role
+        [user.name, user.email, hashedPassword, "user"], // TODO: set the role
       );
 
       return this.getOneUser(result.rows);

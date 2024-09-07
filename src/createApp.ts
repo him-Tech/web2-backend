@@ -5,6 +5,8 @@ import passport from "passport";
 import v1Routes from "./routes/v1";
 
 import { getPool } from "./db";
+import { errorHandler } from "./middlewares/errorHandler";
+import "./strategies/local-strategy";
 
 export function createApp() {
   const app = express();
@@ -30,6 +32,8 @@ export function createApp() {
   app.use(passport.session());
 
   app.use("/api/v1", v1Routes);
+
+  app.use(errorHandler);
 
   return app;
 }
