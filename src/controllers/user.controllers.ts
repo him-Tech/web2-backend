@@ -4,6 +4,7 @@ import { CreateUserDto } from "../dtos/CreateUser.dto";
 import { CreateUserQueryParams } from "../types/query-params";
 import { getUserRepository } from "../db/userRepository";
 import { User } from "../model";
+import { StatusCodes } from "http-status-codes";
 
 const repo = getUserRepository();
 
@@ -26,14 +27,15 @@ export class UserController {
     response: Response<User | ValidationError[]>,
   ) {
     const result = validationResult(request);
-    if (!result.isEmpty()) return response.status(400).send(result.array());
+    if (!result.isEmpty())
+      return response.status(StatusCodes.BAD_REQUEST).send(result.array());
 
     try {
       const savedUser = await repo.insert(request.body);
-      return response.status(201).send(savedUser);
+      return response.status(StatusCodes.CREATED).send(savedUser);
     } catch (err) {
       console.log("Error: ", err);
-      return response.sendStatus(400);
+      return response.sendStatus(StatusCodes.BAD_REQUEST);
     }
   }
 

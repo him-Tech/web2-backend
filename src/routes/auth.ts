@@ -1,22 +1,24 @@
 import { Router } from "express";
-import { UserController } from "../controllers/user.controllers";
 import passport from "passport";
+import { StatusCodes } from "http-status-codes";
 
 const router = Router();
 
 router.post("/", passport.authenticate("local"), (request, response) => {
-  response.sendStatus(200);
+  response.sendStatus(StatusCodes.OK);
 });
 
 router.get("/status", (request, response) => {
-  return request.user ? response.send(request.user) : response.sendStatus(401);
+  return request.user
+    ? response.send(request.user)
+    : response.sendStatus(StatusCodes.UNAUTHORIZED);
 });
 
 router.post("/logout", (request, response) => {
-  if (!request.user) return response.sendStatus(401);
+  if (!request.user) return response.sendStatus(StatusCodes.UNAUTHORIZED);
   request.logout((err) => {
-    if (err) return response.sendStatus(400);
-    response.send(200);
+    if (err) return response.sendStatus(StatusCodes.BAD_REQUEST);
+    response.send(StatusCodes.OK);
   });
 });
 
@@ -26,7 +28,7 @@ router.post("/logout", (request, response) => {
 //     "/discord/redirect",
 //     passport.authenticate("discord"),
 //     (request, response) => {
-//         response.sendStatus(200);
+//         response.sendStatus(StatusCodes.OK);
 //     }
 // );
 

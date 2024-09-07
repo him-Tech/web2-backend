@@ -7,7 +7,7 @@ import { getPool } from "./db";
 
 export function createApp() {
   const app = express();
-  var pgSession = require("connect-pg-simple")(session);
+  const pgSession = require("connect-pg-simple")(session);
 
   app.use(express.json());
   app.use(
