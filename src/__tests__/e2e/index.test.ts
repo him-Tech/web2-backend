@@ -1,40 +1,12 @@
 import request from "supertest";
 import { type Express } from "express";
 import { createApp } from "../../createApp";
-import { getPool } from "../../db";
-import { Migration } from "../../db/migration";
+import { setupTestDB } from "../jest.setup";
 
 describe("/api/users", () => {
-  let migration: Migration;
-  let app: Express;
+  let app: Express = createApp();
 
-  beforeAll(async (): Promise<void> => {
-    app = createApp();
-    migration = new Migration(getPool());
-
-    try {
-      await migration.drop();
-      console.log("Migration drop successful");
-    } catch (e) {
-      console.error("Error during migration drop in beforeAll: ", e);
-    }
-
-    try {
-      await migration.migrate();
-      console.log("Migration successful");
-    } catch (e) {
-      console.error("Error during migration in beforeAll: ", e);
-    }
-  });
-
-  afterAll(async (): Promise<void> => {
-    try {
-      await migration.drop();
-      console.log("Migration drop successful after tests");
-    } catch (e) {
-      console.error("Error during migration drop in afterAll: ", e);
-    }
-  });
+  setupTestDB();
 
   it("should return an empty array when getting /api/users", async (): Promise<void> => {
     const response = await request(app).get("/api/users");
