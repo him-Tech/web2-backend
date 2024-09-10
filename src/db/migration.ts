@@ -8,18 +8,32 @@ export class Migration {
   }
 
   public async migrate(): Promise<void> {
-    await this.user();
-    await this.session();
-    await this.thirdPartyUser();
+    await this.createUser();
+    await this.createSession();
+    await this.createThirdPartyUser();
+
+    await this.createOwner();
+    await this.createRepository();
+    await this.createIssue();
+
+    await this.pool.query(`SET timezone = 'UTC';`);
   }
 
   public async drop(): Promise<void> {
-    await this.dropUser();
-    await this.dropSession();
-    await this.dropThirdPartyUser();
+    await this.pool.query(`DROP TABLE IF EXISTS "users"`);
+    await this.pool.query(`DROP TABLE IF EXISTS "user_session"`);
+    await this.pool.query(`DROP TABLE IF EXISTS "third_party_users"`);
+
+    await this.pool.query(`TRUNCATE TABLE github_issue CASCADE`);
+    await this.pool.query(`TRUNCATE TABLE github_repository CASCADE`);
+    await this.pool.query(`TRUNCATE TABLE github_owner CASCADE`);
+
+    await this.pool.query(`DROP TABLE IF EXISTS "github_issue" CASCADE`);
+    await this.pool.query(`DROP TABLE IF EXISTS "github_repository" CASCADE`);
+    await this.pool.query(`DROP TABLE IF EXISTS "github_owner" CASCADE`);
   }
 
-  async user(): Promise<void> {
+  async createUser(): Promise<void> {
     await this.pool.query(
       `
                 CREATE TABLE IF NOT EXISTS "users" (
@@ -35,7 +49,7 @@ export class Migration {
     );
   }
 
-  async session(): Promise<void> {
+  async createSession(): Promise<void> {
     await this.pool.query(
       ` 
               CREATE TABLE IF NOT EXISTS "user_session" (
@@ -50,7 +64,7 @@ export class Migration {
     );
   }
   // https://www.passportjs.org/reference/normalized-profile/
-  async thirdPartyUser(): Promise<void> {
+  async createThirdPartyUser(): Promise<void> {
     await this.pool.query(
       `
             CREATE TABLE IF NOT EXISTS "third_party_users" (
@@ -66,15 +80,55 @@ export class Migration {
     );
   }
 
-  public async dropUser(): Promise<void> {
-    await this.pool.query(`DROP TABLE IF EXISTS "users"`);
+  async createOwner(): Promise<void> {
+    await this.pool.query(`
+            -- Owner Table
+            CREATE TABLE IF NOT EXISTS github_owner (
+                id SERIAL,
+                github_id INTEGER PRIMARY KEY,
+                github_type VARCHAR(127) NOT NULL,
+                github_login VARCHAR(255) NOT NULL,
+                github_html_url VARCHAR(510) NOT NULL,
+                github_avatar_url VARCHAR(510) NOT NULL
+            );
+        `);
   }
 
-  public async dropSession(): Promise<void> {
-    await this.pool.query(`DROP TABLE IF EXISTS "user_session"`);
+  async createRepository(): Promise<void> {
+    await this.pool.query(`
+            -- Repository Table
+            CREATE TABLE IF NOT EXISTS github_repository (
+                id SERIAL,
+                github_id INTEGER PRIMARY KEY,
+                github_owner_id INTEGER NOT NULL,
+                github_html_url VARCHAR(510) NOT NULL,
+                github_name VARCHAR(255) NOT NULL,
+                github_description VARCHAR(510) NOT NULL,
+                FOREIGN KEY (github_owner_id) REFERENCES github_owner(github_id) ON DELETE RESTRICT
+            );
+        `);
   }
 
-  public async dropThirdPartyUser(): Promise<void> {
-    await this.pool.query(`DROP TABLE IF EXISTS "third_party_users"`);
+  // TODO: deal with the date format
+  // -- github_created_at TIMESTAMP,
+  // -- github_closed_at TIMESTAMP,
+  async createIssue(): Promise<void> {
+    await this.pool.query(`
+            -- Issue Table
+            CREATE TABLE IF NOT EXISTS github_issue (
+                id SERIAL,
+                github_id INTEGER PRIMARY KEY,
+                github_number INTEGER NOT NULL,
+                github_repository_id INTEGER NOT NULL,
+                github_title VARCHAR(510) NOT NULL,
+                github_body VARCHAR(1020) NOT NULL,
+                github_open_by_owner_id INTEGER,
+                github_html_url VARCHAR(510) NOT NULL,
+                github_created_at VARCHAR(510),
+                github_closed_at VARCHAR(510),
+                FOREIGN KEY (github_repository_id) REFERENCES github_repository(github_id) ON DELETE RESTRICT,
+                FOREIGN KEY (github_open_by_owner_id) REFERENCES github_owner(github_id) ON DELETE RESTRICT
+            );
+        `);
   }
 }

@@ -106,94 +106,64 @@ export class Issue {
     );
   }
 
-  static fromBackend(json: any): Issue | Error {
-    if (!json.github_id || typeof json.github_id !== "number") {
-      return new Error("Invalid JSON: github_id is missing or not a string");
+  static fromBackend(row: any): Issue | Error {
+    if (!row.github_id || typeof row.github_id !== "number") {
+      return new Error("Invalid raw: github_id is missing or not a string");
     }
-    if (!json.github_number || typeof json.github_number !== "number") {
-      return new Error(
-        "Invalid JSON: github_number is missing or not a string",
-      );
+    if (!row.github_number || typeof row.github_number !== "number") {
+      return new Error("Invalid raw: github_number is missing or not a string");
     }
     if (
-      !json.github_repository_id ||
-      typeof json.github_repository_id !== "number"
+      !row.github_repository_id ||
+      typeof row.github_repository_id !== "number"
     ) {
       return new Error(
-        "Invalid JSON: github_repository_id is missing or not a string",
+        "Invalid raw: github_repository_id is missing or not a string",
       );
     }
-    if (!json.github_title || typeof json.github_title !== "string") {
-      return new Error("Invalid JSON: github_title is missing or not a string");
+    if (!row.github_title || typeof row.github_title !== "string") {
+      return new Error("Invalid raw: github_title is missing or not a string");
     }
-    if (!json.github_html_url || typeof json.github_html_url !== "string") {
+    if (!row.github_html_url || typeof row.github_html_url !== "string") {
       return new Error(
-        "Invalid JSON: github_html_url is missing or not a string",
+        "Invalid raw: github_html_url is missing or not a string",
       );
     }
-    if (!json.github_created_at || typeof json.github_created_at !== "string") {
+    // if (!row.github_created_at || typeof row.github_created_at !== "object") {
+    if (!row.github_created_at || typeof row.github_created_at !== "string") {
       return new Error(
-        "Invalid JSON: github_created_at is missing or not a string",
+        "Invalid raw: github_created_at is missing or not a string",
       );
     }
-    if (json.github_closed_at && typeof json.github_closed_at !== "string") {
+    if (row.github_closed_at && typeof row.github_closed_at !== "string") {
+      // if (row.github_closed_at && typeof row.github_closed_at !== "object") {
       // optional
-      return new Error("Invalid JSON: github_closed_at is not a string");
+      return new Error("Invalid raw: github_closed_at is not a string");
     }
     if (
-      !json.github_open_by_owner_id ||
-      typeof json.github_open_by_owner_id !== "number"
+      !row.github_open_by_owner_id ||
+      typeof row.github_open_by_owner_id !== "number"
     ) {
       return new Error(
-        "Invalid JSON: github_open_by_owner_id is missing or not a number",
+        "Invalid raw: github_open_by_owner_id is missing or not a number",
       );
     }
-    if (!json.github_body || typeof json.github_body !== "string") {
-      return new Error("Invalid JSON: github_body is missing or not a string");
+    if (!row.github_body || typeof row.github_body !== "string") {
+      return new Error("Invalid raw: github_body is missing or not a string");
     }
-    const issueId = new IssueId(json.github_id, json.github_number);
-    const repositoryId = new RepositoryId(json.github_repository_id);
-    const githubOpenByOwnerId = new OwnerId(json.github_open_by_owner_id);
+    const issueId = new IssueId(row.github_id, row.github_number);
+    const repositoryId = new RepositoryId(row.github_repository_id);
+    const githubOpenByOwnerId = new OwnerId(row.github_open_by_owner_id);
+
     return new Issue(
       issueId,
       repositoryId,
-      json.github_title,
-      json.github_html_url,
-      new Date(json.github_created_at),
-      json.github_closed_at ? new Date(json.github_closed_at) : null,
+      row.github_title,
+      row.github_html_url,
+      new Date(row.github_created_at),
+      row.github_closed_at ? new Date(row.github_closed_at) : null,
       githubOpenByOwnerId,
-      json.github_body,
+      row.github_body,
     );
-  }
-
-  toBackend(owner: Owner | null = null, repository: Repository | null = null) {
-    const object = {
-      github_id: this.id.id,
-      github_number: this.id.number,
-      github_repository_id: this.repositoryId.id,
-      github_title: this.title,
-      github_html_url: this.htmlUrl,
-      github_created_at: this.createdAt.toISOString(),
-      github_closed_at: this.closedAt ? this.closedAt.toISOString() : null,
-      github_open_by_owner_id: this.openBy.id,
-      github_body: this.body,
-    };
-
-    if (repository && !deepEqual(repository.id, this.repositoryId)) {
-      return Error("The repository ids does not match");
-    } else if (repository && deepEqual(repository.id, this.repositoryId)) {
-      return {
-        ...object,
-        github_repository_relationship: {
-          $id: this.repositoryId.id.toString(),
-          ...repository.toBackend(owner),
-        },
-      };
-    } else {
-      return {
-        ...object,
-        github_repository_relationship: this.repositoryId.id.toString(),
-      };
-    }
   }
 }

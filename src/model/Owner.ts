@@ -124,16 +124,6 @@ export class Owner {
       json.github_avatar_url,
     );
   }
-
-  toBackend() {
-    return {
-      github_id: this.id.id,
-      github_type: this.type.toString(),
-      github_login: this.name,
-      github_html_url: this.htmlUrl,
-      github_avatar_url: this.avatarUrl,
-    };
-  }
 }
 
 export class UserOwner extends Owner {

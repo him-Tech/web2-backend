@@ -2,7 +2,7 @@ import passport from "passport";
 import { Strategy } from "passport-local";
 
 import { encrypt } from "./helpers";
-import { getUserRepository, UserRepository } from "../db/UserRepository";
+import { getUserRepository, UserRepository } from "../db/";
 import { User } from "../model";
 
 const repo: UserRepository = getUserRepository();

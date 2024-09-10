@@ -1,9 +1,6 @@
 import passport from "passport";
 import { Strategy } from "passport-github";
-import {
-  getThirdPartyUserRepository,
-  ThirdPartyUserRepository,
-} from "../db/ThirdPartyUserRepository";
+import { getThirdPartyUserRepository, ThirdPartyUserRepository } from "../db/";
 import { Provider, ThirdPartyUser, ThirdPartyUserId } from "../model";
 
 if (!process.env.GITHUB_CLIENT_ID || !process.env.GITHUB_CLIENT_SECRET) {

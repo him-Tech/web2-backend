@@ -1,5 +1,4 @@
-import { Owner, OwnerId } from "./Owner";
-import deepEqual from "deep-equal";
+import { OwnerId } from "./Owner";
 
 export class RepositoryId {
   id: number;
@@ -122,37 +121,5 @@ export class Repository {
       json.github_html_url,
       json.github_description,
     );
-  }
-
-  // Please note
-  // If a nested child document is included and no child document ID is provided, the child document will be given a unique ID.
-  // If a nested child document is included and no conflicting child document ID exists, the child document will be created.
-  // If a nested child document is included and the child document ID already exists, the child document will be updated.
-  // ref: https://appwrite.io/docs/products/databases/relationships#create-documents
-  toBackend(owner: Owner | null = null) {
-    const object = {
-      github_id: this.id.id,
-      github_owner_id: this.ownerId.id,
-      github_name: this.name,
-      github_html_url: this.htmlUrl,
-      github_description: this.description,
-    };
-
-    if (owner && !deepEqual(owner.id, this.ownerId)) {
-      return Error("The owner ids does not match");
-    } else if (owner && deepEqual(owner.id, this.ownerId)) {
-      return {
-        ...object,
-        github_owner_relationship: {
-          $id: this.ownerId.id.toString(),
-          ...owner.toBackend(),
-        },
-      };
-    } else {
-      return {
-        ...object,
-        github_owner_relationship: this.ownerId.id.toString(),
-      };
-    }
   }
 }

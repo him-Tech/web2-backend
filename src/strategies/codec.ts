@@ -1,10 +1,11 @@
 import passport from "passport";
-import { getUserRepository, UserRepository } from "../db/UserRepository";
-import { Provider, ThirdPartyUserId, User, UserId } from "../model";
 import {
   getThirdPartyUserRepository,
+  getUserRepository,
   ThirdPartyUserRepository,
-} from "../db/ThirdPartyUserRepository";
+  UserRepository,
+} from "../db/";
+import { Provider, ThirdPartyUserId, User, UserId } from "../model";
 
 const userRepository: UserRepository = getUserRepository();
 const thirdPartyUserRepo: ThirdPartyUserRepository =
