@@ -2,7 +2,7 @@ import { ValidationError, validationResult } from "express-validator";
 import { Request, Response } from "express";
 import { CreateUserDto } from "../dtos/CreateUser.dto";
 import { CreateUserQueryParams } from "../types/query-params";
-import { getUserRepository } from "../db/userRepository";
+import { getUserRepository } from "../db/UserRepository";
 import { User } from "../model";
 import { StatusCodes } from "http-status-codes";
 

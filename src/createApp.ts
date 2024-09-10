@@ -6,7 +6,7 @@ import v1Routes from "./routes/v1";
 
 import { getPool } from "./db";
 import { errorHandler } from "./middlewares/errorHandler";
-import "./strategies/local-strategy";
+import "./strategies";
 
 export function createApp() {
   const app = express();

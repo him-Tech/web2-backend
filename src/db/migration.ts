@@ -10,11 +10,13 @@ export class Migration {
   public async migrate(): Promise<void> {
     await this.user();
     await this.session();
+    await this.thirdPartyUser();
   }
 
   public async drop(): Promise<void> {
     await this.dropUser();
     await this.dropSession();
+    await this.dropThirdPartyUser();
   }
 
   async user(): Promise<void> {
@@ -47,6 +49,22 @@ export class Migration {
               `,
     );
   }
+  // https://www.passportjs.org/reference/normalized-profile/
+  async thirdPartyUser(): Promise<void> {
+    await this.pool.query(
+      `
+            CREATE TABLE IF NOT EXISTS "third_party_users" (
+                 "provider" VARCHAR(50) NOT NULL,
+                 "id" VARCHAR(100) PRIMARY KEY,
+                 "display_name" VARCHAR(255),
+                 "username" VARCHAR(255),
+                 "name" JSONB,
+                 "emails" JSONB,
+                 "photos" JSONB
+            );
+            `,
+    );
+  }
 
   public async dropUser(): Promise<void> {
     await this.pool.query(`DROP TABLE IF EXISTS "users"`);
@@ -54,5 +72,9 @@ export class Migration {
 
   public async dropSession(): Promise<void> {
     await this.pool.query(`DROP TABLE IF EXISTS "user_session"`);
+  }
+
+  public async dropThirdPartyUser(): Promise<void> {
+    await this.pool.query(`DROP TABLE IF EXISTS "third_party_users"`);
   }
 }

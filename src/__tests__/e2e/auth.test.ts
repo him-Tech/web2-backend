@@ -17,6 +17,8 @@ describe("/api/v1/auth", () => {
     const email = "lauriane@gmail.com";
     const password = "password";
 
+    // create user
+
     await request(app).post("/api/v1/users").send({
       email: email,
       password: password,
@@ -51,6 +53,8 @@ describe("/api/v1/auth", () => {
   it("Log out", async () => {
     const email = "lauriane@gmail.com";
     const password = "password";
+
+    // create user
 
     await request(app).post("/api/v1/users").send({
       email: email,

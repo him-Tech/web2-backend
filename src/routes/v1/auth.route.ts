@@ -22,16 +22,6 @@ router.post("/logout", (request, response) => {
   });
 });
 
-// router.get("/discord", passport.authenticate("discord"));
-//
-// router.get(
-//     "/discord/redirect",
-//     passport.authenticate("discord"),
-//     (request, response) => {
-//         response.sendStatus(StatusCodes.OK);
-//     }
-// );
-
 router.post("/logout", function (req, res, next) {
   req.logout(function (err) {
     if (err) {

@@ -7,7 +7,6 @@ export function errorHandler(
   res: Response,
   next: NextFunction,
 ) {
-  console.log("err");
   const errorStatus = res.statusCode !== 200 ? res.statusCode : 500;
   res.status(errorStatus);
 
@@ -15,7 +14,7 @@ export function errorHandler(
     message: err.message,
     stack: err.stack, // TODO: not for production
   };
-
+  console.log("Catch error: ", err.message);
   console.error(err.stack); // TODO: log
 
   res.send("Something went wrong!");

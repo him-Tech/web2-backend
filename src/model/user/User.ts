@@ -17,6 +17,7 @@ export class User implements Express.User {
   hashedPassword: string;
   role: UserRole;
 
+  // TODO: probably remove role
   constructor(
     id: UserId,
     name: string | null,

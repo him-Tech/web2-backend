@@ -10,7 +10,7 @@ export function getUserRepository(): UserRepository {
 
 export interface UserRepository {
   insert(user: CreateUserDto): Promise<User>;
-  getById(id: UserId): Promise<User>;
+  getById(id: UserId): Promise<User | null>;
   getAll(): Promise<User[]>;
   findOne(email: string): Promise<User | null>;
 }
@@ -23,8 +23,17 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   private getOneUser(rows: any[]): User {
-    if (rows.length === 0) {
+    const user = this.getOptionalUser(rows);
+    if (user === null) {
       throw new Error("User not found");
+    } else {
+      return user;
+    }
+  }
+
+  private getOptionalUser(rows: any[]): User | null {
+    if (rows.length === 0) {
+      return null;
     } else if (rows.length > 1) {
       throw new Error("Multiple users found");
     } else {
@@ -54,7 +63,7 @@ class UserRepositoryImpl implements UserRepository {
     return this.getUserList(result.rows);
   }
 
-  async getById(id: UserId): Promise<User> {
+  async getById(id: UserId): Promise<User | null> {
     const result = await this.pool.query(
       `
             SELECT id, name, email, hashed_password, role FROM users WHERE id = $1
@@ -62,7 +71,7 @@ class UserRepositoryImpl implements UserRepository {
       [id.id],
     );
 
-    return this.getOneUser(result.rows);
+    return this.getOptionalUser(result.rows);
   }
 
   async insert(user: CreateUserDto): Promise<User> {
@@ -93,6 +102,6 @@ class UserRepositoryImpl implements UserRepository {
       [email],
     );
 
-    return this.getOneUser(result.rows);
+    return this.getOptionalUser(result.rows);
   }
 }
