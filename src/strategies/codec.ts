@@ -5,7 +5,7 @@ import {
   ThirdPartyUserRepository,
   UserRepository,
 } from "../db/";
-import { Provider, ThirdPartyUserId, User, UserId } from "../model";
+import { User, UserId } from "../model";
 
 const userRepository: UserRepository = getUserRepository();
 const thirdPartyUserRepo: ThirdPartyUserRepository =
@@ -20,14 +20,7 @@ passport.deserializeUser(async (id, done) => {
   try {
     const user: User | null = await userRepository.getById(id as UserId);
     if (!user) {
-      const findUser = await thirdPartyUserRepo.getById(
-        // TODO: optimize this in the DB
-        id as ThirdPartyUserId,
-        Provider.GitHub,
-      );
-      return findUser
-        ? done(null, findUser)
-        : done(new Error("User Not Found"));
+      return user ? done(null, user) : done(new Error("User Not Found"));
     }
     done(null, user); // user object attaches to the request as req.user
   } catch (err) {

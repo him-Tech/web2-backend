@@ -5,7 +5,7 @@ export class OwnerId {
     this.id = id;
   }
 
-  static fromGitHubApi(json: any): OwnerId | Error {
+  static fromGithubApi(json: any): OwnerId | Error {
     if (!json.id || typeof json.id !== "number") {
       return new Error("Invalid JSON: id is missing or not a string");
     }
@@ -15,7 +15,9 @@ export class OwnerId {
 
   static fromBackend(json: any): OwnerId | Error {
     if (!json.github_id || typeof json.github_id !== "number") {
-      return new Error("Invalid JSON: github_id is missing or not a string");
+      return new Error(
+        `Invalid JSON: github_id is missing or not a string. Received: ${JSON.stringify(json, null, 2)}`,
+      );
     }
 
     return new OwnerId(json.github_id);
@@ -49,14 +51,14 @@ export class Owner {
   }
 
   // For Organization
-  // GitHub API: https://docs.github.com/en/rest/orgs/orgs?apiVersion=2022-11-28#get-an-organization
+  // Github API: https://docs.github.com/en/rest/orgs/orgs?apiVersion=2022-11-28#get-an-organization
   // Example: https://api.github.com/orgs/open-source-economy
   //
   // For User
-  // GitHub API: https://docs.github.com/en/rest/users/users?apiVersion=2022-11-28#get-a-user
+  // Github API: https://docs.github.com/en/rest/users/users?apiVersion=2022-11-28#get-a-user
   // Example: https://api.github.com/users/laurianemollier
-  static fromGitHubApi(json: any): Owner | Error {
-    const owner = OwnerId.fromGitHubApi(json);
+  static fromGithubApi(json: any): Owner | Error {
+    const owner = OwnerId.fromGithubApi(json);
     if (owner instanceof Error) {
       return owner;
     }
@@ -127,14 +129,14 @@ export class Owner {
 }
 
 export class UserOwner extends Owner {
-  static fromGitHubApi(json: any): UserOwner | Error {
-    const owner = Owner.fromGitHubApi(json);
+  static fromGithubApi(json: any): UserOwner | Error {
+    const owner = Owner.fromGithubApi(json);
     if (owner instanceof Error) {
       return owner;
     }
     if (owner.type !== OwnerType.User) {
       return new Error("Invalid JSON: owner is not a user");
     }
-    return Owner.fromGitHubApi(json) as UserOwner;
+    return Owner.fromGithubApi(json) as UserOwner;
   }
 }

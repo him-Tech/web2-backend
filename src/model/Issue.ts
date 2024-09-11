@@ -1,8 +1,7 @@
-import { Owner, OwnerId, UserOwner } from "./Owner";
-import { Repository, RepositoryId } from "./Repository";
-import deepEqual from "deep-equal";
+import { OwnerId } from "./Owner";
+import { RepositoryId } from "./Repository";
 
-// impossible to query GitHub api by issue id
+// impossible to query Github api by issue id
 // only by repository id and issue number
 export class IssueId {
   id: number;
@@ -56,7 +55,7 @@ export class Issue {
     this.body = body;
   }
 
-  // GitHub API: https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28#get-an-issue
+  // Github API: https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28#get-an-issue
   // Example: https://api.github.com/repos/scala/scala/issues/1
   //
   // NOTE: Issue can be queried by owner id and repository id.
@@ -65,7 +64,7 @@ export class Issue {
   // See discussion: https://github.com/octokit/octokit.rb/issues/483
   //
   // github api does not return the repository id
-  static fromGitHubApi(repositoryId: RepositoryId, json: any): Issue | Error {
+  static fromGithubApi(repositoryId: RepositoryId, json: any): Issue | Error {
     const issueId = IssueId.fromJson(json);
     if (issueId instanceof Error) {
       return issueId;
@@ -86,7 +85,7 @@ export class Issue {
     if (!json.user || typeof json.user !== "object") {
       return new Error("Invalid JSON: user is missing or not an object");
     }
-    const ownerId: OwnerId | Error = OwnerId.fromGitHubApi(json.user);
+    const ownerId: OwnerId | Error = OwnerId.fromGithubApi(json.user);
     if (ownerId instanceof Error) {
       return ownerId;
     }

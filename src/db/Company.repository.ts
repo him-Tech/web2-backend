@@ -1,11 +1,5 @@
 import { Pool } from "pg";
-import {
-  Company,
-  CompanyId,
-  CompanyAddressId,
-  UserId,
-  ThirdPartyUserId,
-} from "../model";
+import { Company, CompanyId, UserId } from "../model";
 import { getPool } from "../db";
 import { CreateCompanyDto } from "../dtos";
 
@@ -62,7 +56,7 @@ class CompanyRepositoryImpl implements CompanyRepository {
 
   async getAll(): Promise<Company[]> {
     const result = await this.pool.query(`
-      SELECT id, tax_id, name, contact_person_id, contact_person_third_party_id, address_id 
+      SELECT id, tax_id, name, contact_person_id, address_id 
       FROM company
     `);
 
@@ -72,7 +66,7 @@ class CompanyRepositoryImpl implements CompanyRepository {
   async getById(id: CompanyId): Promise<Company | null> {
     const result = await this.pool.query(
       `
-      SELECT id, tax_id, name, contact_person_id, contact_person_third_party_id, address_id 
+      SELECT id, tax_id, name, contact_person_id, address_id 
       FROM company
       WHERE id = $1
       `,
@@ -92,39 +86,22 @@ class CompanyRepositoryImpl implements CompanyRepository {
       // 1. Insert the company record, but initially set contact_person_id to NULL
       const result = await client.query(
         `
-      INSERT INTO company (tax_id, name, contact_person_id, contact_person_third_party_id, address_id)
-      VALUES ($1, $2, NULL, $3, $4) 
-      RETURNING id, tax_id, name, contact_person_id, contact_person_third_party_id, address_id
+      INSERT INTO company (tax_id, name, address_id)
+      VALUES ($1, $2, $3) 
+      RETURNING id, tax_id, name, address_id
       `,
-        [
-          company.taxId,
-          company.name,
-          company.contactPersonId instanceof ThirdPartyUserId
-            ? company.contactPersonId.id
-            : null,
-          company.addressId instanceof CompanyAddressId
-            ? company.addressId.id
-            : null,
-        ],
+        [company.taxId, company.name, company.addressId?.id ?? null],
       );
 
       const insertedCompany = this.getOneCompany(result.rows);
 
-      // 2. Insert into user_company or third_party_user_company
+      // 2. Insert into user_company
       if (company.contactPersonId instanceof UserId) {
         await client.query(
           `
-        INSERT INTO user_company (user_id, company_id)
-        VALUES ($1, $2)
-        `,
-          [company.contactPersonId.id, insertedCompany.id.id],
-        );
-      } else if (company.contactPersonId instanceof ThirdPartyUserId) {
-        await client.query(
-          `
-        INSERT INTO third_party_user_company (third_party_user_id, company_id)
-        VALUES ($1, $2)
-        `,
+              INSERT INTO user_company (user_id, company_id)
+              VALUES ($1, $2)
+            `,
           [company.contactPersonId.id, insertedCompany.id.id],
         );
       }
@@ -136,12 +113,7 @@ class CompanyRepositoryImpl implements CompanyRepository {
       SET contact_person_id = $1
       WHERE id = $2
       `,
-        [
-          company.contactPersonId instanceof UserId
-            ? company.contactPersonId.id
-            : null,
-          insertedCompany.id.id,
-        ],
+        [company.contactPersonId?.id ?? null, insertedCompany.id.id],
       );
 
       await client.query("COMMIT");
@@ -172,41 +144,21 @@ class CompanyRepositoryImpl implements CompanyRepository {
         );
       }
 
-      // Insert into third_party_user_company if a third party user is the contact person
-      if (company.contactPersonId instanceof ThirdPartyUserId) {
-        await client.query(
-          `
-          INSERT INTO third_party_user_company (third_party_user_id, company_id)
-          VALUES ($1, $2)
-          ON CONFLICT (user_id, company_id) DO NOTHING
-          `,
-          [company.contactPersonId.id, company.id.id],
-        );
-      }
-
       const result = await client.query(
         `
         UPDATE company
         SET tax_id = $1,
             name = $2,
             contact_person_id = $3,
-            contact_person_third_party_id = $4,
-            address_id = $5
-        WHERE id = $6
-        RETURNING id, tax_id, name, contact_person_id, contact_person_third_party_id, address_id
+            address_id = $4
+        WHERE id = $5
+        RETURNING id, tax_id, name, contact_person_id, address_id
         `,
         [
           company.taxId,
           company.name,
-          company.contactPersonId instanceof UserId
-            ? company.contactPersonId.id
-            : null,
-          company.contactPersonId instanceof ThirdPartyUserId
-            ? company.contactPersonId.id
-            : null,
-          company.addressId instanceof CompanyAddressId
-            ? company.addressId.id
-            : null,
+          company.contactPersonId?.id ?? null,
+          company.addressId?.id ?? null,
           company.id.id,
         ],
       );

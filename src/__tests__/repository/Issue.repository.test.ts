@@ -1,14 +1,7 @@
 import { type Express } from "express";
 import { createApp } from "../../createApp";
 import { setupTestDB } from "../jest.setup";
-import {
-  Issue,
-  IssueId,
-  RepositoryId,
-  OwnerId,
-  CompanyAddressId,
-  UserId,
-} from "../../model";
+import { IssueId } from "../../model";
 import { Fixture } from "./Fixture";
 import {
   getIssueRepository,

@@ -1,11 +1,5 @@
 import { setupTestDB } from "../jest.setup";
-import {
-  Company,
-  CompanyId,
-  CompanyAddressId,
-  UserId,
-  ThirdPartyUserId,
-} from "../../model";
+import { Company, CompanyAddressId, CompanyId, UserId } from "../../model";
 import { Fixture } from "./Fixture";
 import {
   getCompanyAddressRepository,
@@ -37,10 +31,10 @@ describe("CompanyRepository", () => {
     const address = await companyAddressRepo.create(addressDto);
     validCompanyAddressId = address.id;
 
-    const validUser = await userRepo.insert(Fixture.createUserDto());
+    const validUser = await userRepo.insertLocal(Fixture.createUserDto());
     validUserId = validUser.id;
 
-    const validUser2 = await userRepo.insert(Fixture.createUserDto());
+    const validUser2 = await userRepo.insertGithub(Fixture.thirdPartyUser("2"));
     validUserId2 = validUser2.id;
   });
 
@@ -92,7 +86,7 @@ describe("CompanyRepository", () => {
         name: "Company A",
         contactPersonId: validUserId,
         addressId: validCompanyAddressId,
-      });
+      } as CreateCompanyDto);
 
       const updatedCompany = new Company(
         created.id,
@@ -117,7 +111,7 @@ describe("CompanyRepository", () => {
         name: "Company A",
         contactPersonId: validUserId, // Initial contact person
         addressId: validCompanyAddressId,
-      });
+      } as CreateCompanyDto);
 
       // Create a new Company object with a different contact person ID
       const updatedCompany = new Company(

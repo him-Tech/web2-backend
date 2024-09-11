@@ -1,4 +1,4 @@
-import { ThirdPartyUserId, UserId } from "./user";
+import { UserId } from "./user";
 import { CompanyAddressId } from "./CompanyAddress";
 
 export class CompanyId {
@@ -13,14 +13,14 @@ export class Company {
   id: CompanyId;
   taxId: string | null;
   name: string | null;
-  contactPersonId: UserId | ThirdPartyUserId | null;
+  contactPersonId: UserId | null;
   addressId: CompanyAddressId | null;
 
   constructor(
     id: CompanyId,
     taxId: string | null,
     name: string | null,
-    contactPersonId: UserId | ThirdPartyUserId | null = null,
+    contactPersonId: UserId | null = null,
     addressId: CompanyAddressId | null = null,
   ) {
     this.id = id;
@@ -49,26 +49,14 @@ export class Company {
       return new Error("Invalid raw: tax_id is not a string");
     }
 
-    let contactPersonId: UserId | ThirdPartyUserId | null = null;
-    if (row.contact_person_id !== undefined && row.contact_person_id !== null) {
-      if (typeof row.contact_person_id === "number") {
-        contactPersonId = new UserId(row.contact_person_id);
-      } else {
-        return new Error("Invalid raw: contact_person_id is not a number");
-      }
-    } else if (
-      row.contact_person_third_party_id !== undefined &&
-      row.contact_person_third_party_id !== null
+    if (
+      row.contact_person_id !== undefined &&
+      row.contact_person_id !== null &&
+      typeof row.contact_person_id !== "number"
     ) {
-      if (typeof row.contact_person_third_party_id === "string") {
-        contactPersonId = new ThirdPartyUserId(
-          row.contact_person_third_party_id,
-        );
-      } else {
-        return new Error(
-          "Invalid raw: contact_person_third_party_id is not a string",
-        );
-      }
+      return new Error(
+        `Invalid raw: contact_person_id is not a number. Received: ${JSON.stringify(row, null, 2)}`,
+      );
     }
 
     let addressId: CompanyAddressId | null = null;
@@ -84,7 +72,7 @@ export class Company {
       new CompanyId(row.id),
       row.tax_id,
       row.name,
-      contactPersonId,
+      row.contact_person_id ? new UserId(row.contact_person_id) : null,
       addressId,
     );
   }

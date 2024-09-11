@@ -45,8 +45,8 @@ describe("/api/v1/auth", () => {
     expect(response.statusCode).toBe(200);
 
     expect(response.body).toHaveProperty("id");
-    expect(response.body).toHaveProperty("name", null);
-    expect(response.body).toHaveProperty("email", email);
+    expect(response.body).toHaveProperty("data.name", null);
+    expect(response.body).toHaveProperty("data.email", email);
     expect(response.body).toHaveProperty("role", "user");
   });
 

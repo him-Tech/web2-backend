@@ -1,3 +1,7 @@
+import { LocalUser } from "./LocalUser";
+import { ThirdPartyUser } from "./ThirdPartyUser";
+import { Owner } from "../Owner";
+
 export class UserId {
   id: number;
 
@@ -6,61 +10,41 @@ export class UserId {
   }
 }
 
-enum UserRole {
+export enum UserRole {
   user = "user",
 }
 
 export class User implements Express.User {
   id: UserId;
-  name: string | null;
-  email: string;
-  hashedPassword: string;
+  data: LocalUser | ThirdPartyUser;
   role: UserRole;
 
-  // TODO: probably remove role
-  constructor(
-    id: UserId,
-    name: string | null,
-    email: string,
-    hashedPassword: string,
-    role: UserRole,
-  ) {
+  constructor(id: UserId, data: LocalUser | ThirdPartyUser, role: UserRole) {
     this.id = id;
-    this.name = name;
-    this.email = email;
-    this.hashedPassword = hashedPassword;
+    this.data = data;
     this.role = role;
   }
 
-  // githubAccount: string | null; // GitHub login TODO: define type
-  // company: CompanyId | null; // TODO: in the future there could have several companies
-  // ossProject: string | null; // TODO: define type
-  //
-  //
-  // email: string; // GitHub login
-  // name: string | null;
-
-  static fromRaw(row: any): User | Error {
-    if (!row.id || typeof row.id !== "number") {
-      return new Error("Invalid raw: id is missing or not a string");
-    }
-    if (!row.email || typeof row.email !== "string") {
-      return new Error("Invalid raw: email is missing or not a string");
-    }
-    if (!row.hashed_password || typeof row.hashed_password !== "string") {
-      return new Error(
-        "Invalid raw: hashed_password is missing or not a string",
-      );
-    }
+  // TODO: refactor the owner parameter. Just a hack for the moment
+  static fromRaw(row: any, owner: Owner | null = null): User | Error {
     if (!row.role || typeof row.role !== "string") {
       return new Error("Invalid raw: role is missing or not a string");
     }
-    return new User(
-      new UserId(row.id),
-      row.name ? row.name : null,
-      row.email,
-      row.hashed_password,
-      row.role,
-    );
+
+    var user: LocalUser | ThirdPartyUser | Error;
+    // Check if the row represents a local user
+    if (row.id && typeof row.id === "number" && row.hashed_password) {
+      user = LocalUser.fromRaw(row);
+    } else if (row.provider && !row.hashed_password) {
+      user = ThirdPartyUser.fromRaw(row, owner);
+    } else {
+      return new Error("Invalid raw: Unable to determine user type");
+    }
+
+    if (user instanceof Error) {
+      return user;
+    } else {
+      return new User(new UserId(row.id), user, row.role);
+    }
   }
 }

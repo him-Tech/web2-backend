@@ -1,5 +1,5 @@
 import { Pool } from "pg";
-import { Owner, OwnerId, UserOwner } from "../model";
+import { Owner, OwnerId } from "../model";
 import { getPool } from "../db";
 
 export function getOwnerRepository(): OwnerRepository {
@@ -75,6 +75,7 @@ class OwnerRepositoryImpl implements OwnerRepository {
     return this.getOptionalOwner(result.rows);
   }
 
+  // TODO: lolo insert or update
   async insert(owner: Owner): Promise<Owner> {
     const client = await this.pool.connect();
 

@@ -1,38 +1,3 @@
--- from passportjs.org
-CREATE TABLE IF NOT EXISTS "user_session"
-(
-    "sid"    character varying NOT NULL COLLATE "default",
-    "sess"   json              NOT NULL,
-    "expire" TIMESTAMP         NOT NULL
-) WITH (OIDS= FALSE);
-ALTER TABLE "user_session"
-    ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
-CREATE INDEX "IDX_session_expire" ON "user_session" ("expire");
-
-
-CREATE TABLE IF NOT EXISTS "users"
-(
-    "id"              SERIAL PRIMARY KEY NOT NULL,
-    "name"            character varying,
-    "email"           character varying  NOT NULL,
-    "hashed_password" character varying  NOT NULL,
-    "role"            character varying  NOT NULL DEFAULT 'user',
-    "createdAt"       TIMESTAMP          NOT NULL DEFAULT now(),
-    "updatedAt"       TIMESTAMP          NOT NULL DEFAULT now()
-);
-
--- https://www.passportjs.org/reference/normalized-profile/
-CREATE TABLE IF NOT EXISTS "third_party_users"
-(
-    "provider"     VARCHAR(50) NOT NULL,
-    "id"           VARCHAR(100) PRIMARY KEY,
-    "display_name" VARCHAR(255),
-    "username"     VARCHAR(255),
-    "name"         JSONB,
-    "emails"       JSONB,
-    "photos"       JSONB
-);
-
 CREATE TABLE IF NOT EXISTS github_owner
 (
     id                SERIAL,
@@ -73,6 +38,43 @@ CREATE TABLE IF NOT EXISTS github_issue
     CONSTRAINT fk_github_open_by_owner FOREIGN KEY (github_open_by_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT
 );
 
+-- User authentication tables --
+
+-- from passportjs.org
+CREATE TABLE IF NOT EXISTS "user_session"
+(
+    "sid"    character varying NOT NULL COLLATE "default",
+    "sess"   json              NOT NULL,
+    "expire" TIMESTAMP         NOT NULL
+) WITH (OIDS= FALSE);
+ALTER TABLE "user_session"
+    ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
+CREATE INDEX "IDX_session_expire" ON "user_session" ("expire");
+
+CREATE TABLE IF NOT EXISTS "app_user"
+(
+    "id"              SERIAL PRIMARY KEY NOT NULL,
+    "provider"        VARCHAR(50), -- Optional, used for third-party users
+    "third_party_id"  VARCHAR(100) UNIQUE, -- Optional, used for third-party users
+    "name"            VARCHAR(255),
+    "email"           VARCHAR(255) UNIQUE,
+    "hashed_password" VARCHAR(255), -- Optional, used for local users
+    "role"            VARCHAR(50) NOT NULL DEFAULT 'app_user',
+    "created_at"       TIMESTAMP NOT NULL DEFAULT now(),
+    "updated_at"       TIMESTAMP NOT NULL DEFAULT now(),
+    github_owner_id INTEGER,
+    CONSTRAINT fk_github_owner FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE SET NULL,
+
+    CONSTRAINT chk_provider CHECK (
+        (provider IS NOT NULL AND third_party_id IS NOT NULL) OR
+        (provider IS NULL AND third_party_id IS NULL)
+        ),
+    CONSTRAINT chk_github_provider_data CHECK (
+        (provider = 'github' AND github_owner_id IS NOT NULL) OR
+        (provider <> 'github' AND github_owner_id IS NULL)
+        )
+);
+
 CREATE TABLE IF NOT EXISTS temp_company_address
 (
     id               SERIAL PRIMARY KEY,
@@ -91,7 +93,6 @@ CREATE TABLE IF NOT EXISTS company
     tax_id                        VARCHAR(50) UNIQUE,
     name                          VARCHAR(255),
     contact_person_id             INTEGER,
-    contact_person_third_party_id VARCHAR(100),
     address_id                    INTEGER,
     CONSTRAINT fk_address FOREIGN KEY (address_id) REFERENCES temp_company_address (id) ON DELETE RESTRICT
     -- Foreign key constraints for contact persons will be added later
@@ -101,23 +102,12 @@ CREATE TABLE IF NOT EXISTS company
 
 CREATE TABLE IF NOT EXISTS user_company
 (
-    user_id      INTEGER,
-    company_id   INTEGER,
+    user_id    INTEGER,
+    company_id INTEGER,
     PRIMARY KEY (user_id, company_id),
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-    CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES company (id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS third_party_user_company
-(
-    third_party_user_id VARCHAR(100),
-    company_id          INTEGER,
-    PRIMARY KEY (third_party_user_id, company_id),
-    CONSTRAINT fk_third_party_user FOREIGN KEY (third_party_user_id) REFERENCES third_party_users (id) ON DELETE CASCADE,
-    CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES company (id) ON DELETE CASCADE
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES "app_user" (id) ON DELETE CASCADE,
+    CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES "company" (id) ON DELETE CASCADE
 );
 
 ALTER TABLE company
-    ADD CONSTRAINT fk_contact_person_user FOREIGN KEY (contact_person_id, id) REFERENCES user_company (user_id, company_id) ON DELETE SET NULL,
-    ADD CONSTRAINT fk_contact_person_third_party FOREIGN KEY (contact_person_third_party_id, id) REFERENCES third_party_user_company (third_party_user_id, company_id) ON DELETE SET NULL;
-
+    ADD CONSTRAINT fk_contact_person_user FOREIGN KEY (contact_person_id, id) REFERENCES user_company (user_id, company_id) ON DELETE SET NULL

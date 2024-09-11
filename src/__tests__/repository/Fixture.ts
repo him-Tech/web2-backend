@@ -3,27 +3,43 @@ import {
   CompanyAddress,
   CompanyAddressId,
   CompanyId,
+  Email,
+  GithubData,
   Issue,
   IssueId,
   Owner,
   OwnerId,
   OwnerType,
+  Provider,
   Repository,
   RepositoryId,
-  User,
+  ThirdPartyUser,
+  ThirdPartyUserId,
 } from "../../model";
 import { CreateCompanyAddressDto } from "../../dtos/CreateCompanyAddress.dto";
-import { CreateCompanyDto, CreateUserDto } from "../../dtos";
+import { CreateCompanyDto, CreateLocalUserDto } from "../../dtos";
 
 export const Fixture = {
   id(): number {
     return Math.floor(Math.random() * 1000000);
   },
-  createUserDto(): CreateUserDto {
+  thirdPartyUser(
+    id: string,
+    provider: Provider = Provider.Github,
+    email: string = "lauriane@gmail.com",
+  ): ThirdPartyUser {
+    return new ThirdPartyUser(
+      provider,
+      new ThirdPartyUserId(id),
+      [new Email(email, null)],
+      new GithubData(Fixture.owner(1)),
+    );
+  },
+  createUserDto(): CreateLocalUserDto {
     return {
-      email: "d@gmail.com",
+      email: "d@gmail.com" + this.id(),
       password: "password",
-    } as CreateUserDto;
+    } as CreateLocalUserDto;
   },
 
   owner(ownerId: number, payload: string = "payload"): Owner {

@@ -1,5 +1,4 @@
 import bcrypt from "bcrypt";
-import * as dotenv from "dotenv";
 
 // TODO
 const saltRounds = 10;

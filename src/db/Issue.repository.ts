@@ -1,5 +1,5 @@
 import { Pool } from "pg";
-import { Issue, IssueId, RepositoryId } from "../model";
+import { Issue, IssueId } from "../model";
 import { getPool } from "../db";
 
 export function getIssueRepository(): IssueRepository {

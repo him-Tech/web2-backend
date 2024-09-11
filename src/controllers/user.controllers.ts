@@ -1,6 +1,6 @@
 import { ValidationError, validationResult } from "express-validator";
 import { Request, Response } from "express";
-import { CreateUserDto } from "../dtos/CreateUser.dto";
+import { CreateLocalUserDto } from "../dtos";
 import { CreateUserQueryParams } from "../types/query-params";
 import { getUserRepository } from "../db/";
 import { User } from "../model";
@@ -23,7 +23,7 @@ export class UserController {
   }
 
   static async createUser(
-    request: Request<{}, {}, CreateUserDto, CreateUserQueryParams>,
+    request: Request<{}, {}, CreateLocalUserDto, CreateUserQueryParams>,
     response: Response<User | ValidationError[]>,
   ) {
     const result = validationResult(request);
@@ -31,7 +31,7 @@ export class UserController {
       return response.status(StatusCodes.BAD_REQUEST).send(result.array());
 
     try {
-      const savedUser = await repo.insert(request.body);
+      const savedUser = await repo.insertLocal(request.body);
       return response.status(StatusCodes.CREATED).send(savedUser);
     } catch (err) {
       console.log("Error: ", err);

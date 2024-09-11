@@ -1,10 +1,13 @@
-import { UserId } from "./User";
-import { ThirdPartyUserId } from "./ThirdPartyUser";
+import { UserId, UserRole } from "./User";
+import { LocalUser } from "./LocalUser";
+import { ThirdPartyUser } from "./ThirdPartyUser";
 
 declare global {
   namespace Express {
     interface User {
-      id: UserId | ThirdPartyUserId;
+      id: UserId;
+      data: LocalUser | ThirdPartyUser;
+      role: UserRole;
     }
   }
 }

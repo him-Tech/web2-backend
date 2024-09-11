@@ -7,7 +7,7 @@ export class RepositoryId {
     this.id = id;
   }
 
-  static fromGitHubApi(json: any): RepositoryId | Error {
+  static fromGithubApi(json: any): RepositoryId | Error {
     if (!json.id || typeof json.id !== "number") {
       return new Error("Invalid JSON: id is missing or not a string");
     }
@@ -45,7 +45,7 @@ export class Repository {
     this.description = description;
   }
 
-  // GitHub API: https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
+  // Github API: https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
   // Example:
   // Repo owned by an organization: https://api.github.com/repos/open-source-economy/frontend
   // Repo owned by a user: https://api.github.com/repos/laurianemollier/strongVerbes
@@ -54,8 +54,8 @@ export class Repository {
   // This does not work: https://api.github.com/repos/141809657/701996033
   // But that works: https://api.github.com/repositories/701996033
   // See discussion: https://github.com/octokit/octokit.rb/issues/483
-  static fromGitHubApi(json: any): Repository | Error {
-    const repositoryId = RepositoryId.fromGitHubApi(json);
+  static fromGithubApi(json: any): Repository | Error {
+    const repositoryId = RepositoryId.fromGithubApi(json);
     if (repositoryId instanceof Error) {
       return repositoryId;
     }
@@ -63,7 +63,7 @@ export class Repository {
     if (!json.owner) {
       return new Error("Invalid JSON: owner");
     }
-    const ownerId: OwnerId | Error = OwnerId.fromGitHubApi(json.owner);
+    const ownerId: OwnerId | Error = OwnerId.fromGithubApi(json.owner);
     if (ownerId instanceof Error) {
       return ownerId;
     }
