@@ -8,6 +8,7 @@ export class CompanyId {
 
 export class Company {
   id: CompanyId;
+  uuid: string;
 
   constructor(id: CompanyId) {
     this.id = id;
