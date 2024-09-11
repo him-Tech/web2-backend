@@ -72,3 +72,52 @@ CREATE TABLE IF NOT EXISTS github_issue
     CONSTRAINT fk_github_repository FOREIGN KEY (github_repository_id) REFERENCES github_repository (github_id) ON DELETE RESTRICT,
     CONSTRAINT fk_github_open_by_owner FOREIGN KEY (github_open_by_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT
 );
+
+CREATE TABLE IF NOT EXISTS temp_company_address
+(
+    id               SERIAL PRIMARY KEY,
+    company_name     VARCHAR(255),
+    street_address_1 VARCHAR(255),
+    street_address_2 VARCHAR(255),
+    city             VARCHAR(100),
+    state_province   VARCHAR(100),
+    postal_code      VARCHAR(20),
+    country          VARCHAR(100)
+);
+
+CREATE TABLE IF NOT EXISTS company
+(
+    id                            SERIAL PRIMARY KEY,
+    tax_id                        VARCHAR(50) UNIQUE,
+    name                          VARCHAR(255),
+    contact_person_id             INTEGER,
+    contact_person_third_party_id VARCHAR(100),
+    address_id                    INTEGER,
+    CONSTRAINT fk_address FOREIGN KEY (address_id) REFERENCES temp_company_address (id) ON DELETE RESTRICT
+    -- Foreign key constraints for contact persons will be added later
+);
+
+-- Junction tables for many-to-many relationships
+
+CREATE TABLE IF NOT EXISTS user_company
+(
+    user_id      INTEGER,
+    company_id   INTEGER,
+    PRIMARY KEY (user_id, company_id),
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES company (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS third_party_user_company
+(
+    third_party_user_id VARCHAR(100),
+    company_id          INTEGER,
+    PRIMARY KEY (third_party_user_id, company_id),
+    CONSTRAINT fk_third_party_user FOREIGN KEY (third_party_user_id) REFERENCES third_party_users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES company (id) ON DELETE CASCADE
+);
+
+ALTER TABLE company
+    ADD CONSTRAINT fk_contact_person_user FOREIGN KEY (contact_person_id, id) REFERENCES user_company (user_id, company_id) ON DELETE SET NULL,
+    ADD CONSTRAINT fk_contact_person_third_party FOREIGN KEY (contact_person_third_party_id, id) REFERENCES third_party_user_company (third_party_user_id, company_id) ON DELETE SET NULL;
+

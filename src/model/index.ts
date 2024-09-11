@@ -5,3 +5,4 @@ export * from "./Issue";
 export * from "./FinancialIssue";
 export * from "./Company";
 export * from "./user";
+export * from "./CompanyAddress";
