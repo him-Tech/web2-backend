@@ -17,7 +17,6 @@ router.get(
     failureRedirect: "/api/v1/oauth2/status",
   }),
   (request, response) => {
-    // response.redirect('/api/v1/oauth2/status');
     return request.user
       ? response.send(request.user)
       : response.sendStatus(StatusCodes.UNAUTHORIZED);

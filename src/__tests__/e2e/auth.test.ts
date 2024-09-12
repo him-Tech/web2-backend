@@ -19,7 +19,7 @@ describe("/api/v1/auth", () => {
 
     // create user
 
-    await request(app).post("/api/v1/users").send({
+    await request(app).post("/api/v1/auth/register").send({
       email: email,
       password: password,
     });
@@ -50,40 +50,48 @@ describe("/api/v1/auth", () => {
     expect(response.body).toHaveProperty("role", "user");
   });
 
-  it("Log out", async () => {
-    const email = "lauriane@gmail.com";
-    const password = "password";
+  describe("Logout", () => {
+    it("can logout when logged-in", async () => {
+      const email = "lauriane@gmail.com";
+      const password = "password";
 
-    // create user
+      // create user
 
-    await request(app).post("/api/v1/users").send({
-      email: email,
-      password: password,
+      await request(app).post("/api/v1/auth/register").send({
+        email: email,
+        password: password,
+      });
+
+      // login
+
+      const loginResponse = await request(app).post("/api/v1/auth/login").send({
+        email: email,
+        password: password,
+      });
+
+      expect(loginResponse.status).toBe(200);
+
+      // logout
+
+      const logoutResponse = await request(app)
+        .post("/api/v1/auth/logout")
+        .set("Cookie", loginResponse.headers["set-cookie"]);
+
+      expect(logoutResponse.status).toBe(200);
+
+      // should NOT be logged in
+
+      const response = await request(app)
+        .get("/api/v1/auth/status")
+        .set("Cookie", loginResponse.headers["set-cookie"]);
+
+      expect(response.statusCode).toBe(401);
     });
 
-    // login
+    it("can logout when not logged-in", async () => {
+      const logoutResponse = await request(app).post("/api/v1/auth/logout");
 
-    const loginResponse = await request(app).post("/api/v1/auth/login").send({
-      email: email,
-      password: password,
+      expect(logoutResponse.status).toBe(200);
     });
-
-    expect(loginResponse.status).toBe(200);
-
-    // logout
-
-    const logoutResponse = await request(app)
-      .post("/api/v1/auth/logout")
-      .set("Cookie", loginResponse.headers["set-cookie"]);
-
-    expect(logoutResponse.status).toBe(200);
-
-    // should NOT be logged in
-
-    const response = await request(app)
-      .get("/api/v1/auth/status")
-      .set("Cookie", loginResponse.headers["set-cookie"]);
-
-    expect(response.statusCode).toBe(401);
   });
 });
