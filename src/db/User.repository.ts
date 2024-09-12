@@ -77,6 +77,7 @@ class UserRepositoryImpl implements UserRepository {
                   au.id,
                   au.name,
                   au.email,
+                  au.is_email_verified,
                   au.hashed_password,
                   au.role,
                   au.provider,
@@ -100,7 +101,8 @@ class UserRepositoryImpl implements UserRepository {
               SELECT 
         au.id, 
         au.name, 
-        au.email, 
+        au.email,
+        au.is_email_verified,
         au.hashed_password, 
         au.role, 
         au.provider, 
@@ -127,10 +129,10 @@ class UserRepositoryImpl implements UserRepository {
     try {
       const result = await client.query(
         `
-                INSERT INTO app_user (name, email, hashed_password, role)
-                VALUES ($1, $2, $3, $4) RETURNING id, name, email, hashed_password, role
+                INSERT INTO app_user (name, email, is_email_verified, hashed_password, role)
+                VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, is_email_verified, hashed_password, role
             `,
-        [user.name, user.email, hashedPassword, "user"], // TODO: set the role
+        [user.name, user.email, false, hashedPassword, "user"], // TODO: set the role
       );
 
       return this.getOneUser(result.rows);
@@ -212,6 +214,7 @@ class UserRepositoryImpl implements UserRepository {
         au.id, 
         au.name, 
         au.email, 
+        au.is_email_verified, 
         au.hashed_password, 
         au.role, 
         au.provider, 
@@ -240,6 +243,7 @@ class UserRepositoryImpl implements UserRepository {
         au.id, 
         au.name, 
         au.email, 
+        au.is_email_verified, 
         au.hashed_password, 
         au.role, 
         au.provider, 

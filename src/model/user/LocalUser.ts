@@ -1,11 +1,18 @@
 export class LocalUser {
   name: string | null;
   email: string;
+  isEmailVerified: boolean;
   hashedPassword: string;
 
-  constructor(name: string | null, email: string, hashedPassword: string) {
+  constructor(
+    name: string | null,
+    email: string,
+    isEmailVerified: boolean,
+    hashedPassword: string,
+  ) {
     this.name = name;
     this.email = email;
+    this.isEmailVerified = isEmailVerified;
     this.hashedPassword = hashedPassword;
   }
 
@@ -18,9 +25,15 @@ export class LocalUser {
         "Invalid raw: hashed_password is missing or not a string",
       );
     }
+    if (typeof row.is_email_verified !== "boolean") {
+      return new Error(
+        `Invalid raw: is_email_verified is missing or not a boolean. Received: ${JSON.stringify(row, null, 2)}`,
+      );
+    }
     return new LocalUser(
       row.name ? row.name : null,
       row.email,
+      row.is_email_verified,
       row.hashed_password,
     );
   }

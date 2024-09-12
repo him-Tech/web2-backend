@@ -1,15 +1,8 @@
 import passport from "passport";
-import {
-  getThirdPartyUserRepository,
-  getUserRepository,
-  ThirdPartyUserRepository,
-  UserRepository,
-} from "../db/";
+import { getUserRepository, UserRepository } from "../db/";
 import { User, UserId } from "../model";
 
 const userRepository: UserRepository = getUserRepository();
-const thirdPartyUserRepo: ThirdPartyUserRepository =
-  getThirdPartyUserRepository();
 
 passport.serializeUser((user, done) => {
   done(null, user.id);

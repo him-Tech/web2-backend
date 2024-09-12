@@ -53,25 +53,26 @@ CREATE INDEX "IDX_session_expire" ON "user_session" ("expire");
 
 CREATE TABLE IF NOT EXISTS "app_user"
 (
-    "id"              SERIAL PRIMARY KEY NOT NULL,
-    "provider"        VARCHAR(50), -- Optional, used for third-party users
-    "third_party_id"  VARCHAR(100) UNIQUE, -- Optional, used for third-party users
-    "name"            VARCHAR(255),
-    "email"           VARCHAR(255) UNIQUE,
-    "hashed_password" VARCHAR(255), -- Optional, used for local users
-    "role"            VARCHAR(50) NOT NULL DEFAULT 'app_user',
-    "created_at"       TIMESTAMP NOT NULL DEFAULT now(),
-    "updated_at"       TIMESTAMP NOT NULL DEFAULT now(),
-    github_owner_id INTEGER,
+    "id"                SERIAL PRIMARY KEY NOT NULL,
+    "provider"          VARCHAR(50),         -- Optional, used for third-party users
+    "third_party_id"    VARCHAR(100) UNIQUE, -- Optional, used for third-party users
+    "name"              VARCHAR(255),
+    "email"             VARCHAR(255) UNIQUE,
+    "is_email_verified" BOOLEAN            NOT NULL DEFAULT FALSE,
+    "hashed_password"   VARCHAR(255),        -- Optional, used for local users
+    "role"              VARCHAR(50)        NOT NULL DEFAULT 'ser',
+    "created_at"        TIMESTAMP          NOT NULL DEFAULT now(),
+    "updated_at"        TIMESTAMP          NOT NULL DEFAULT now(),
+    github_owner_id     INTEGER,
     CONSTRAINT fk_github_owner FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE SET NULL,
 
     CONSTRAINT chk_provider CHECK (
-        (provider IS NOT NULL AND third_party_id IS NOT NULL) OR
-        (provider IS NULL AND third_party_id IS NULL)
+            (provider IS NOT NULL AND third_party_id IS NOT NULL) OR
+            (provider IS NULL AND third_party_id IS NULL)
         ),
     CONSTRAINT chk_github_provider_data CHECK (
-        (provider = 'github' AND github_owner_id IS NOT NULL) OR
-        (provider <> 'github' AND github_owner_id IS NULL)
+            (provider = 'github' AND github_owner_id IS NOT NULL) OR
+            (provider <> 'github' AND github_owner_id IS NULL)
         )
 );
 
@@ -89,11 +90,11 @@ CREATE TABLE IF NOT EXISTS temp_company_address
 
 CREATE TABLE IF NOT EXISTS company
 (
-    id                            SERIAL PRIMARY KEY,
-    tax_id                        VARCHAR(50) UNIQUE,
-    name                          VARCHAR(255),
-    contact_person_id             INTEGER,
-    address_id                    INTEGER,
+    id                SERIAL PRIMARY KEY,
+    tax_id            VARCHAR(50) UNIQUE,
+    name              VARCHAR(255),
+    contact_person_id INTEGER,
+    address_id        INTEGER,
     CONSTRAINT fk_address FOREIGN KEY (address_id) REFERENCES temp_company_address (id) ON DELETE RESTRICT
     -- Foreign key constraints for contact persons will be added later
 );
