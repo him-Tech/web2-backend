@@ -1,6 +1,6 @@
 import { Pool } from "pg";
 import { Issue, IssueId } from "../model";
-import { getPool } from "../db";
+import { getPool } from "../dbPool";
 
 export function getIssueRepository(): IssueRepository {
   return new IssueRepositoryImpl(getPool());

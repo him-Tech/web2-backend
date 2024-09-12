@@ -1,6 +1,6 @@
 import { Pool } from "pg";
 import { Owner, OwnerId } from "../model";
-import { getPool } from "../db";
+import { getPool } from "../dbPool";
 
 export function getOwnerRepository(): OwnerRepository {
   return new OwnerRepositoryImpl(getPool());

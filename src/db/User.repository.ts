@@ -7,7 +7,7 @@ import {
   User,
   UserId,
 } from "../model"; // Adjust the import paths as necessary
-import { getPool } from "../db";
+import { getPool } from "../dbPool";
 import { CreateLocalUserDto } from "../dtos";
 import { encrypt } from "../strategies/helpers"; // Adjust the import path as necessary
 
@@ -18,6 +18,7 @@ export function getUserRepository(): UserRepository {
 export interface UserRepository {
   insertLocal(user: CreateLocalUserDto): Promise<User>;
   insertGithub(user: ThirdPartyUser): Promise<User>;
+  validateEmail(email: string): Promise<User | null>;
   getById(id: UserId): Promise<User | null>;
   getAll(): Promise<User[]>;
   findOne(email: string): Promise<User | null>;
@@ -68,6 +69,20 @@ class UserRepositoryImpl implements UserRepository {
       }
       return user;
     });
+  }
+
+  async validateEmail(email: string): Promise<User | null> {
+    const result = await this.pool.query(
+      `
+                UPDATE app_user
+                SET is_email_verified = TRUE
+                WHERE email = $1
+                RETURNING id, name, email, is_email_verified, hashed_password, role
+            `,
+      [email],
+    );
+
+    return this.getOptionalUser(result.rows);
   }
 
   async getAll(): Promise<User[]> {
@@ -177,8 +192,8 @@ class UserRepositoryImpl implements UserRepository {
       // Insert or update the ThirdPartyUser
       const userResult = await client.query(
         `
-            INSERT INTO app_user (provider, third_party_id, name, email, role, github_owner_id)
-            VALUES ($1, $2, $3, $4, 'user', $5) 
+            INSERT INTO app_user (provider, third_party_id, name, email, is_email_verified, role, github_owner_id)
+            VALUES ($1, $2, $3, $4, TRUE, 'user', $5) 
             ON CONFLICT (third_party_id) DO UPDATE 
             SET 
                 provider = EXCLUDED.provider,

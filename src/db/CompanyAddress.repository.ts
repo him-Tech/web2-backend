@@ -1,6 +1,6 @@
 import { Pool } from "pg";
 import { CompanyAddress, CompanyAddressId } from "../model";
-import { getPool } from "../db";
+import { getPool } from "../dbPool";
 import { CreateCompanyAddressDto } from "../dtos/CreateCompanyAddress.dto";
 
 export function getCompanyAddressRepository(): CompanyAddressRepository {

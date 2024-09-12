@@ -24,6 +24,7 @@ describe("UserRepository", () => {
       if (created.data instanceof LocalUser) {
         expect(created.data.email).toBe(userDto.email);
         expect(created.data.name).toBe(null);
+        expect(created.data.isEmailVerified).toBe(false);
         expect(created.data.hashedPassword).toBeDefined();
       }
 
@@ -58,6 +59,32 @@ describe("UserRepository", () => {
       await expect(repo.insertGithub(thirdPartyUser)).rejects.toThrow(
         "Invalid provider, was expecting Github",
       );
+    });
+  });
+
+  describe("validateEmail", () => {
+    it("should return null if user not found", async () => {
+      const user = await repo.validateEmail("bonjour");
+      expect(user).toBeNull();
+    });
+
+    it("should update the email", async () => {
+      const userDto = Fixture.createUserDto();
+      await repo.insertLocal(userDto);
+
+      const user = await repo.validateEmail(userDto.email);
+
+      expect(user).toBeDefined();
+      expect(user!.data).toBeInstanceOf(LocalUser);
+      if (user!.data instanceof LocalUser) {
+        expect(user!.data.email).toBe(userDto.email);
+        expect(user!.data.name).toBe(null);
+        expect(user!.data.isEmailVerified).toBe(true);
+        expect(user!.data.hashedPassword).toBeDefined();
+      }
+
+      const found = await repo.getById(user!.id);
+      expect(found).toEqual(user!);
     });
   });
 
@@ -99,6 +126,7 @@ describe("UserRepository", () => {
       if (created.data instanceof LocalUser) {
         expect(created.data.email).toBe(userDto.email);
         expect(created.data.name).toBe(null);
+        expect(created.data.isEmailVerified).toBe(false);
         expect(created.data.hashedPassword).toBeDefined();
       }
 

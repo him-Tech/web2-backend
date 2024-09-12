@@ -1,4 +1,4 @@
-import { getPool } from "../src/db";
+import { getPool } from "../src/dbPool";
 import { Migration } from "../src/db/migration";
 
 async function main() {

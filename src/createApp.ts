@@ -4,9 +4,9 @@ import session from "express-session";
 import passport from "passport";
 import v1Routes from "./routes/v1";
 
-import { getPool } from "./db";
 import { errorHandler } from "./middlewares/errorHandler";
 import "./strategies";
+import { getPool } from "./dbPool";
 
 export function createApp() {
   const app = express();

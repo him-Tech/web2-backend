@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS "app_user"
     "third_party_id"    VARCHAR(100) UNIQUE, -- Optional, used for third-party users
     "name"              VARCHAR(255),
     "email"             VARCHAR(255) UNIQUE,
-    "is_email_verified" BOOLEAN            NOT NULL DEFAULT FALSE,
+    "is_email_verified" BOOLEAN            NOT NULL,
     "hashed_password"   VARCHAR(255),        -- Optional, used for local users
     "role"              VARCHAR(50)        NOT NULL DEFAULT 'ser',
     "created_at"        TIMESTAMP          NOT NULL DEFAULT now(),
