@@ -1,3 +1,5 @@
+import { ValidationError, Validator } from "./utils";
+
 export class CompanyAddressId {
   id: number;
 
@@ -36,58 +38,20 @@ export class CompanyAddress {
     this.country = country;
   }
 
-  static fromBackend(row: any): CompanyAddress | Error {
-    if (typeof row.id !== "number") {
-      return new Error("Invalid raw: id is missing or not a number");
-    }
-    if (
-      row.company_name !== undefined &&
-      row.company_name !== null &&
-      typeof row.company_name !== "string"
-    ) {
-      return new Error("Invalid raw: company_name is not a string");
-    }
-    if (
-      row.street_address_1 !== undefined &&
-      row.street_address_1 !== null &&
-      typeof row.street_address_1 !== "string"
-    ) {
-      return new Error("Invalid raw: street_address_1 is not a string");
-    }
-    if (
-      row.street_address_2 !== undefined &&
-      row.street_address_2 !== null &&
-      typeof row.street_address_2 !== "string"
-    ) {
-      return new Error("Invalid raw: street_address_2 is not a string");
-    }
-    if (
-      row.city !== undefined &&
-      row.city !== null &&
-      typeof row.city !== "string"
-    ) {
-      return new Error("Invalid raw: city is not a string");
-    }
-    if (
-      row.state_province !== undefined &&
-      row.state_province !== null &&
-      typeof row.state_province !== "string"
-    ) {
-      return new Error("Invalid raw: state_province is not a string");
-    }
-    if (
-      row.postal_code !== undefined &&
-      row.postal_code !== null &&
-      typeof row.postal_code !== "string"
-    ) {
-      return new Error("Invalid raw: postal_code is not a string");
-    }
-    if (
-      row.country !== undefined &&
-      row.country !== null &&
-      typeof row.country !== "string"
-    ) {
-      return new Error("Invalid raw: country is not a string");
+  static fromBackend(row: any): CompanyAddress | ValidationError {
+    const validator = new Validator(row);
+    validator.requiredNumber("id");
+    validator.optionalString("company_name");
+    validator.optionalString("street_address_1");
+    validator.optionalString("street_address_2");
+    validator.optionalString("city");
+    validator.optionalString("state_province");
+    validator.optionalString("postal_code");
+    validator.optionalString("country");
+
+    const error = validator.getFirstError();
+    if (error) {
+      return error;
     }
 
     return new CompanyAddress(

@@ -1,4 +1,5 @@
 import { Owner } from "../Owner";
+import { ValidationError, Validator } from "../utils";
 
 export class ThirdPartyUserId {
   id: string;
@@ -21,15 +22,17 @@ export class Email {
     this.type = type;
   }
 
-  static fromJson(json: any): Email | Error {
-    if (!json.value || typeof json.value !== "string") {
-      return new Error("Invalid JSON: value is missing or not a string");
-    }
-    if (json.type && typeof json.type !== "string") {
-      return new Error("Invalid JSON: type is not a string");
+  static fromJson(json: any): Email | ValidationError {
+    const validator = new Validator(json);
+    validator.requiredString("value");
+    validator.optionalString("type");
+
+    const error = validator.getFirstError();
+    if (error) {
+      return error;
     }
 
-    return new Email(json.value, json.type);
+    return new Email(json.value, json.type ?? null);
   }
 }
 
@@ -59,36 +62,34 @@ export class ThirdPartyUser {
     this.providerData = providerData;
   }
 
-  static fromJson(json: any): ThirdPartyUser | Error {
-    if (!json.provider || typeof json.provider !== "string") {
-      return new Error("Invalid json: provider is missing or not a string");
-    }
-    if (!json.id || typeof json.id !== "string") {
-      return new Error("Invalid json: id is missing or not a string");
-    }
-    if (json._json && typeof json._json !== "object") {
-      return new Error("Invalid json: _json is not an object");
-    }
-    if (json.emails && !Array.isArray(json.emails)) {
-      return new Error("Invalid json: emails is not an array");
+  static fromJson(json: any): ThirdPartyUser | ValidationError {
+    const validator = new Validator(json);
+    validator.requiredString("provider");
+    validator.requiredString("id");
+    validator.optionalObject("_json");
+    validator.optionalArray("emails");
+
+    const error = validator.getFirstError();
+    if (error) {
+      return error;
     }
 
     const emails: Email[] = [];
     if (json.emails) {
-      json.emails.forEach((email: any) => {
+      for (const email of json.emails) {
         const e = Email.fromJson(email);
-        if (e instanceof Error) {
-          throw e;
+        if (e instanceof ValidationError) {
+          return e;
         }
         emails.push(e);
-      });
+      }
     }
 
     const owner = Owner.fromGithubApi(json._json);
-    if (owner instanceof Error) {
+    if (owner instanceof ValidationError) {
       return owner;
     }
-    const providerData = new GithubData(owner);
+    const providerData = new GithubData(owner as Owner);
 
     return new ThirdPartyUser(
       json.provider as Provider,
@@ -98,36 +99,32 @@ export class ThirdPartyUser {
     );
   }
 
-  static fromRaw(row: any, owner: Owner | null = null): ThirdPartyUser | Error {
-    if (!row.provider || typeof row.provider !== "string") {
-      return new Error("Invalid raw: provider is missing or not a string");
-    }
-    if (!row.third_party_id || typeof row.third_party_id !== "string") {
-      return new Error(
-        `Invalid raw: third_party_id is missing or not a string. Received: ${JSON.stringify(row, null, 2)}`,
-      );
-    }
-    if (row.display_name && typeof row.display_name !== "string") {
-      return new Error(
-        `Invalid raw: display_name is not a string. Received: ${JSON.stringify(row, null, 2)}`,
-      );
-    }
-    if (row.email && typeof row.email !== "string") {
-      return new Error("Invalid raw: email is missing or not a string");
+  static fromRaw(
+    row: any,
+    owner: Owner | null = null,
+  ): ThirdPartyUser | ValidationError {
+    const validator = new Validator(row);
+    validator.requiredString("provider");
+    validator.requiredString("third_party_id");
+    validator.optionalString("display_name");
+    validator.optionalString("email");
+
+    const error = validator.getFirstError();
+    if (error) {
+      return error;
     }
 
     const emails: Email[] = [];
     if (row.email) {
-      const e = new Email(row.email, null);
-      emails.push(e);
+      emails.push(new Email(row.email, null));
     }
 
     if (owner === null) {
       const o = Owner.fromBackend(row);
-      if (o instanceof Error) {
+      if (o instanceof ValidationError) {
         return o;
       }
-      owner = o;
+      owner = o as Owner;
     }
     const providerData = new GithubData(owner!); // TODO: refactor
 

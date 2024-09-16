@@ -1,5 +1,6 @@
 import { UserId } from "./user";
 import { CompanyAddressId } from "./CompanyAddress";
+import { ValidationError, Validator } from "./utils";
 
 export class CompanyId {
   id: number;
@@ -30,42 +31,17 @@ export class Company {
     this.addressId = addressId;
   }
 
-  static fromBackend(row: any): Company | Error {
-    if (typeof row.id !== "number") {
-      return new Error("Invalid raw: id is missing or not a number");
-    }
-    if (
-      row.tax_id !== undefined &&
-      row.tax_id !== null &&
-      typeof row.tax_id !== "string"
-    ) {
-      return new Error("Invalid raw: tax_id is not a string");
-    }
-    if (
-      row.name !== undefined &&
-      row.name !== null &&
-      typeof row.name !== "string"
-    ) {
-      return new Error("Invalid raw: tax_id is not a string");
-    }
+  static fromBackend(row: any): Company | ValidationError {
+    const validator = new Validator(row);
+    validator.requiredNumber("id");
+    validator.optionalString("tax_id");
+    validator.optionalString("name");
+    validator.optionalNumber("contact_person_id");
+    validator.optionalNumber("address_id");
 
-    if (
-      row.contact_person_id !== undefined &&
-      row.contact_person_id !== null &&
-      typeof row.contact_person_id !== "number"
-    ) {
-      return new Error(
-        `Invalid raw: contact_person_id is not a number. Received: ${JSON.stringify(row, null, 2)}`,
-      );
-    }
-
-    let addressId: CompanyAddressId | null = null;
-    if (row.address_id !== undefined && row.address_id !== null) {
-      if (typeof row.address_id === "number") {
-        addressId = new CompanyAddressId(row.address_id);
-      } else {
-        return new Error("Invalid raw: address_id is not a number");
-      }
+    const error = validator.getFirstError();
+    if (error) {
+      return error;
     }
 
     return new Company(
@@ -73,7 +49,7 @@ export class Company {
       row.tax_id,
       row.name,
       row.contact_person_id ? new UserId(row.contact_person_id) : null,
-      addressId,
+      row.address_id ? new CompanyAddressId(row.address_id) : null,
     );
   }
 }

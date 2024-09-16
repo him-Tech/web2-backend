@@ -1,6 +1,7 @@
 import { LocalUser } from "./LocalUser";
 import { ThirdPartyUser } from "./ThirdPartyUser";
 import { Owner } from "../Owner";
+import { ValidationError, Validator } from "../utils";
 
 export class UserId {
   id: number;
@@ -25,26 +26,37 @@ export class User implements Express.User {
     this.role = role;
   }
 
-  // TODO: refactor the owner parameter. Just a hack for the moment
-  static fromRaw(row: any, owner: Owner | null = null): User | Error {
-    if (!row.role || typeof row.role !== "string") {
-      return new Error("Invalid raw: role is missing or not a string");
+  static fromRaw(row: any, owner: Owner | null = null): User | ValidationError {
+    const validator = new Validator(row);
+    validator.requiredNumber("id");
+    validator.requiredString("role");
+
+    const error = validator.getFirstError();
+    if (error) {
+      return error;
     }
 
-    var user: LocalUser | ThirdPartyUser | Error;
-    // Check if the row represents a local user
-    if (row.id && typeof row.id === "number" && row.hashed_password) {
+    let user: LocalUser | ThirdPartyUser | ValidationError;
+
+    if (row.hashed_password) {
       user = LocalUser.fromRaw(row);
-    } else if (row.provider && !row.hashed_password) {
+    } else if (row.provider) {
       user = ThirdPartyUser.fromRaw(row, owner);
     } else {
-      return new Error("Invalid raw: Unable to determine user type");
+      return new ValidationError("Unable to determine user type", row);
     }
 
-    if (user instanceof Error) {
+    if (user instanceof ValidationError) {
       return user;
-    } else {
-      return new User(new UserId(row.id), user, row.role);
     }
+
+    validator.requiredEnum("role", UserRole);
+
+    const enumError = validator.getFirstError();
+    if (enumError) {
+      return enumError;
+    }
+
+    return new User(new UserId(row.id), user, row.role as UserRole);
   }
 }

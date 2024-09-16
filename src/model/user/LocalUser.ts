@@ -1,3 +1,5 @@
+import { ValidationError, Validator } from "../utils";
+
 export class LocalUser {
   name: string | null;
   email: string;
@@ -16,22 +18,20 @@ export class LocalUser {
     this.hashedPassword = hashedPassword;
   }
 
-  static fromRaw(row: any): LocalUser | Error {
-    if (!row.email || typeof row.email !== "string") {
-      return new Error("Invalid raw: email is missing or not a string");
+  static fromRaw(row: any): LocalUser | ValidationError {
+    const validator = new Validator(row);
+    validator.optionalString("name");
+    validator.requiredString("email");
+    validator.requiredBoolean("is_email_verified");
+    validator.requiredString("hashed_password");
+
+    const error = validator.getFirstError();
+    if (error) {
+      return error;
     }
-    if (!row.hashed_password || typeof row.hashed_password !== "string") {
-      return new Error(
-        "Invalid raw: hashed_password is missing or not a string",
-      );
-    }
-    if (typeof row.is_email_verified !== "boolean") {
-      return new Error(
-        `Invalid raw: is_email_verified is missing or not a boolean. Received: ${JSON.stringify(row, null, 2)}`,
-      );
-    }
+
     return new LocalUser(
-      row.name ? row.name : null,
+      row.name || null,
       row.email,
       row.is_email_verified,
       row.hashed_password,
