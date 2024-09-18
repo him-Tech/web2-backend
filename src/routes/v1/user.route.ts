@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { UserController } from "../../controllers/user.controllers";
+import { isAuth } from "../../middlewares/isAuth";
 
 const router = Router();
 
-router.get("/", UserController.getUsers);
+router.get("/", isAuth, UserController.getUsers);
 
-router.get("/:id", UserController.getUserById);
+router.get("/:id", isAuth, UserController.getUserById);
 
 export default router;
