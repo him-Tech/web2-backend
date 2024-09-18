@@ -62,6 +62,12 @@ export class ThirdPartyUser {
     this.providerData = providerData;
   }
 
+  email(): string | null {
+    if (this.emails.length > 0) {
+      return this.emails[0].value;
+    } else return null;
+  }
+
   static fromJson(json: any): ThirdPartyUser | ValidationError {
     const validator = new Validator(json);
     validator.requiredString("provider");

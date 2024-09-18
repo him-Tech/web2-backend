@@ -26,6 +26,14 @@ export class User implements Express.User {
     this.role = role;
   }
 
+  email(): string | null {
+    if (this.data instanceof LocalUser) {
+      return this.data.email;
+    } else {
+      return this.data.email() ?? null;
+    }
+  }
+
   static fromRaw(row: any, owner: Owner | null = null): User | ValidationError {
     const validator = new Validator(row);
     validator.requiredNumber("id");

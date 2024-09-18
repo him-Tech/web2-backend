@@ -1,35 +1,35 @@
 import { setupTestDB } from "../jest.setup";
-import { Company, CompanyAddressId, CompanyId, UserId } from "../../model";
+import { Company, AddressId, CompanyId, UserId } from "../../model";
 import { Fixture } from "./Fixture";
 import {
-  getCompanyAddressRepository,
+  getAddressRepository,
   getCompanyRepository,
   getUserRepository,
 } from "../../db/";
-import { CreateCompanyAddressDto, CreateCompanyDto } from "../../dtos";
+import { CreateAddressDto, CreateCompanyDto } from "../../dtos";
 
 describe("CompanyRepository", () => {
-  const companyAddressRepo = getCompanyAddressRepository();
+  const addressRepo = getAddressRepository();
   const userRepo = getUserRepository();
   const companyRepo = getCompanyRepository();
 
   setupTestDB();
 
-  let validCompanyAddressId: CompanyAddressId;
+  let validAddressId: AddressId;
   let validUserId: UserId;
   let validUserId2: UserId;
 
   beforeEach(async () => {
     const addressDto = {
-      companyName: "Valid Address",
-      streetAddress1: "123 Test St",
+      name: "Valid Address",
+      line1: "123 Test St",
       city: "Test City",
-      stateProvince: "Test State",
+      state: "Test State",
       postalCode: "12345",
       country: "Test Country",
-    } as CreateCompanyAddressDto;
-    const address = await companyAddressRepo.create(addressDto);
-    validCompanyAddressId = address.id;
+    } as CreateAddressDto;
+    const address = await addressRepo.create(addressDto);
+    validAddressId = address.id;
 
     const validUser = await userRepo.insertLocal(Fixture.createUserDto());
     validUserId = validUser.id;
@@ -58,7 +58,7 @@ describe("CompanyRepository", () => {
         taxId: "12345",
         name: "Initial Company",
         contactPersonId: validUserId,
-        addressId: validCompanyAddressId,
+        addressId: validAddressId,
       } as CreateCompanyDto;
 
       const created = await companyRepo.insert(initialCompany);
@@ -85,7 +85,7 @@ describe("CompanyRepository", () => {
         taxId: "123456",
         name: "Company A",
         contactPersonId: validUserId,
-        addressId: validCompanyAddressId,
+        addressId: validAddressId,
       } as CreateCompanyDto);
 
       const updatedCompany = new Company(
@@ -93,7 +93,7 @@ describe("CompanyRepository", () => {
         "00000",
         "Company B",
         validUserId,
-        validCompanyAddressId,
+        validAddressId,
       );
 
       const updated = await companyRepo.update(updatedCompany);
@@ -110,7 +110,7 @@ describe("CompanyRepository", () => {
         taxId: "123456",
         name: "Company A",
         contactPersonId: validUserId, // Initial contact person
-        addressId: validCompanyAddressId,
+        addressId: validAddressId,
       } as CreateCompanyDto);
 
       // Create a new Company object with a different contact person ID

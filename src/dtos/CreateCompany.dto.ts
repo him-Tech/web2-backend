@@ -1,8 +1,8 @@
-import { CompanyAddressId, UserId } from "../model";
+import { AddressId, UserId } from "../model";
 
 export interface CreateCompanyDto {
   taxId: string | null;
   name: string | null;
   contactPersonId: UserId | null;
-  addressId: CompanyAddressId | null;
+  addressId: AddressId | null;
 }

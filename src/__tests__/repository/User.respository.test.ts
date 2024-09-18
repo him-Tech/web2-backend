@@ -146,7 +146,7 @@ describe("UserRepository", () => {
 
       expect(created.role).toBe(UserRole.user);
 
-      const found = await repo.findOne(thirdPartyUser.emails[0].value);
+      const found = await repo.findOne(thirdPartyUser.email()!);
       expect(found).toEqual(created);
     });
 

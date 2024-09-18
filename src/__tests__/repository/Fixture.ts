@@ -1,7 +1,7 @@
 import {
   Company,
-  CompanyAddress,
-  CompanyAddressId,
+  Address,
+  AddressId,
   CompanyId,
   Email,
   GithubData,
@@ -16,7 +16,7 @@ import {
   ThirdPartyUser,
   ThirdPartyUserId,
 } from "../../model";
-import { CreateCompanyAddressDto } from "../../dtos/CreateCompanyAddress.dto";
+import { CreateAddressDto } from "../../dtos/CreateAddressDto";
 import { CreateCompanyDto, CreateLocalUserDto } from "../../dtos";
 
 export const Fixture = {
@@ -81,9 +81,9 @@ export const Fixture = {
       "body",
     );
   },
-  companyAddress(addressId: number): CompanyAddress {
-    return new CompanyAddress(
-      new CompanyAddressId(addressId),
+  address(addressId: number): Address {
+    return new Address(
+      new AddressId(addressId),
       null,
       null,
       null,
@@ -93,17 +93,14 @@ export const Fixture = {
       null,
     );
   },
-  companyAddressFromDto(
-    addressId: number,
-    dto: CreateCompanyAddressDto,
-  ): CompanyAddress {
-    return new CompanyAddress(
-      new CompanyAddressId(addressId),
-      dto.companyName ?? null,
-      dto.streetAddress1 ?? null,
-      dto.streetAddress2 ?? null,
+  addressFromDto(addressId: number, dto: CreateAddressDto): Address {
+    return new Address(
+      new AddressId(addressId),
+      dto.name ?? null,
+      dto.line1 ?? null,
+      dto.line2 ?? null,
       dto.city ?? null,
-      dto.stateProvince ?? null,
+      dto.state ?? null,
       dto.postalCode ?? null,
       dto.country ?? null,
     );
@@ -118,7 +115,7 @@ export const Fixture = {
       null,
       null,
       contactPersonId !== null ? new OwnerId(contactPersonId) : null,
-      addressId !== null ? new CompanyAddressId(addressId) : null,
+      addressId !== null ? new AddressId(addressId) : null,
     );
   },
   companyFromDto(companyId: number, dto: CreateCompanyDto): Company {

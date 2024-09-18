@@ -8,6 +8,7 @@ export const setupTestDB = () => {
 
   beforeEach(async () => {
     try {
+      await migration.drop();
       await migration.migrate();
     } catch (error) {
       console.error("Error during migration in beforeAll: ", error);

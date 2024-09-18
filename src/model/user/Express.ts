@@ -8,6 +8,7 @@ declare global {
       id: UserId;
       data: LocalUser | ThirdPartyUser;
       role: UserRole;
+      email(): string | null;
     }
   }
 }

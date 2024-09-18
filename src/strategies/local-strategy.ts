@@ -17,7 +17,6 @@ passport.use(
       passwordField: "password",
     },
     async (username, password, done) => {
-      console.log("Strategy: local-login:");
       try {
         const user: User | null = await repo.findOne(username);
         if (!user) {
@@ -52,8 +51,6 @@ passport.use(
       passwordField: "password",
     },
     async (email, password, done) => {
-      console.log("Strategy: local-register:");
-
       try {
         const user: User | null = await repo.findOne(email);
         if (user) {

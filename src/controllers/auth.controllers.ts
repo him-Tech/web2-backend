@@ -4,7 +4,6 @@ import { StatusCodes } from "http-status-codes";
 
 export class AuthController {
   static async status(request: Request, response: Response<User | null>) {
-    console.log("Request.isAuthenticated():", request.isAuthenticated());
     if (request.isAuthenticated()) {
       return response.status(StatusCodes.OK).send(request.user);
     } else {

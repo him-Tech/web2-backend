@@ -1,5 +1,5 @@
 import { UserId } from "./user";
-import { CompanyAddressId } from "./CompanyAddress";
+import { AddressId } from "./Address";
 import { ValidationError, Validator } from "./utils";
 
 export class CompanyId {
@@ -15,14 +15,14 @@ export class Company {
   taxId: string | null;
   name: string | null;
   contactPersonId: UserId | null;
-  addressId: CompanyAddressId | null;
+  addressId: AddressId | null;
 
   constructor(
     id: CompanyId,
     taxId: string | null,
     name: string | null,
     contactPersonId: UserId | null = null,
-    addressId: CompanyAddressId | null = null,
+    addressId: AddressId | null = null,
   ) {
     this.id = id;
     this.taxId = taxId;
@@ -49,7 +49,7 @@ export class Company {
       row.tax_id,
       row.name,
       row.contact_person_id ? new UserId(row.contact_person_id) : null,
-      row.address_id ? new CompanyAddressId(row.address_id) : null,
+      row.address_id ? new AddressId(row.address_id) : null,
     );
   }
 }

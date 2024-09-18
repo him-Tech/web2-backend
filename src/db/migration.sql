@@ -80,10 +80,10 @@ CREATE TABLE IF NOT EXISTS temp_company_address
 (
     id               SERIAL PRIMARY KEY,
     company_name     VARCHAR(255),
-    street_address_1 VARCHAR(255),
-    street_address_2 VARCHAR(255),
+    line_1 VARCHAR(255),
+    line_2 VARCHAR(255),
     city             VARCHAR(100),
-    state_province   VARCHAR(100),
+    state   VARCHAR(100),
     postal_code      VARCHAR(20),
     country          VARCHAR(100)
 );

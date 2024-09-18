@@ -206,7 +206,7 @@ class UserRepositoryImpl implements UserRepository {
           user.provider,
           user.id.id,
           user.providerData.owner.name || null, // Use the owner's name from providerData
-          user.emails.length > 0 ? user.emails[0].value : null,
+          user.email(),
           githubOwner.id.id,
         ],
       );
