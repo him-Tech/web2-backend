@@ -3,6 +3,7 @@ import express from "express";
 import session from "express-session";
 import passport from "passport";
 import v1Routes from "./routes/v1";
+var cors = require("cors");
 
 import { errorHandler } from "./middlewares/errorHandler";
 import "./strategies";
@@ -11,6 +12,16 @@ import { getPool } from "./dbPool";
 export function createApp() {
   const app = express();
   const pgSession = require("connect-pg-simple")(session);
+
+  // TODO: production
+  const corsOptions = {
+    origin: "http://localhost:3000",
+    credentials: true, // access-control-allow-credentials:true
+    optionSuccessStatus: 200,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Add allowed methods
+    allowedHeaders: "Content-Type, Authorization", // Add allowed headers if needed
+  };
+  app.use(cors(corsOptions));
 
   app.use(express.json());
   app.use(

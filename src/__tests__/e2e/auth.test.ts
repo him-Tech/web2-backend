@@ -10,7 +10,8 @@ describe("/api/v1/auth", () => {
 
   it("/api/v1/auth/status should return 401 when not logged in", async () => {
     const response = await request(app).get("/api/v1/auth/status");
-    expect(response.statusCode).toBe(401);
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toEqual({});
   });
 
   it("Login", async () => {
@@ -85,7 +86,8 @@ describe("/api/v1/auth", () => {
         .get("/api/v1/auth/status")
         .set("Cookie", loginResponse.headers["set-cookie"]);
 
-      expect(response.statusCode).toBe(401);
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual({});
     });
 
     it("can logout when not logged-in", async () => {

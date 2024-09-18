@@ -13,7 +13,7 @@ passport.use(
     {
       clientID: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
-      callbackURL: "/api/v1/oauth2/redirect/github",
+      callbackURL: "/api/v1/auth/redirect/github",
       scope: [""],
     },
     async (accessToken, refreshToken, profile, done) => {

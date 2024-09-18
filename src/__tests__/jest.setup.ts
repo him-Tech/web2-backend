@@ -9,7 +9,6 @@ export const setupTestDB = () => {
   beforeEach(async () => {
     try {
       await migration.migrate();
-      // console.log("Migration successful");
     } catch (error) {
       console.error("Error during migration in beforeAll: ", error);
       throw error;
@@ -19,7 +18,6 @@ export const setupTestDB = () => {
   afterEach(async () => {
     try {
       await migration.drop();
-      // console.log("Migration drop successful after tests");
     } catch (error) {
       console.error("Error during migration drop in afterAll: ", error);
       throw error;

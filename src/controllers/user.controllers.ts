@@ -1,10 +1,7 @@
-import { ValidationError, validationResult } from "express-validator";
+import { ValidationError } from "express-validator";
 import { Request, Response } from "express";
-import { CreateLocalUserDto } from "../dtos";
-import { CreateUserQueryParams } from "../types/query-params";
 import { getUserRepository } from "../db/";
 import { User } from "../model";
-import { StatusCodes } from "http-status-codes";
 
 const repo = getUserRepository();
 
