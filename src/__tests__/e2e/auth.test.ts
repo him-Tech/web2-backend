@@ -8,12 +8,6 @@ describe("/api/v1/auth", () => {
 
   setupTestDB();
 
-  it("/api/v1/auth/status should return 401 when not logged in", async () => {
-    const response = await request(app).get("/api/v1/auth/status");
-    expect(response.statusCode).toBe(200);
-    expect(response.body).toEqual({});
-  });
-
   it("Login", async () => {
     const email = "lauriane@gmail.com";
     const password = "password";

@@ -25,6 +25,7 @@ import {
 } from "../../model";
 import { CreateAddressDto } from "../../dtos/CreateAddressDto";
 import { CreateCompanyDto, CreateLocalUserDto } from "../../dtos";
+import { StripePriceId } from "../../model/stripe/StripePrice";
 
 export const Fixture = {
   id(): number {
@@ -161,7 +162,7 @@ export const Fixture = {
       new StripeInvoiceId(invoiceId),
       new StripeCustomerId(customerId),
       new StripeProductId(productId),
-      "100",
+      new StripePriceId("100"),
       100,
     );
   },

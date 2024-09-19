@@ -20,10 +20,10 @@ export class AuthController {
   }
 
   static async logout(request: Request, response: Response) {
-    if (!request.user) return response.send(StatusCodes.OK);
+    if (!request.user) return response.sendStatus(StatusCodes.OK);
     request.logout((err) => {
       if (err) return response.sendStatus(StatusCodes.BAD_REQUEST);
-      response.send(StatusCodes.OK);
+      response.sendStatus(StatusCodes.OK);
     });
   }
 }

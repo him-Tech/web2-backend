@@ -19,6 +19,7 @@ import {
   getUserRepository,
 } from "../../../db";
 import { CreateCompanyDto } from "../../../dtos";
+import { StripePriceId } from "../../../model/stripe/StripePrice";
 
 describe("StripeInvoiceRepository", () => {
   setupTestDB();
@@ -96,7 +97,7 @@ describe("StripeInvoiceRepository", () => {
           new StripeInvoiceId(invoiceId),
           new StripeCustomerId(customerId),
           new StripeProductId(productId),
-          "priceId",
+          new StripePriceId("priceId"),
           -1, // This should cause an error
         ),
       ];

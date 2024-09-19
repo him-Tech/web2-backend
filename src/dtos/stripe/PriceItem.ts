@@ -1,4 +1,6 @@
+import { StripePriceId } from "../../model/stripe/StripePrice";
+
 export interface PriceItem {
-  priceId: string;
+  priceId: StripePriceId;
   quantity: number;
 }

@@ -119,7 +119,7 @@ export class ShopController {
   ) {
     const items = [];
     for (const item of req.body.priceItems) {
-      items.push({ price: item.priceId, quantity: item.quantity });
+      items.push({ price: item.priceId.toString(), quantity: item.quantity });
     }
 
     // Create the subscription.
@@ -156,7 +156,7 @@ export class ShopController {
       await stripe.invoiceItems.create({
         customer: req.body.stripeCustomerId.toString(),
         invoice: invoice.id,
-        price: item.priceId,
+        price: item.priceId.toString(),
         quantity: item.quantity,
         // tax_behavior: "exclusive",
         // tax_rates: [taxCalculation.tax_rates[0].id],
