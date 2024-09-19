@@ -3,20 +3,18 @@ import {
   getAddressRepository,
   getStripeCustomerRepository,
   getStripeInvoiceRepository,
+  getStripeProductRepository,
   getUserRepository,
 } from "../db/";
 import { StatusCodes } from "http-status-codes";
 import Stripe from "stripe";
 import { CreateCustomerDto } from "../dtos/CreateCustomer.dto";
-import {
-  StripeCustomer,
-  StripeCustomerId,
-  StripeInvoice,
-  UserId,
-} from "../model";
+import { StripeCustomer, StripeCustomerId, StripeInvoice } from "../model";
 import { ValidationError } from "express-validator";
 import { CreateSubscriptionDto } from "../dtos/CreateSubscription.dto";
 import { CreatePaymentIntentDto } from "../dtos/CreatePaymentIntent.dto";
+import { GetDowPricesResponse } from "../dtos";
+import { ResponseDto } from "../dtos";
 
 // https://github.com/stripe-samples/subscriptions-with-card-and-direct-debit/blob/main/server/node/server.js
 const userRepo = getUserRepository();
@@ -32,10 +30,9 @@ const stripeInvoiceRepo = getStripeInvoiceRepository();
 const stripeCustomerRepo = getStripeCustomerRepository();
 
 const addressRepo = getAddressRepository();
+const stripeProductRepo = getStripeProductRepository();
 
 export class ShopController {
-  static shouldCalculateTax = false;
-
   private static async calculateTax(orderAmount: number, currency: string) {
     const taxCalculation: Stripe.Tax.Calculation =
       await stripe.tax.calculations.create({
@@ -61,6 +58,48 @@ export class ShopController {
       });
 
     return taxCalculation;
+  }
+
+  static async getDowPrices(
+    req: Request,
+    res: Response<ResponseDto<GetDowPricesResponse>>,
+  ) {
+    const products = await stripeProductRepo.getAll();
+
+    // TODO: For the POC, we should have only one product of each type
+    const subscriptionProducts = products.find((p) => p.recurring);
+    const oneTimeProducts = products.find((p) => !p.recurring);
+
+    if (!subscriptionProducts) {
+      throw new Error("No subscription product found");
+    }
+    if (!oneTimeProducts) {
+      throw new Error("No one-time product found");
+    }
+
+    const prices: Stripe.ApiList<Stripe.Price> = await stripe.prices.list({
+      limit: 100,
+    });
+
+    // TODO: For the POC, we should have less than 100 prices
+    if (prices.has_more) {
+      console.warn("More than 100 prices found");
+    }
+
+    const subscriptionPrices: Stripe.Price[] = prices.data.filter((price) => {
+      return price.product === subscriptionProducts.stripeId.toString();
+    });
+
+    const oneTimePrices: Stripe.Price[] = prices.data.filter((price) => {
+      return price.product === oneTimeProducts.stripeId.toString();
+    });
+
+    const response: GetDowPricesResponse = {
+      subscriptionPrices: subscriptionPrices,
+      oneTimePrices: oneTimePrices,
+    };
+
+    res.send({ data: response });
   }
 
   static async createCustomer(

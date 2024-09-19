@@ -128,7 +128,7 @@ export const Fixture = {
   },
 
   stripeProduct(productId: string): StripeProduct {
-    return new StripeProduct(new StripeProductId(productId), "DoW", 1);
+    return new StripeProduct(new StripeProductId(productId), "DoW", 1, false);
   },
 
   stripeInvoice(

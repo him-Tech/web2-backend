@@ -54,7 +54,7 @@ class StripeProductRepositoryImpl implements StripeProductRepository {
 
   async getAll(): Promise<StripeProduct[]> {
     const result = await this.pool.query(`
-        SELECT stripe_id, unit, unit_amount
+        SELECT stripe_id, unit, unit_amount, recurring
         FROM stripe_product
     `);
 
@@ -64,7 +64,7 @@ class StripeProductRepositoryImpl implements StripeProductRepository {
   async getById(id: StripeProductId): Promise<StripeProduct | null> {
     const result = await this.pool.query(
       `
-        SELECT stripe_id, unit, unit_amount
+        SELECT stripe_id, unit, unit_amount, recurring
         FROM stripe_product
         WHERE stripe_id = $1
       `,
@@ -81,11 +81,16 @@ class StripeProductRepositoryImpl implements StripeProductRepository {
       const result = await client.query(
         `
           INSERT INTO stripe_product (
-              stripe_id, unit, unit_amount
-          ) VALUES ($1, $2, $3)
-          RETURNING stripe_id, unit, unit_amount
+              stripe_id, unit, unit_amount, recurring
+          ) VALUES ($1, $2, $3, $4)
+          RETURNING stripe_id, unit, unit_amount, recurring
         `,
-        [product.stripeId.toString(), product.unit, product.unitAmount],
+        [
+          product.stripeId.toString(),
+          product.unit,
+          product.unitAmount,
+          product.recurring,
+        ],
       );
 
       return this.getOneProduct(result.rows);

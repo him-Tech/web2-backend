@@ -51,7 +51,7 @@ describe("StripeProductRepository", () => {
     it("should return a product by ID", async () => {
       const productId = new StripeProductId("1");
 
-      const product = new StripeProduct(productId, "DoW", 1);
+      const product = Fixture.stripeProduct(productId.toString());
 
       await productRepo.insert(product);
 

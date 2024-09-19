@@ -135,6 +135,7 @@ CREATE TABLE IF NOT EXISTS stripe_product
     stripe_id   VARCHAR(50) PRIMARY KEY,
     unit        VARCHAR(50) NOT NULL, -- 'DoW'
     unit_amount INTEGER     NOT NULL,
+    recurring   BOOLEAN     NOT NULL,
 
     CONSTRAINT positive_quantity CHECK (unit_amount > 0)
 );
