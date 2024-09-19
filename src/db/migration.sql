@@ -76,16 +76,16 @@ CREATE TABLE IF NOT EXISTS "app_user"
         )
 );
 
-CREATE TABLE IF NOT EXISTS temp_company_address
+CREATE TABLE IF NOT EXISTS address
 (
-    id               SERIAL PRIMARY KEY,
-    company_name     VARCHAR(255),
-    line_1 VARCHAR(255),
-    line_2 VARCHAR(255),
-    city             VARCHAR(100),
-    state   VARCHAR(100),
-    postal_code      VARCHAR(20),
-    country          VARCHAR(100)
+    id          SERIAL PRIMARY KEY,
+    name        VARCHAR(255),
+    line_1      VARCHAR(255),
+    line_2      VARCHAR(255),
+    city        VARCHAR(100),
+    state       VARCHAR(100),
+    postal_code VARCHAR(20),
+    country     VARCHAR(100)
 );
 
 CREATE TABLE IF NOT EXISTS company
@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS company
     name              VARCHAR(255),
     contact_person_id INTEGER,
     address_id        INTEGER,
-    CONSTRAINT fk_address FOREIGN KEY (address_id) REFERENCES temp_company_address (id) ON DELETE RESTRICT
+    CONSTRAINT fk_address FOREIGN KEY (address_id) REFERENCES address (id) ON DELETE RESTRICT
     -- Foreign key constraints for contact persons will be added later
 );
 
@@ -111,4 +111,65 @@ CREATE TABLE IF NOT EXISTS user_company
 );
 
 ALTER TABLE company
-    ADD CONSTRAINT fk_contact_person_user FOREIGN KEY (contact_person_id, id) REFERENCES user_company (user_id, company_id) ON DELETE SET NULL
+    ADD CONSTRAINT fk_contact_person_user FOREIGN KEY (contact_person_id, id) REFERENCES user_company (user_id, company_id) ON DELETE SET NULL;
+
+---------------------
+--- Stripe tables ---
+---------------------
+
+CREATE TABLE IF NOT EXISTS stripe_customer
+(
+    id         SERIAL,
+    stripe_id  VARCHAR(50) PRIMARY KEY,
+    user_id    INTEGER NOT NULL,
+    company_id INTEGER,
+
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES "app_user" (id) ON DELETE CASCADE,
+    CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES "company" (id) ON DELETE CASCADE
+);
+
+-- example: represent the product 0.01 DoW
+CREATE TABLE IF NOT EXISTS stripe_product
+(
+    id          SERIAL,
+    stripe_id   VARCHAR(50) PRIMARY KEY,
+    unit        VARCHAR(50) NOT NULL, -- 'DoW'
+    unit_amount INTEGER     NOT NULL,
+
+    CONSTRAINT positive_quantity CHECK (unit_amount > 0)
+);
+
+CREATE TABLE IF NOT EXISTS stripe_invoice
+(
+    id                 SERIAL,
+    stripe_id          VARCHAR(50) PRIMARY KEY,
+    customer_id        VARCHAR(50)    NOT NULL,
+    paid               BOOLEAN        NOT NULL,
+    account_country    VARCHAR(255)   NOT NULL,
+    currency           VARCHAR(10)    NOT NULL,
+    total              NUMERIC(10, 2) NOT NULL,
+    total_excl_tax     NUMERIC(10, 2) NOT NULL,
+    subtotal           NUMERIC(10, 2) NOT NULL,
+    subtotal_excl_tax  NUMERIC(10, 2) NOT NULL,
+    hosted_invoice_url TEXT           NOT NULL,
+    invoice_pdf        TEXT           NOT NULL,
+    CONSTRAINT fk_customer FOREIGN KEY (customer_id) REFERENCES stripe_customer (stripe_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS stripe_invoice_line
+(
+    id          SERIAL,
+    stripe_id   VARCHAR(50) PRIMARY KEY,
+    invoice_id  VARCHAR(50) NOT NULL,
+    customer_id VARCHAR(50) NOT NULL,
+    product_id  VARCHAR(50) NOT NULL,
+    price_id    VARCHAR(50) NOT NULL,
+    quantity    INTEGER     NOT NULL, -- Quantity of the product
+
+    CONSTRAINT fk_invoice FOREIGN KEY (invoice_id) REFERENCES stripe_invoice (stripe_id) ON DELETE CASCADE,
+    CONSTRAINT fk_customer FOREIGN KEY (customer_id) REFERENCES stripe_customer (stripe_id) ON DELETE CASCADE,
+    CONSTRAINT fk_product FOREIGN KEY (product_id) REFERENCES stripe_product (stripe_id) ON DELETE CASCADE,
+
+    CONSTRAINT positive_quantity CHECK (quantity > 0)
+);
+
