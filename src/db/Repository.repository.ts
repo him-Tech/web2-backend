@@ -8,7 +8,7 @@ export function getRepositoryRepository(): RepositoryRepository {
 }
 
 export interface RepositoryRepository {
-  insert(repository: Repository): Promise<Repository>;
+  insertOrUpdate(repository: Repository): Promise<Repository>;
   getById(id: RepositoryId): Promise<Repository | null>;
   getAll(): Promise<Repository[]>;
 }
@@ -67,15 +67,21 @@ class RepositoryRepositoryImpl implements RepositoryRepository {
     return this.getOptionalRepository(result.rows);
   }
 
-  async insert(repository: Repository): Promise<Repository> {
+  async insertOrUpdate(repository: Repository): Promise<Repository> {
     const client = await this.pool.connect();
     try {
       const result = await client.query(
         `
-        INSERT INTO github_repository (github_id, github_owner_id, github_owner_login, github_name, github_html_url, github_description)
-        VALUES ($1, $2, $3, $4, $5, $6) 
-        RETURNING github_id, github_owner_id, github_owner_login, github_name, github_id, github_html_url, github_description
-        `,
+            INSERT INTO github_repository (github_id, github_owner_id, github_owner_login, github_name, github_html_url, github_description)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT (github_id) DO UPDATE
+              SET github_owner_id = EXCLUDED.github_owner_id,
+                  github_owner_login = EXCLUDED.github_owner_login,
+                  github_name = EXCLUDED.github_name,
+                  github_html_url = EXCLUDED.github_html_url,
+                  github_description = EXCLUDED.github_description
+            RETURNING github_id, github_owner_id, github_owner_login, github_name, github_html_url, github_description
+          `,
         [
           repository.id.githubId,
           repository.id.ownerId.githubId,

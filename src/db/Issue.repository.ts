@@ -81,22 +81,37 @@ class IssueRepositoryImpl implements IssueRepository {
 
     try {
       const query = `
-                INSERT INTO github_issue (github_id,
-                                          github_owner_id,
-                                          github_owner_login,
-                                          github_repository_id,
-                                          github_repository_name,
-                                          github_number,
-                                          github_title,
-                                          github_html_url,
-                                          github_created_at,
-                                          github_closed_at,
-                                          github_open_by_owner_id,
-                                          github_open_by_owner_login,
-                                          github_body)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-                RETURNING *;
-            `;
+        INSERT INTO github_issue (
+          github_id,
+          github_owner_id,
+          github_owner_login,
+          github_repository_id,
+          github_repository_name,
+          github_number,
+          github_title,
+          github_html_url,
+          github_created_at,
+          github_closed_at,
+          github_open_by_owner_id,
+          github_open_by_owner_login,
+          github_body
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        ON CONFLICT (github_owner_login, github_repository_name, github_number) DO UPDATE
+          SET
+            github_id = EXCLUDED.github_id,
+            github_owner_id = EXCLUDED.github_owner_id,
+            github_owner_login = EXCLUDED.github_owner_login,
+            github_repository_name = EXCLUDED.github_repository_name,
+            github_title = EXCLUDED.github_title,
+            github_html_url = EXCLUDED.github_html_url,
+            github_created_at = EXCLUDED.github_created_at,
+            github_closed_at = EXCLUDED.github_closed_at,
+            github_open_by_owner_id = EXCLUDED.github_open_by_owner_id,
+            github_open_by_owner_login = EXCLUDED.github_open_by_owner_login,
+            github_body = EXCLUDED.github_body
+        RETURNING *;
+      `;
 
       const values = [
         issue.id.githubId,

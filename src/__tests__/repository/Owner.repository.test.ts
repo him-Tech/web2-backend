@@ -9,15 +9,33 @@ describe("OwnerRepository", () => {
   const repo = getOwnerRepository();
 
   describe("create", () => {
-    it("should work", async () => {
-      const ownerId = Fixture.ownerId();
-      const owner = Fixture.owner(ownerId);
-      const created = await repo.insert(owner);
+    describe("insert", () => {
+      it("should work", async () => {
+        const ownerId = Fixture.ownerId();
+        const owner = Fixture.owner(ownerId);
+        const created = await repo.insertOrUpdate(owner);
 
-      expect(created).toEqual(owner);
+        expect(created).toEqual(owner);
 
-      const found = await repo.getById(owner.id);
-      expect(found).toEqual(owner);
+        const found = await repo.getById(owner.id);
+        expect(found).toEqual(owner);
+      });
+    });
+
+    describe("update", () => {
+      it("should work", async () => {
+        const ownerId = Fixture.ownerId();
+        const owner = Fixture.owner(ownerId);
+        await repo.insertOrUpdate(owner);
+
+        const updatedOwner = Fixture.owner(ownerId, "updated-payload");
+        const updated = await repo.insertOrUpdate(updatedOwner);
+
+        expect(updated).toEqual(updatedOwner);
+
+        const found = await repo.getById(owner.id);
+        expect(found).toEqual(updatedOwner);
+      });
     });
   });
 
@@ -32,7 +50,7 @@ describe("OwnerRepository", () => {
     it("succeed when github ids are not given", async () => {
       const ownerId = Fixture.ownerId();
       const owner = Fixture.owner(ownerId);
-      await repo.insert(owner);
+      await repo.insertOrUpdate(owner);
 
       const undefinedOwnerId = new OwnerId(ownerId.login, undefined);
 
@@ -49,8 +67,8 @@ describe("OwnerRepository", () => {
       const owner1 = Fixture.owner(ownerId1, "payload1");
       const owner2 = Fixture.owner(ownerId2, "payload2");
 
-      await repo.insert(owner1);
-      await repo.insert(owner2);
+      await repo.insertOrUpdate(owner1);
+      await repo.insertOrUpdate(owner2);
 
       const allOwners = await repo.getAll();
 

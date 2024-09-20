@@ -18,40 +18,63 @@ describe("IssueRepository", () => {
   const repoRepo = getRepositoryRepository();
   const issueRepo = getIssueRepository();
 
-  describe("create", () => {
-    it("should work", async () => {
-      const ownerId = Fixture.ownerId();
-      await ownerRepo.insert(Fixture.owner(ownerId));
+  describe("insertOrUpdate", () => {
+    describe("insert", () => {
+      it("should work", async () => {
+        const ownerId = Fixture.ownerId();
+        await ownerRepo.insertOrUpdate(Fixture.owner(ownerId));
 
-      const repositoryId = Fixture.repositoryId(ownerId);
-      await repoRepo.insert(Fixture.repository(repositoryId));
+        const repositoryId = Fixture.repositoryId(ownerId);
+        await repoRepo.insertOrUpdate(Fixture.repository(repositoryId));
 
-      const issueId = Fixture.issueId(repositoryId);
-      const issue = Fixture.issue(issueId, ownerId);
-      const created = await issueRepo.insert(issue);
-      expect(created).toEqual(issue);
+        const issueId = Fixture.issueId(repositoryId);
+        const issue = Fixture.issue(issueId, ownerId);
+        const created = await issueRepo.insert(issue);
+        expect(created).toEqual(issue);
 
-      const found = await issueRepo.getById(issue.id);
-      expect(found).toEqual(issue);
+        const found = await issueRepo.getById(issue.id);
+        expect(found).toEqual(issue);
+      });
+
+      it("should fail with foreign key constraint error if repository or owner is not inserted", async () => {
+        const ownerId = Fixture.ownerId();
+        const repositoryId = Fixture.repositoryId(ownerId);
+
+        const issueId = Fixture.issueId(repositoryId);
+        const issue = Fixture.issue(issueId, ownerId);
+
+        try {
+          await issueRepo.insert(issue);
+          // If the insertion doesn't throw, fail the test
+          fail(
+            "Expected foreign key constraint violation, but no error was thrown.",
+          );
+        } catch (error: any) {
+          // Check if the error is related to foreign key constraint
+          expect(error.message).toMatch(/violates foreign key constraint/);
+        }
+      });
     });
 
-    it("should fail with foreign key constraint error if repository or owner is not inserted", async () => {
-      const ownerId = Fixture.ownerId();
-      const repositoryId = Fixture.repositoryId(ownerId);
+    describe("update", () => {
+      it("should work", async () => {
+        const ownerId = Fixture.ownerId();
+        await ownerRepo.insertOrUpdate(Fixture.owner(ownerId));
 
-      const issueId = Fixture.issueId(repositoryId);
-      const issue = Fixture.issue(issueId, ownerId);
+        const repositoryId = Fixture.repositoryId(ownerId);
+        await repoRepo.insertOrUpdate(Fixture.repository(repositoryId));
 
-      try {
+        const issueId = Fixture.issueId(repositoryId);
+        const issue = Fixture.issue(issueId, ownerId);
         await issueRepo.insert(issue);
-        // If the insertion doesn't throw, fail the test
-        fail(
-          "Expected foreign key constraint violation, but no error was thrown.",
-        );
-      } catch (error: any) {
-        // Check if the error is related to foreign key constraint
-        expect(error.message).toMatch(/violates foreign key constraint/);
-      }
+
+        const updatedIssue = Fixture.issue(issueId, ownerId, "updated-payload");
+        const updated = await issueRepo.insert(updatedIssue);
+        expect(updated).toEqual(updatedIssue);
+
+        const found = await issueRepo.getById(issue.id);
+        expect(found).toEqual(updatedIssue);
+      });
     });
   });
 
@@ -68,10 +91,10 @@ describe("IssueRepository", () => {
 
     it("succeed when github ids are not given", async () => {
       const ownerId = Fixture.ownerId();
-      await ownerRepo.insert(Fixture.owner(ownerId));
+      await ownerRepo.insertOrUpdate(Fixture.owner(ownerId));
 
       const repositoryId = Fixture.repositoryId(ownerId);
-      await repoRepo.insert(Fixture.repository(repositoryId));
+      await repoRepo.insertOrUpdate(Fixture.repository(repositoryId));
 
       const issueId = Fixture.issueId(repositoryId);
       const issue = Fixture.issue(issueId, ownerId);
@@ -97,10 +120,10 @@ describe("IssueRepository", () => {
   describe("getAll", () => {
     it("should return all issues", async () => {
       const ownerId = Fixture.ownerId();
-      await ownerRepo.insert(Fixture.owner(ownerId));
+      await ownerRepo.insertOrUpdate(Fixture.owner(ownerId));
 
       const repositoryId = Fixture.repositoryId(ownerId);
-      await repoRepo.insert(Fixture.repository(repositoryId));
+      await repoRepo.insertOrUpdate(Fixture.repository(repositoryId));
 
       const issueId1 = Fixture.issueId(repositoryId);
       const issueId2 = Fixture.issueId(repositoryId);

@@ -82,7 +82,7 @@ export const Fixture = {
     return new IssueId(repositoryId, number, number);
   },
 
-  issue(issueId: IssueId, openByOwnerId: OwnerId): Issue {
+  issue(issueId: IssueId, openByOwnerId: OwnerId, payload = "payload"): Issue {
     return new Issue(
       issueId,
       "issue title",
@@ -90,7 +90,7 @@ export const Fixture = {
       new Date("2022-01-01T00:00:00.000Z"),
       null,
       openByOwnerId,
-      "body",
+      payload,
     );
   },
   address(addressId: number): Address {
