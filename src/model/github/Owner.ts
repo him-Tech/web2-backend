@@ -1,4 +1,4 @@
-import { ValidationError, Validator } from "./utils";
+import { ValidationError, Validator } from "../utils";
 
 export class OwnerId {
   login: string;

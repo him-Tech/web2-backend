@@ -1,5 +1,5 @@
 import e from "express";
-import { OwnerType } from "../Owner";
+import { OwnerType } from "../github/Owner";
 
 export class ValidationError extends Error {
   constructor(message: string, data: any) {

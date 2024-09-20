@@ -1,13 +1,13 @@
 import { type Express } from "express";
-import { createApp } from "../../createApp";
-import { setupTestDB } from "../jest.setup";
-import { Fixture } from "./Fixture";
+import { createApp } from "../../../createApp";
+import { setupTestDB } from "../../jest.setup";
+import { Fixture } from "../Fixture";
 import {
   getIssueRepository,
   getOwnerRepository,
   getRepositoryRepository,
-} from "../../db/";
-import { IssueId, OwnerId, RepositoryId } from "../../model";
+} from "../../../db";
+import { IssueId, OwnerId, RepositoryId } from "../../../model";
 
 describe("IssueRepository", () => {
   let app: Express = createApp();

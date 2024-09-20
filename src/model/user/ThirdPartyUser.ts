@@ -1,4 +1,4 @@
-import { Owner } from "../Owner";
+import { Owner } from "../github/Owner";
 import { ValidationError, Validator } from "../utils";
 
 export class ThirdPartyUserId {

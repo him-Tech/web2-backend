@@ -1,8 +1,8 @@
-import { setupTestDB } from "../jest.setup";
-import { IssueId, OwnerId, RepositoryId } from "../../model";
-import { Fixture } from "./Fixture";
-import { getOwnerRepository } from "../../db/Owner.repository";
-import { getRepositoryRepository } from "../../db/Repository.repository";
+import { setupTestDB } from "../../jest.setup";
+import { IssueId, OwnerId, RepositoryId } from "../../../model";
+import { Fixture } from "../Fixture";
+import { getOwnerRepository } from "../../../db/github/Owner.repository";
+import { getRepositoryRepository } from "../../../db/github/Repository.repository";
 
 describe("RepositoryRepository", () => {
   const ownerRepo = getOwnerRepository();

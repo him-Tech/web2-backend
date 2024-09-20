@@ -1,7 +1,7 @@
-import { setupTestDB } from "../jest.setup";
-import { getOwnerRepository } from "../../db/";
-import { Fixture } from "./Fixture";
-import { OwnerId } from "../../model";
+import { setupTestDB } from "../../jest.setup";
+import { getOwnerRepository } from "../../../db";
+import { Fixture } from "../Fixture";
+import { OwnerId } from "../../../model";
 
 describe("OwnerRepository", () => {
   setupTestDB();
