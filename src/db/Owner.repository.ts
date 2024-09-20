@@ -1,5 +1,5 @@
 import { Pool } from "pg";
-import { Owner, OwnerId } from "../model";
+import { Owner, OwnerId, Repository, RepositoryId } from "../model";
 import { getPool } from "../dbPool";
 
 export function getOwnerRepository(): OwnerRepository {
@@ -10,7 +10,6 @@ export interface OwnerRepository {
   insert(owner: Owner): Promise<Owner>;
   getById(id: OwnerId): Promise<Owner | null>;
   getAll(): Promise<Owner[]>;
-  findOne(githubLogin: string): Promise<Owner | null>;
 }
 
 class OwnerRepositoryImpl implements OwnerRepository {
@@ -63,14 +62,8 @@ class OwnerRepositoryImpl implements OwnerRepository {
   }
 
   async getById(id: OwnerId): Promise<Owner | null> {
-    const result = await this.pool.query(
-      `
-            SELECT github_id, github_type, github_login, github_html_url, github_avatar_url 
-            FROM github_owner
-            WHERE github_id = $1
-        `,
-      [id.id],
-    );
+    const query = `SELECT * FROM github_owner WHERE github_login = $1`;
+    const result = await this.pool.query(query, [id.login]);
 
     return this.getOptionalOwner(result.rows);
   }
@@ -82,29 +75,22 @@ class OwnerRepositoryImpl implements OwnerRepository {
     try {
       const result = await client.query(
         `
-                INSERT INTO github_owner (github_id, github_type, github_login, github_html_url, github_avatar_url)
+                INSERT INTO github_owner (github_id, github_login, github_type, github_html_url, github_avatar_url)
                 VALUES ($1, $2, $3, $4, $5) 
-                RETURNING github_id, github_type, github_login, github_html_url, github_avatar_url
+                RETURNING github_id, github_login, github_type, github_html_url, github_avatar_url
             `,
-        [owner.id.id, owner.type, owner.name, owner.htmlUrl, owner.avatarUrl],
+        [
+          owner.id.githubId,
+          owner.id.login,
+          owner.type,
+          owner.htmlUrl,
+          owner.avatarUrl,
+        ],
       );
 
       return this.getOneOwner(result.rows);
     } finally {
       client.release();
     }
-  }
-
-  async findOne(githubLogin: string): Promise<Owner | null> {
-    const result = await this.pool.query(
-      `
-            SELECT github_id, github_type, github_login, github_html_url, github_avatar_url 
-            FROM github_owner
-            WHERE github_login = $1
-        `,
-      [githubLogin],
-    );
-
-    return this.getOptionalOwner(result.rows);
   }
 }

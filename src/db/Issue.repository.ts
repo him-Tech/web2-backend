@@ -1,6 +1,7 @@
 import { Pool } from "pg";
 import { Issue, IssueId } from "../model";
 import { getPool } from "../dbPool";
+import { ValidationError } from "../model/utils";
 
 export function getIssueRepository(): IssueRepository {
   return new IssueRepositoryImpl(getPool());
@@ -8,7 +9,9 @@ export function getIssueRepository(): IssueRepository {
 
 export interface IssueRepository {
   insert(issue: Issue): Promise<Issue>;
+
   getById(id: IssueId): Promise<Issue | null>;
+
   getAll(): Promise<Issue[]>;
 }
 
@@ -35,7 +38,7 @@ class IssueRepositoryImpl implements IssueRepository {
       throw new Error("Multiple issues found");
     } else {
       const issue = Issue.fromBackend(rows[0]);
-      if (issue instanceof Error) {
+      if (issue instanceof ValidationError) {
         throw issue;
       }
       return issue;
@@ -45,7 +48,7 @@ class IssueRepositoryImpl implements IssueRepository {
   private getIssueList(rows: any[]): Issue[] {
     return rows.map((r) => {
       const issue = Issue.fromBackend(r);
-      if (issue instanceof Error) {
+      if (issue instanceof ValidationError) {
         throw issue;
       }
       return issue;
@@ -53,23 +56,22 @@ class IssueRepositoryImpl implements IssueRepository {
   }
 
   async getAll(): Promise<Issue[]> {
-    const result = await this.pool.query(`
-            SELECT github_id, github_number, github_repository_id, github_title, github_body, github_open_by_owner_id, github_html_url, github_created_at, github_closed_at
-            FROM github_issue
-        `);
+    const query = `SELECT *
+                       FROM github_issue;`;
+    const result = await this.pool.query(query);
 
     return this.getIssueList(result.rows);
   }
 
   async getById(id: IssueId): Promise<Issue | null> {
-    const result = await this.pool.query(
-      `
-            SELECT github_id, github_number, github_repository_id, github_title, github_body, github_open_by_owner_id, github_html_url, github_created_at, github_closed_at
-            FROM github_issue
-            WHERE github_id = $1 AND github_number = $2
-        `,
-      [id.id, id.number],
-    );
+    const query = `SELECT *
+                       FROM github_issue
+                       WHERE github_owner_login = $1 AND github_repository_name = $2 AND github_number = $3;`;
+    const result = await this.pool.query(query, [
+      id.repositoryId.ownerId.login,
+      id.repositoryId.name,
+      id.number,
+    ]);
 
     return this.getOptionalIssue(result.rows);
   }
@@ -78,25 +80,41 @@ class IssueRepositoryImpl implements IssueRepository {
     const client = await this.pool.connect();
 
     try {
-      const result = await client.query(
-        `
-                INSERT INTO github_issue (
-                    github_id, github_number, github_repository_id, github_title, github_body, github_open_by_owner_id, github_html_url, github_created_at, github_closed_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                RETURNING github_id, github_number, github_repository_id, github_title, github_body, github_open_by_owner_id, github_html_url, github_created_at, github_closed_at
-            `,
-        [
-          issue.id.id,
-          issue.id.number,
-          issue.repositoryId.id,
-          issue.title,
-          issue.body,
-          issue.openBy.id,
-          issue.htmlUrl,
-          issue.createdAt.toISOString(),
-          issue.closedAt?.toISOString() || null,
-        ],
-      );
+      const query = `
+                INSERT INTO github_issue (github_id,
+                                          github_owner_id,
+                                          github_owner_login,
+                                          github_repository_id,
+                                          github_repository_name,
+                                          github_number,
+                                          github_title,
+                                          github_html_url,
+                                          github_created_at,
+                                          github_closed_at,
+                                          github_open_by_owner_id,
+                                          github_open_by_owner_login,
+                                          github_body)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                RETURNING *;
+            `;
+
+      const values = [
+        issue.id.githubId,
+        issue.id.repositoryId.ownerId.githubId,
+        issue.id.repositoryId.ownerId.login,
+        issue.id.repositoryId.githubId,
+        issue.id.repositoryId.name,
+        issue.id.number,
+        issue.title,
+        issue.htmlUrl,
+        issue.createdAt.toISOString(),
+        issue.closedAt ? issue.closedAt.toISOString() : null,
+        issue.openBy?.githubId,
+        issue.openBy.login,
+        issue.body,
+      ];
+
+      const result = await client.query(query, values);
 
       return this.getOneIssue(result.rows);
     } finally {

@@ -1,55 +1,61 @@
-import { OwnerId } from "./Owner";
 import { ValidationError, Validator } from "./utils";
+import { OwnerId } from "./Owner";
 
 export class RepositoryId {
-  id: number;
+  ownerId: OwnerId;
+  name: string;
+  githubId?: number;
 
-  constructor(id: number) {
-    this.id = id;
+  constructor(ownerId: OwnerId, name: string, githubId?: number) {
+    this.ownerId = ownerId;
+    this.name = name;
+    this.githubId = githubId;
   }
 
   static fromGithubApi(json: any): RepositoryId | ValidationError {
     const validator = new Validator(json);
-    validator.requiredNumber("id");
+    const name = validator.requiredString("name");
+    const id = validator.requiredNumber("id");
+
+    const ownerId = OwnerId.fromGithubApi(json.owner);
+    if (ownerId instanceof ValidationError) {
+      return ownerId;
+    }
 
     const error = validator.getFirstError();
     if (error) {
       return error;
     }
 
-    return new RepositoryId(json.id);
+    return new RepositoryId(ownerId, name, id);
   }
 
   static fromBackend(json: any): RepositoryId | ValidationError {
     const validator = new Validator(json);
-    validator.requiredNumber("github_id");
+    const ownerGithubId = validator.requiredNumber("github_owner_id");
+    const ownerGithubLogin = validator.requiredString("github_owner_login");
+
+    const name = validator.requiredString("github_name");
+    const githubId = validator.requiredNumber("github_id");
+
+    const ownerId = new OwnerId(ownerGithubLogin, ownerGithubId);
 
     const error = validator.getFirstError();
     if (error) {
       return error;
     }
 
-    return new RepositoryId(json.github_id);
+    return new RepositoryId(ownerId, name, githubId);
   }
 }
 
 export class Repository {
   id: RepositoryId;
-  ownerId: OwnerId;
-  name: string;
   htmlUrl: string;
-  description: string;
+  description?: string;
 
-  constructor(
-    id: RepositoryId,
-    ownerId: OwnerId,
-    name: string,
-    htmlUrl: string,
-    description: string,
-  ) {
+  constructor(id: RepositoryId, htmlUrl: string, description?: string) {
     this.id = id;
-    this.ownerId = ownerId;
-    this.name = name;
     this.htmlUrl = htmlUrl;
     this.description = description;
   }
@@ -70,30 +76,14 @@ export class Repository {
     }
 
     const validator = new Validator(json);
-    validator.requiredObject("owner");
-    validator.requiredString("name");
-    validator.requiredString("html_url");
-    validator.requiredString("description");
-
-    const ownerId: OwnerId | ValidationError = OwnerId.fromGithubApi(
-      json.owner,
-    );
-    if (ownerId instanceof ValidationError) {
-      return ownerId;
-    }
-
+    const htmlUrl = validator.requiredString("html_url");
+    const description = validator.optionalString("description");
     const error = validator.getFirstError();
     if (error) {
       return error;
     }
 
-    return new Repository(
-      repositoryId,
-      ownerId,
-      json.name,
-      json.html_url,
-      json.description,
-    );
+    return new Repository(repositoryId, htmlUrl, description);
   }
 
   static fromBackend(json: any): Repository | ValidationError {
@@ -103,22 +93,14 @@ export class Repository {
     }
 
     const validator = new Validator(json);
-    validator.requiredNumber("github_owner_id");
-    validator.requiredString("github_name");
-    validator.requiredString("github_html_url");
-    validator.requiredString("github_description");
+    const htmlUrl = validator.requiredString("github_html_url");
+    const description = validator.optionalString("github_description");
 
     const error = validator.getFirstError();
     if (error) {
       return error;
     }
 
-    return new Repository(
-      repositoryId,
-      new OwnerId(json.github_owner_id),
-      json.github_name,
-      json.github_html_url,
-      json.github_description,
-    );
+    return new Repository(repositoryId, htmlUrl, description);
   }
 }

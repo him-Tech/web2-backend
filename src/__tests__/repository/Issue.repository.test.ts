@@ -1,40 +1,34 @@
 import { type Express } from "express";
 import { createApp } from "../../createApp";
 import { setupTestDB } from "../jest.setup";
-import { IssueId } from "../../model";
 import { Fixture } from "./Fixture";
 import {
   getIssueRepository,
   getOwnerRepository,
   getRepositoryRepository,
 } from "../../db/";
+import { IssueId, OwnerId, RepositoryId } from "../../model";
 
 describe("IssueRepository", () => {
   let app: Express = createApp();
 
   setupTestDB();
 
-  const issueRepo = getIssueRepository();
   const ownerRepo = getOwnerRepository();
-  const repo = getRepositoryRepository();
+  const repoRepo = getRepositoryRepository();
+  const issueRepo = getIssueRepository();
 
   describe("create", () => {
     it("should work", async () => {
-      const ownerId = Fixture.id();
-      const repositoryId = Fixture.id();
-
-      // Insert owner and repository before inserting the issue
+      const ownerId = Fixture.ownerId();
       await ownerRepo.insert(Fixture.owner(ownerId));
-      await repo.insert(Fixture.repository(repositoryId, ownerId));
 
-      const issue = Fixture.issue(
-        Fixture.id(),
-        Fixture.id(),
-        repositoryId,
-        ownerId,
-      );
+      const repositoryId = Fixture.repositoryId(ownerId);
+      await repoRepo.insert(Fixture.repository(repositoryId));
+
+      const issueId = Fixture.issueId(repositoryId);
+      const issue = Fixture.issue(issueId, ownerId);
       const created = await issueRepo.insert(issue);
-
       expect(created).toEqual(issue);
 
       const found = await issueRepo.getById(issue.id);
@@ -42,11 +36,11 @@ describe("IssueRepository", () => {
     });
 
     it("should fail with foreign key constraint error if repository or owner is not inserted", async () => {
-      const issueId = Fixture.id();
-      const repositoryId = Fixture.id(); // RepositoryId that does not exist in the database
-      const ownerId = Fixture.id(); // OwnerId that does not exist in the database
+      const ownerId = Fixture.ownerId();
+      const repositoryId = Fixture.repositoryId(ownerId);
 
-      const issue = Fixture.issue(issueId, Fixture.id(), repositoryId, ownerId);
+      const issueId = Fixture.issueId(repositoryId);
+      const issue = Fixture.issue(issueId, ownerId);
 
       try {
         await issueRepo.insert(issue);
@@ -63,33 +57,55 @@ describe("IssueRepository", () => {
 
   describe("getById", () => {
     it("should return null if issue not found", async () => {
-      const nonExistentIssueId = new IssueId(999999, 999999);
+      const ownerId = Fixture.ownerId();
+      const repositoryId = Fixture.repositoryId(ownerId);
+
+      const nonExistentIssueId = Fixture.issueId(repositoryId);
       const found = await issueRepo.getById(nonExistentIssueId);
 
       expect(found).toBeNull();
+    });
+
+    it("succeed when github ids are not given", async () => {
+      const ownerId = Fixture.ownerId();
+      await ownerRepo.insert(Fixture.owner(ownerId));
+
+      const repositoryId = Fixture.repositoryId(ownerId);
+      await repoRepo.insert(Fixture.repository(repositoryId));
+
+      const issueId = Fixture.issueId(repositoryId);
+      const issue = Fixture.issue(issueId, ownerId);
+      await issueRepo.insert(issue);
+
+      const undefinedOwnerId = new OwnerId(ownerId.login, undefined);
+      const undefinedRepositoryId = new RepositoryId(
+        undefinedOwnerId,
+        repositoryId.name,
+        undefined,
+      );
+      const undefinedIssueId = new IssueId(
+        undefinedRepositoryId,
+        issueId.number,
+        undefined,
+      );
+
+      const found = await issueRepo.getById(undefinedIssueId);
+      expect(found).toEqual(issue);
     });
   });
 
   describe("getAll", () => {
     it("should return all issues", async () => {
-      const ownerId = Fixture.id();
-      const repositoryId = Fixture.id();
-
+      const ownerId = Fixture.ownerId();
       await ownerRepo.insert(Fixture.owner(ownerId));
-      await repo.insert(Fixture.repository(repositoryId, ownerId));
 
-      const issue1 = Fixture.issue(
-        Fixture.id(),
-        Fixture.id(),
-        repositoryId,
-        ownerId,
-      );
-      const issue2 = Fixture.issue(
-        Fixture.id(),
-        Fixture.id(),
-        repositoryId,
-        ownerId,
-      );
+      const repositoryId = Fixture.repositoryId(ownerId);
+      await repoRepo.insert(Fixture.repository(repositoryId));
+
+      const issueId1 = Fixture.issueId(repositoryId);
+      const issueId2 = Fixture.issueId(repositoryId);
+      const issue1 = Fixture.issue(issueId1, ownerId);
+      const issue2 = Fixture.issue(issueId2, ownerId);
 
       await issueRepo.insert(issue1);
       await issueRepo.insert(issue2);

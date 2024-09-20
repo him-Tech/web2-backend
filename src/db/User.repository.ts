@@ -180,7 +180,13 @@ class UserRepositoryImpl implements UserRepository {
                 github_avatar_url = EXCLUDED.github_avatar_url
             RETURNING github_id, github_type, github_login, github_html_url, github_avatar_url
             `,
-        [owner.id.id, owner.type, owner.name, owner.htmlUrl, owner.avatarUrl],
+        [
+          owner.id.githubId,
+          owner.type,
+          owner.id.login,
+          owner.htmlUrl,
+          owner.avatarUrl,
+        ],
       );
 
       // TODO: refactor
@@ -205,9 +211,9 @@ class UserRepositoryImpl implements UserRepository {
         [
           user.provider,
           user.id.id,
-          user.providerData.owner.name || null, // Use the owner's name from providerData
+          user.providerData.owner.id.login || null, // Use the owner's name from providerData
           user.email(),
-          githubOwner.id.id,
+          githubOwner.id.githubId,
         ],
       );
 

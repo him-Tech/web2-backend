@@ -1,7 +1,7 @@
 import { setupTestDB } from "../jest.setup";
-import { OwnerId } from "../../model";
-import { getOwnerRepository } from "../../db/OwnerRepository";
+import { getOwnerRepository } from "../../db/";
 import { Fixture } from "./Fixture";
+import { OwnerId } from "../../model";
 
 describe("OwnerRepository", () => {
   setupTestDB();
@@ -10,7 +10,8 @@ describe("OwnerRepository", () => {
 
   describe("create", () => {
     it("should work", async () => {
-      const owner = Fixture.owner(Fixture.id());
+      const ownerId = Fixture.ownerId();
+      const owner = Fixture.owner(ownerId);
       const created = await repo.insert(owner);
 
       expect(created).toEqual(owner);
@@ -22,17 +23,31 @@ describe("OwnerRepository", () => {
 
   describe("getById", () => {
     it("should return null if owner not found", async () => {
-      const nonExistentOwnerId = new OwnerId(999999);
+      const nonExistentOwnerId = Fixture.ownerId();
       const found = await repo.getById(nonExistentOwnerId);
 
       expect(found).toBeNull();
+    });
+
+    it("succeed when github ids are not given", async () => {
+      const ownerId = Fixture.ownerId();
+      const owner = Fixture.owner(ownerId);
+      await repo.insert(owner);
+
+      const undefinedOwnerId = new OwnerId(ownerId.login, undefined);
+
+      const found = await repo.getById(undefinedOwnerId);
+      expect(found).toEqual(owner);
     });
   });
 
   describe("getAll", () => {
     it("should return all owners", async () => {
-      const owner1 = Fixture.owner(Fixture.id(), "payload1");
-      const owner2 = Fixture.owner(Fixture.id(), "payload2");
+      const ownerId1 = Fixture.ownerId();
+      const ownerId2 = Fixture.ownerId();
+
+      const owner1 = Fixture.owner(ownerId1, "payload1");
+      const owner2 = Fixture.owner(ownerId2, "payload2");
 
       await repo.insert(owner1);
       await repo.insert(owner2);
@@ -48,23 +63,6 @@ describe("OwnerRepository", () => {
       const allOwners = await repo.getAll();
 
       expect(allOwners).toEqual([]);
-    });
-  });
-
-  describe("findOne", () => {
-    it("should find an owner by github login", async () => {
-      const owner = Fixture.owner(Fixture.id());
-      await repo.insert(owner);
-
-      const found = await repo.findOne(owner.name);
-
-      expect(found).toEqual(owner);
-    });
-
-    it("should return null if owner not found by github login", async () => {
-      const found = await repo.findOne("nonexistentuser");
-
-      expect(found).toBeNull();
     });
   });
 });

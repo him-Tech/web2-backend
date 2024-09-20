@@ -1,3 +1,6 @@
+import e from "express";
+import { OwnerType } from "../Owner";
+
 export class ValidationError extends Error {
   constructor(message: string, data: any) {
     super(`${message}. Received: ${JSON.stringify(data, null, 2)}`);
@@ -41,8 +44,8 @@ class ObjectValidationError extends FieldValidationError {
 }
 
 class EnumValidationError extends ValidationError {
-  constructor(field: string, data: any, enumType: string) {
-    super(`${field}" is not contained in the ${enumType} enum.`, data);
+  constructor(field: string, data: any, enumType: string[]) {
+    super(`${field}" is not contained in enum type ${enumType}`, data);
   }
 }
 
@@ -52,6 +55,14 @@ export class Validator {
 
   constructor(data: any) {
     this.data = data;
+  }
+
+  private getValue(path: string | string[]): any {
+    if (typeof path === "string") {
+      return this.data[path];
+    } else if (Array.isArray(path)) {
+      return this.getValueFromPath(path);
+    }
   }
 
   private getValueFromPath(path: string[]): any {
@@ -69,23 +80,28 @@ export class Validator {
     return this.errors[0] || null;
   }
 
-  optionalString(field: string): void {
-    const value = this.data[field];
+  optionalString(path: string | string[]): string | undefined {
+    const value = this.getValue(path);
     if (value === undefined || value === null) {
     } else if (typeof value !== "string") {
-      this.errors.push(new StringValidationError(field, this.data));
+      this.errors.push(new StringValidationError(value, this.data));
+    } else {
+      return value;
     }
   }
 
-  requiredString(field: string): void {
-    const value = this.data[field];
+  // @ts-ignore
+  requiredString(path: string | string[]): string {
+    const value = this.getValue(path);
     if (typeof value !== "string") {
-      this.errors.push(new StringValidationError(field, this.data));
+      this.errors.push(new StringValidationError(value, this.data));
+    } else {
+      return value;
     }
   }
 
-  optionalNumber(field: string): void {
-    let value = this.data[field];
+  optionalNumber(path: string | string[]): void {
+    let value = this.getValue(path);
 
     if (typeof value === "string") {
       value = parseFloat(value);
@@ -93,61 +109,61 @@ export class Validator {
 
     if (value === undefined || value === null) {
     } else if (typeof value !== "number") {
-      this.errors.push(new NumberValidationError(this.data, field));
+      this.errors.push(new NumberValidationError(this.data, value));
       return;
     }
   }
 
-  requiredNumber(field: string): void {
-    let value = this.data[field];
+  // @ts-ignore
+  requiredNumber(path: string | string[]): number {
+    let value = this.getValue(path);
 
     if (typeof value === "string") {
       value = parseFloat(value);
     }
 
     if (typeof value !== "number" || isNaN(value)) {
-      this.errors.push(new NumberValidationError(field, this.data));
+      this.errors.push(new NumberValidationError(value, this.data));
+    } else {
+      return value;
     }
   }
 
-  requiredBoolean(field: string): void {
-    const value = this.data[field];
+  requiredBoolean(path: string | string[]): void {
+    const value = this.getValue(path);
     if (typeof value !== "boolean") {
-      this.errors.push(new BooleanValidationError(field, this.data));
+      this.errors.push(new BooleanValidationError(value, this.data));
     }
   }
 
-  optionalObject(field: string): void {
-    const value = this.data[field];
+  optionalObject(path: string | string[]): void {
+    const value = this.getValue(path);
     if (value === undefined || value === null) {
     } else if (typeof value !== "object") {
-      this.errors.push(new ObjectValidationError(field, this.data));
+      this.errors.push(new ObjectValidationError(value, this.data));
     }
   }
 
-  requiredObject(field: string): void {
-    const value = this.data[field];
+  // @ts-ignore
+  requiredObject(path: string | string[]): any {
+    const value = this.getValue(path);
     if (typeof value !== "object") {
-      this.errors.push(new ObjectValidationError(field, this.data));
+      this.errors.push(new ObjectValidationError(value, this.data));
+    } else {
+      return value;
     }
   }
 
-  optionalArray(field: string): void {
-    const value = this.data[field];
+  optionalArray(path: string | string[]): void {
+    const value = this.getValue(path);
     if (value === undefined || value === null) {
     } else if (!Array.isArray(value)) {
-      this.errors.push(new ArrayValidationError(field, this.data));
+      this.errors.push(new ArrayValidationError(value, this.data));
     }
   }
 
   requiredArray(path: string | string[]): void {
-    let value: any;
-
-    if (typeof path === "string") {
-      value = this.data[path];
-    } else if (Array.isArray(path)) {
-      value = this.getValueFromPath(path);
-    }
+    const value = this.getValue(path);
 
     if (!Array.isArray(value)) {
       const p = typeof path === "string" ? path : path.join(".");
@@ -155,11 +171,17 @@ export class Validator {
     }
   }
 
-  requiredEnum(field: string, enumType: any): void {
-    const value = this.data[field];
-    const enumValues = Object.values(enumType);
+  requiredEnum<EnumType extends string>(
+    path: string | string[],
+    enumType: EnumType[],
+    // @ts-ignore
+  ): EnumType {
+    const value = this.getValue(path) as EnumType;
+    const enumValues = Object.values(enumType) as EnumType[];
     if (!enumValues.includes(value)) {
-      this.errors.push(new EnumValidationError(field, value, enumType.name));
+      this.errors.push(new EnumValidationError(value, value, enumType));
+    } else {
+      return value;
     }
   }
 }

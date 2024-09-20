@@ -1,7 +1,7 @@
 import {
-  Company,
   Address,
   AddressId,
+  Company,
   CompanyId,
   Email,
   GithubData,
@@ -22,15 +22,21 @@ import {
   StripeProductId,
   ThirdPartyUser,
   ThirdPartyUserId,
+  UserId,
 } from "../../model";
-import { CreateAddressDto } from "../../dtos/CreateAddressDto";
-import { CreateCompanyDto, CreateLocalUserDto } from "../../dtos";
+import {
+  CreateAddressDto,
+  CreateCompanyDto,
+  CreateLocalUserDto,
+} from "../../dtos";
 import { StripePriceId } from "../../model/stripe/StripePrice";
+import { RepositoryRepository } from "../../db";
 
 export const Fixture = {
   id(): number {
     return Math.floor(Math.random() * 1000000);
   },
+
   thirdPartyUser(
     id: string,
     provider: Provider = Provider.Github,
@@ -40,7 +46,7 @@ export const Fixture = {
       provider,
       new ThirdPartyUserId(id),
       [new Email(email, null)],
-      new GithubData(Fixture.owner(1)),
+      new GithubData(Fixture.owner(Fixture.ownerId())),
     );
   },
   createUserDto(): CreateLocalUserDto {
@@ -50,42 +56,40 @@ export const Fixture = {
     } as CreateLocalUserDto;
   },
 
-  owner(ownerId: number, payload: string = "payload"): Owner {
-    return new Owner(
-      new OwnerId(ownerId),
-      OwnerType.Organization,
-      "Open Source Economy",
-      "url",
-      payload,
-    );
+  ownerId(): OwnerId {
+    const id = this.id();
+    return new OwnerId(`owner-${id.toString()}`, id);
   },
+
+  owner(ownerId: OwnerId, payload: string = "payload"): Owner {
+    return new Owner(ownerId, OwnerType.Organization, "url", payload);
+  },
+
+  repositoryId(ownerId: OwnerId): RepositoryId {
+    const id = this.id();
+    return new RepositoryId(ownerId, `repo-${id.toString()}`, id);
+  },
+
   repository(
-    repositoryId: number,
-    ownerId: number,
+    repositoryId: RepositoryId,
     payload: string = "payload",
   ): Repository {
-    return new Repository(
-      new RepositoryId(repositoryId),
-      new OwnerId(ownerId),
-      "Repository Name",
-      "https://example.com",
-      payload,
-    );
+    return new Repository(repositoryId, "https://example.com", payload);
   },
-  issue(
-    issueId: number,
-    numberId: number,
-    repositoryId: number,
-    openByOwnerId: number,
-  ): Issue {
+
+  issueId(repositoryId: RepositoryId): IssueId {
+    const number = this.id();
+    return new IssueId(repositoryId, number, number);
+  },
+
+  issue(issueId: IssueId, openByOwnerId: OwnerId): Issue {
     return new Issue(
-      new IssueId(issueId, numberId),
-      new RepositoryId(repositoryId),
+      issueId,
       "issue title",
       "url",
       new Date("2022-01-01T00:00:00.000Z"),
       null,
-      new OwnerId(openByOwnerId),
+      openByOwnerId,
       "body",
     );
   },
@@ -113,7 +117,7 @@ export const Fixture = {
       new CompanyId(companyId),
       null,
       null,
-      contactPersonId !== null ? new OwnerId(contactPersonId) : null,
+      contactPersonId !== null ? new UserId(contactPersonId) : null,
       addressId !== null ? new AddressId(addressId) : null,
     );
   },

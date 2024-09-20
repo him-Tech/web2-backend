@@ -2,21 +2,29 @@ CREATE TABLE IF NOT EXISTS github_owner
 (
     id                SERIAL,
     github_id         INTEGER PRIMARY KEY,
+    github_login      VARCHAR(255) NOT NULL UNIQUE,
+
     github_type       VARCHAR(127) NOT NULL,
-    github_login      VARCHAR(255) NOT NULL,
     github_html_url   VARCHAR(510) NOT NULL,
-    github_avatar_url VARCHAR(510) NOT NULL
+    github_avatar_url VARCHAR(510)
 );
 
 CREATE TABLE IF NOT EXISTS github_repository
 (
     id                 SERIAL,
-    github_id          INTEGER PRIMARY KEY,
-    github_owner_id    INTEGER      NOT NULL,
-    github_html_url    VARCHAR(510) NOT NULL,
+    github_id          INTEGER UNIQUE,
+
+    github_owner_id            INTEGER       NOT NULL,
+    github_owner_login         VARCHAR(255)  NOT NULL,
+
     github_name        VARCHAR(255) NOT NULL,
-    github_description VARCHAR(510) NOT NULL,
-    CONSTRAINT fk_github_owner FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT
+
+    github_html_url    VARCHAR(510) NOT NULL,
+    github_description VARCHAR(510),
+    CONSTRAINT pk_github_repository PRIMARY KEY (github_owner_login, github_name),
+
+    CONSTRAINT fk_github_owner_id FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_github_owner_login FOREIGN KEY (github_owner_login) REFERENCES github_owner (github_login) ON DELETE RESTRICT
 );
 
 -- TODO: deal with the date format
@@ -24,19 +32,38 @@ CREATE TABLE IF NOT EXISTS github_repository
 -- github_closed_at TIMESTAMP,
 CREATE TABLE IF NOT EXISTS github_issue
 (
-    id                      SERIAL,
-    github_id               INTEGER PRIMARY KEY,
-    github_number           INTEGER       NOT NULL,
-    github_repository_id    INTEGER       NOT NULL,
-    github_title            VARCHAR(510)  NOT NULL,
-    github_body             VARCHAR(1020) NOT NULL,
-    github_open_by_owner_id INTEGER,
-    github_html_url         VARCHAR(510)  NOT NULL,
-    github_created_at       VARCHAR(510),
-    github_closed_at        VARCHAR(510),
-    CONSTRAINT fk_github_repository FOREIGN KEY (github_repository_id) REFERENCES github_repository (github_id) ON DELETE RESTRICT,
-    CONSTRAINT fk_github_open_by_owner FOREIGN KEY (github_open_by_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT
+    id                         SERIAL,
+    github_id                  INTEGER UNIQUE,
+
+    github_owner_id            INTEGER       NOT NULL,
+    github_owner_login         VARCHAR(255)  NOT NULL,
+
+    github_repository_id       INTEGER       NOT NULL,
+    github_repository_name     VARCHAR(255)  NOT NULL,
+
+    github_number              INTEGER       NOT NULL,
+
+    github_open_by_owner_id    INTEGER,     -- ID of the owner who opened the issue
+    github_open_by_owner_login VARCHAR(255),-- Login of the owner who opened the issue
+
+    github_title               VARCHAR(510)  NOT NULL,
+    github_body                VARCHAR(1020) NOT NULL,
+    github_html_url            VARCHAR(510)  NOT NULL,
+    github_created_at          VARCHAR(510),
+    github_closed_at           VARCHAR(510),
+
+    CONSTRAINT pk_github_issue PRIMARY KEY (github_owner_login, github_repository_name, github_number),
+
+    CONSTRAINT fk_github_owner_id FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_github_owner_login FOREIGN KEY (github_owner_login) REFERENCES github_owner (github_login) ON DELETE RESTRICT,
+
+    CONSTRAINT fk_github_repository_id FOREIGN KEY (github_repository_id) REFERENCES github_repository (github_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_github_repository_name FOREIGN KEY (github_owner_login, github_repository_name) REFERENCES github_repository (github_owner_login, github_name) ON DELETE RESTRICT,
+
+    CONSTRAINT fk_github_open_by_owner_id FOREIGN KEY (github_open_by_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_github_open_by_owner_login FOREIGN KEY (github_open_by_owner_login) REFERENCES github_owner (github_login) ON DELETE RESTRICT
 );
+
 
 -- User authentication tables --
 

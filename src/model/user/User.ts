@@ -40,8 +40,11 @@ export class User implements Express.User {
 
   static fromRaw(row: any, owner: Owner | null = null): User | ValidationError {
     const validator = new Validator(row);
-    validator.requiredNumber("id");
-    validator.requiredString("role");
+    const id = validator.requiredNumber("id");
+    const role = validator.requiredEnum(
+      "role",
+      Object.values(UserRole) as UserRole[],
+    );
 
     const error = validator.getFirstError();
     if (error) {
@@ -62,13 +65,11 @@ export class User implements Express.User {
       return user;
     }
 
-    validator.requiredEnum("role", UserRole);
-
     const enumError = validator.getFirstError();
     if (enumError) {
       return enumError;
     }
 
-    return new User(new UserId(row.id), user, row.role as UserRole);
+    return new User(new UserId(id), user, role);
   }
 }

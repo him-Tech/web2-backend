@@ -1,6 +1,7 @@
 import { Pool } from "pg";
 import { Repository, RepositoryId } from "../model";
 import { getPool } from "../dbPool";
+import { ValidationError } from "../model/utils";
 
 export function getRepositoryRepository(): RepositoryRepository {
   return new RepositoryRepositoryImpl(getPool());
@@ -35,7 +36,7 @@ class RepositoryRepositoryImpl implements RepositoryRepository {
       throw new Error("Multiple repositories found");
     } else {
       const repository = Repository.fromBackend(rows[0]);
-      if (repository instanceof Error) {
+      if (repository instanceof ValidationError) {
         throw repository;
       }
       return repository;
@@ -45,7 +46,7 @@ class RepositoryRepositoryImpl implements RepositoryRepository {
   private getRepositoryList(rows: any[]): Repository[] {
     return rows.map((r) => {
       const repository = Repository.fromBackend(r);
-      if (repository instanceof Error) {
+      if (repository instanceof ValidationError) {
         throw repository;
       }
       return repository;
@@ -53,42 +54,34 @@ class RepositoryRepositoryImpl implements RepositoryRepository {
   }
 
   async getAll(): Promise<Repository[]> {
-    const result = await this.pool.query(`
-            SELECT id, github_id, github_owner_id, github_html_url, github_name, github_description 
-            FROM github_repository
-        `);
+    const query = `SELECT * FROM github_repository`;
+    const result = await this.pool.query(query);
 
     return this.getRepositoryList(result.rows);
   }
 
   async getById(id: RepositoryId): Promise<Repository | null> {
-    const result = await this.pool.query(
-      `
-            SELECT id, github_id, github_owner_id, github_html_url, github_name, github_description 
-            FROM github_repository
-            WHERE github_id = $1
-        `,
-      [id.id],
-    );
+    const query = `SELECT * FROM github_repository WHERE github_owner_login = $1 AND github_name = $2;`;
+    const result = await this.pool.query(query, [id.ownerId.login, id.name]);
 
     return this.getOptionalRepository(result.rows);
   }
 
   async insert(repository: Repository): Promise<Repository> {
     const client = await this.pool.connect();
-
     try {
       const result = await client.query(
         `
-                INSERT INTO github_repository (github_id, github_owner_id, github_html_url, github_name, github_description)
-                VALUES ($1, $2, $3, $4, $5) 
-                RETURNING id, github_id, github_owner_id, github_html_url, github_name, github_description
-            `,
+        INSERT INTO github_repository (github_id, github_owner_id, github_owner_login, github_name, github_html_url, github_description)
+        VALUES ($1, $2, $3, $4, $5, $6) 
+        RETURNING github_id, github_owner_id, github_owner_login, github_name, github_id, github_html_url, github_description
+        `,
         [
-          repository.id.id,
-          repository.ownerId.id,
+          repository.id.githubId,
+          repository.id.ownerId.githubId,
+          repository.id.ownerId.login,
+          repository.id.name,
           repository.htmlUrl,
-          repository.name,
           repository.description,
         ],
       );
