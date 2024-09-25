@@ -11,15 +11,15 @@ export class OwnerId {
 
   static fromGithubApi(json: any): OwnerId | ValidationError {
     const validator = new Validator(json);
-    validator.requiredNumber("id");
-    validator.requiredString("login");
+    const id = validator.requiredNumber("id");
+    const login = validator.requiredString("login");
 
     const error = validator.getFirstError();
     if (error) {
       return error;
     }
 
-    return new OwnerId(json.id, json.login);
+    return new OwnerId(login, id);
   }
 
   static fromBackend(json: any): OwnerId | ValidationError {

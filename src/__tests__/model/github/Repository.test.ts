@@ -4,7 +4,7 @@ import { OwnerId, Repository, RepositoryId } from "../../../model";
 describe("Repository", () => {
   it("fromGithubApi does not throw an error", () => {
     const data = fs.readFileSync(
-      `src/__tests__/model/github/repo.json`,
+      `src/__tests__/model/github/repository.json`,
       "utf8",
     );
     const json = JSON.parse(data);
@@ -16,8 +16,8 @@ describe("Repository", () => {
       console.log(object);
     }
 
-    const ownerId = new OwnerId(141809657, "Open-Source-Economy");
-    const repositoryId = new RepositoryId("frontend", ownerId, 701996033);
+    const ownerId = new OwnerId("Open-Source-Economy", 141809657);
+    const repositoryId = new RepositoryId(ownerId, "frontend", 701996033);
     const expected = new Repository(
       repositoryId,
       "https://github.com/Open-Source-Economy/frontend",

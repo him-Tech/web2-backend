@@ -1,6 +1,6 @@
-import { setupTestDB } from "../../jest.setup";
+import { setupTestDB } from "../../__helpers__/jest.setup";
 import { IssueId, OwnerId, RepositoryId } from "../../../model";
-import { Fixture } from "../Fixture";
+import { Fixture } from "../../__helpers__/Fixture";
 import { getOwnerRepository } from "../../../db/github/Owner.repository";
 import { getRepositoryRepository } from "../../../db/github/Repository.repository";
 

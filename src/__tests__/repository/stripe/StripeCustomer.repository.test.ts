@@ -1,36 +1,23 @@
-import { setupTestDB } from "../../jest.setup";
-import {
-  CompanyId,
-  StripeCustomer,
-  StripeCustomerId,
-  UserId,
-} from "../../../model";
-import { Fixture } from "../Fixture";
-import {
-  getCompanyRepository,
-  getStripeCustomerRepository,
-  getUserRepository,
-} from "../../../db";
-import { CreateCompanyDto } from "../../../dtos";
+import { setupTestDB } from "../../__helpers__/jest.setup";
+import { StripeCustomer, StripeCustomerId, UserId } from "../../../model";
+import { Fixture } from "../../__helpers__/Fixture";
+import { getStripeCustomerRepository, getUserRepository } from "../../../db";
 
 describe("StripeCustomerRepository", () => {
   setupTestDB();
 
   const customerRepo = getStripeCustomerRepository();
   const userRepo = getUserRepository();
-  const companyRepo = getCompanyRepository();
 
   describe("create", () => {
     it("should work", async () => {
       const userId = new UserId(1);
-      const companyId = new CompanyId(1);
       const customerId = new StripeCustomerId("123");
 
-      // Insert user and company before inserting the customer
+      // Insert user before inserting the customer
       await userRepo.insertLocal(Fixture.createUserDto());
-      await companyRepo.insert({} as CreateCompanyDto);
 
-      const customer = new StripeCustomer(customerId, userId, companyId);
+      const customer = new StripeCustomer(customerId, userId);
       const created = await customerRepo.insert(customer);
 
       expect(created).toEqual(customer);
@@ -39,12 +26,11 @@ describe("StripeCustomerRepository", () => {
       expect(found).toEqual(customer);
     });
 
-    it("should fail with foreign key constraint error if user or company is not inserted", async () => {
+    it("should fail with foreign key constraint error if user is not inserted", async () => {
       const customerId = new StripeCustomerId("123");
       const userId = new UserId(Fixture.id()); // UserId that does not exist in the database
-      const companyId = new CompanyId(Fixture.id()); // CompanyId that does not exist in the database
 
-      const customer = new StripeCustomer(customerId, userId, companyId);
+      const customer = new StripeCustomer(customerId, userId);
 
       try {
         await customerRepo.insert(customer);
@@ -71,17 +57,15 @@ describe("StripeCustomerRepository", () => {
   describe("getAll", () => {
     it("should return all customers", async () => {
       const userId = new UserId(1);
-      const companyId = new CompanyId(1);
 
-      // Insert user and company before inserting the customer
+      // Insert user before inserting the customer
       await userRepo.insertLocal(Fixture.createUserDto());
-      await companyRepo.insert({} as CreateCompanyDto);
 
       const customerId1 = new StripeCustomerId("123");
       const customerId2 = new StripeCustomerId("abc");
 
-      const customer1 = new StripeCustomer(customerId1, userId, companyId);
-      const customer2 = new StripeCustomer(customerId2, userId, companyId);
+      const customer1 = new StripeCustomer(customerId1, userId);
+      const customer2 = new StripeCustomer(customerId2, userId);
 
       await customerRepo.insert(customer1);
       await customerRepo.insert(customer2);

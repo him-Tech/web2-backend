@@ -1,7 +1,7 @@
 import { type Express } from "express";
 import { createApp } from "../../../createApp";
-import { setupTestDB } from "../../jest.setup";
-import { Fixture } from "../Fixture";
+import { setupTestDB } from "../../__helpers__/jest.setup";
+import { Fixture } from "../../__helpers__/Fixture";
 import {
   getIssueRepository,
   getOwnerRepository,

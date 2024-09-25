@@ -10,7 +10,7 @@ import {
 describe("Issue", () => {
   it("fromGithubApi does not throw an error", () => {
     const data = fs.readFileSync(
-      `src/__tests__/model/github/repo.json`,
+      `src/__tests__/model/github/issue.json`,
       "utf8",
     );
 
@@ -26,7 +26,7 @@ describe("Issue", () => {
       console.log(object);
     }
 
-    const issueId = new IssueId(repositoryId, 3, 141809657);
+    const issueId = new IssueId(repositoryId, 3, 2538344642);
 
     const expected = new Issue(
       issueId,
@@ -38,7 +38,7 @@ describe("Issue", () => {
       undefined,
     );
 
-    expect(object).toBeInstanceOf(Repository);
+    expect(object).toBeInstanceOf(Issue);
     expect(object).toEqual(expected);
   });
 });

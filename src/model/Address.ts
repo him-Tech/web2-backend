@@ -58,14 +58,14 @@ export class Address {
 
   static fromBackend(row: any): Address | ValidationError {
     const validator = new Validator(row);
-    validator.requiredNumber("id");
-    validator.optionalString("name");
-    validator.optionalString("line_1");
-    validator.optionalString("line_2");
-    validator.optionalString("city");
-    validator.optionalString("state");
-    validator.optionalString("postal_code");
-    validator.optionalString("country");
+    const id = validator.requiredNumber("id");
+    const name = validator.optionalString("name");
+    const line1 = validator.optionalString("line_1");
+    const line2 = validator.optionalString("line_2");
+    const city = validator.optionalString("city");
+    const state = validator.optionalString("state");
+    const postalCode = validator.optionalString("postal_code");
+    const country = validator.optionalString("country");
 
     const error = validator.getFirstError();
     if (error) {
@@ -73,14 +73,14 @@ export class Address {
     }
 
     return new Address(
-      new AddressId(row.id),
-      row.name ?? null,
-      row.line_1 ?? null,
-      row.line_2 ?? null,
-      row.city ?? null,
-      row.state ?? null,
-      row.postal_code ?? null,
-      row.country ?? null,
+      new AddressId(id),
+      name,
+      line1,
+      line2,
+      city,
+      state,
+      postalCode,
+      country,
     );
   }
 }

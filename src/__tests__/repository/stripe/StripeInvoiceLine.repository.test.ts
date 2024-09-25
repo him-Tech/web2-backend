@@ -5,8 +5,8 @@ import {
   getStripeProductRepository,
   getUserRepository,
 } from "../../../db";
-import { setupTestDB } from "../../jest.setup";
-import { Fixture } from "../Fixture";
+import { setupTestDB } from "../../__helpers__/jest.setup";
+import { Fixture } from "../../__helpers__/Fixture";
 import {
   StripeCustomer,
   StripeCustomerId,

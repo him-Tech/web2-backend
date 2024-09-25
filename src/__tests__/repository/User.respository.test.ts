@@ -1,4 +1,4 @@
-import { setupTestDB } from "../jest.setup";
+import { setupTestDB } from "../__helpers__/jest.setup";
 import {
   LocalUser,
   Provider,
@@ -7,7 +7,7 @@ import {
   UserId,
   UserRole,
 } from "../../model";
-import { Fixture } from "./Fixture";
+import { Fixture } from "../__helpers__/Fixture";
 import { getUserRepository } from "../../db/";
 
 describe("UserRepository", () => {

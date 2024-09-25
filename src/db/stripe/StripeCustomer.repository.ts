@@ -54,7 +54,7 @@ class StripeCustomerRepositoryImpl implements StripeCustomerRepository {
 
   async getAll(): Promise<StripeCustomer[]> {
     const result = await this.pool.query(`
-            SELECT stripe_id, user_id, company_id
+            SELECT *
             FROM stripe_customer
         `);
 
@@ -64,7 +64,7 @@ class StripeCustomerRepositoryImpl implements StripeCustomerRepository {
   async getById(id: StripeCustomerId): Promise<StripeCustomer | null> {
     const result = await this.pool.query(
       `
-                SELECT stripe_id, user_id, company_id
+                SELECT *
                 FROM stripe_customer
                 WHERE stripe_id = $1
             `,
@@ -82,15 +82,11 @@ class StripeCustomerRepositoryImpl implements StripeCustomerRepository {
 
       const result = await client.query(
         `
-                    INSERT INTO stripe_customer (stripe_id, user_id, company_id)
-                    VALUES ($1, $2, $3)
-                    RETURNING stripe_id, user_id, company_id
+                    INSERT INTO stripe_customer (stripe_id, user_id)
+                    VALUES ($1, $2)
+                    RETURNING stripe_id, user_id
                 `,
-        [
-          customer.stripeId.toString(),
-          customer.userId.toString(),
-          customer.companyId ? customer.companyId.toString() : null,
-        ],
+        [customer.stripeId.toString(), customer.userId.toString()],
       );
 
       await client.query("COMMIT");

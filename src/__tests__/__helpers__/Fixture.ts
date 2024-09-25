@@ -99,13 +99,13 @@ export const Fixture = {
   addressFromDto(addressId: number, dto: CreateAddressDto): Address {
     return new Address(
       new AddressId(addressId),
-      dto.name ?? undefined,
-      dto.line1 ?? undefined,
-      dto.line2 ?? undefined,
-      dto.city ?? undefined,
-      dto.state ?? undefined,
-      dto.postalCode ?? undefined,
-      dto.country ?? undefined,
+      dto.name,
+      dto.line1,
+      dto.line2,
+      dto.city,
+      dto.state,
+      dto.postalCode,
+      dto.country,
     );
   },
   company(

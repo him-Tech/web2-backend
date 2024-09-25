@@ -1,6 +1,6 @@
-import { Migration } from "../db/migration";
+import { Migration } from "../../db/migration";
 import { afterAll, afterEach, beforeEach } from "@jest/globals";
-import { getPool } from "../dbPool";
+import { getPool } from "../../dbPool";
 
 export const setupTestDB = () => {
   const pool = getPool();

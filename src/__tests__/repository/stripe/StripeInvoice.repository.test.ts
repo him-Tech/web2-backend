@@ -1,4 +1,4 @@
-import { setupTestDB } from "../../jest.setup";
+import { setupTestDB } from "../../__helpers__/jest.setup";
 import {
   CompanyId,
   StripeCustomer,
@@ -9,7 +9,7 @@ import {
   StripeProductId,
   UserId,
 } from "../../../model";
-import { Fixture } from "../Fixture";
+import { Fixture } from "../../__helpers__/Fixture";
 import {
   getCompanyRepository,
   getStripeCustomerRepository,
@@ -49,7 +49,6 @@ describe("StripeInvoiceRepository", () => {
       const customer = new StripeCustomer(
         new StripeCustomerId(customerId),
         userId,
-        companyId,
       );
       await customerRepo.insert(customer);
       await productRepo.insert(Fixture.stripeProduct(productId));
@@ -84,7 +83,6 @@ describe("StripeInvoiceRepository", () => {
       const customer = new StripeCustomer(
         new StripeCustomerId(customerId),
         userId,
-        companyId,
       );
       await customerRepo.insert(customer);
       await productRepo.insert(Fixture.stripeProduct(productId));

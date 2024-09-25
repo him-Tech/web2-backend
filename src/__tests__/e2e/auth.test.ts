@@ -1,7 +1,7 @@
 import request from "supertest";
 import { type Express } from "express";
 import { createApp } from "../../createApp";
-import { setupTestDB } from "../jest.setup";
+import { setupTestDB } from "../__helpers__/jest.setup";
 
 describe("/api/v1/auth", () => {
   let app: Express = createApp();

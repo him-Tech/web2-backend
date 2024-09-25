@@ -68,7 +68,7 @@ export class Issue {
     const htmlUrl = validator.requiredString("html_url");
     const createdAt = validator.requiredString("created_at");
     const closedAt = validator.optionalString("closed_at");
-    const openBy = validator.requiredObject("user");
+    const openByObject = validator.requiredObject("user");
     const body = validator.optionalString("body");
 
     const error = validator.getFirstError();
@@ -77,7 +77,7 @@ export class Issue {
     }
 
     const issueId = new IssueId(repositoryId, number, id);
-    const ownerId = OwnerId.fromGithubApi(json.user);
+    const ownerId = OwnerId.fromGithubApi(openByObject);
     if (ownerId instanceof ValidationError) {
       return ownerId;
     }
@@ -88,7 +88,7 @@ export class Issue {
       htmlUrl,
       new Date(createdAt),
       closedAt ? new Date(closedAt) : null,
-      openBy,
+      ownerId,
       body,
     );
   }
