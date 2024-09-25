@@ -3,10 +3,17 @@ import {
   AddressId,
   Company,
   CompanyId,
+  ContributorVisibility,
   Email,
   GithubData,
+  GithubIssueId,
   Issue,
+  IssueFunding,
+  IssueFundingId,
   IssueId,
+  ManagedIssue,
+  ManagedIssueId,
+  ManagedIssueState,
   Owner,
   OwnerId,
   OwnerType,
@@ -27,7 +34,9 @@ import {
 import {
   CreateAddressDto,
   CreateCompanyDto,
+  CreateIssueFundingDto,
   CreateLocalUserDto,
+  CreateManagedIssueDto,
 } from "../../dtos";
 import { StripePriceId } from "../../model/stripe/StripePrice";
 import { RepositoryRepository } from "../../db";
@@ -79,7 +88,7 @@ export const Fixture = {
 
   issueId(repositoryId: RepositoryId): IssueId {
     const number = this.id();
-    return new IssueId(repositoryId, number, number);
+    return new IssueId(repositoryId, number, new GithubIssueId(number));
   },
 
   issue(issueId: IssueId, openByOwnerId: OwnerId, payload = "payload"): Issue {
@@ -131,18 +140,37 @@ export const Fixture = {
     );
   },
 
-  stripeProduct(productId: string): StripeProduct {
-    return new StripeProduct(new StripeProductId(productId), "DoW", 1, false);
+  stripeProductId(): StripeProductId {
+    const number = this.id();
+    return new StripeProductId(number.toString());
+  },
+
+  stripeProduct(productId: StripeProductId): StripeProduct {
+    return new StripeProduct(productId, "DoW", 1, false);
+  },
+
+  stripeCustomerId(): StripeCustomerId {
+    const number = this.id();
+    return new StripeCustomerId(number.toString());
+  },
+  stripePriceId(): StripePriceId {
+    const number = this.id();
+    return new StripePriceId(number.toString());
+  },
+
+  stripeInvoiceId(): StripeInvoiceId {
+    const number = this.id();
+    return new StripeInvoiceId(number.toString());
   },
 
   stripeInvoice(
-    invoiceId: string,
-    customerId: string,
+    invoiceId: StripeInvoiceId,
+    customerId: StripeCustomerId,
     lines: StripeInvoiceLine[],
   ): StripeInvoice {
     return new StripeInvoice(
-      new StripeInvoiceId(invoiceId),
-      new StripeCustomerId(customerId),
+      invoiceId,
+      customerId,
       true,
       "US",
       lines,
@@ -155,19 +183,75 @@ export const Fixture = {
       "https://invoice_pdf.com",
     );
   },
+
+  stripeInvoiceLineId(): StripeInvoiceLineId {
+    const number = this.id();
+    return new StripeInvoiceLineId(number.toString());
+  },
   stripeInvoiceLine(
-    stripeId: string,
-    invoiceId: string,
-    customerId: string,
-    productId: string,
+    stripeId: StripeInvoiceLineId,
+    invoiceId: StripeInvoiceId,
+    customerId: StripeCustomerId,
+    productId: StripeProductId,
   ): StripeInvoiceLine {
     return new StripeInvoiceLine(
-      new StripeInvoiceLineId(stripeId),
-      new StripeInvoiceId(invoiceId),
-      new StripeCustomerId(customerId),
-      new StripeProductId(productId),
+      stripeId,
+      invoiceId,
+      customerId,
+      productId,
       new StripePriceId("100"),
       100,
+    );
+  },
+
+  issueFundingId(): IssueFundingId {
+    const number = this.id();
+    return new IssueFundingId(number);
+  },
+
+  issueFundingFromDto(
+    issueFundingId: IssueFundingId,
+    dto: CreateIssueFundingDto,
+  ): Address {
+    return new IssueFunding(
+      issueFundingId,
+      dto.githubIssueId,
+      dto.userId,
+      dto.productId,
+      dto.amount,
+    );
+  },
+  managedIssueId(): ManagedIssueId {
+    const number = this.id();
+    return new ManagedIssueId(number);
+  },
+  createManagedIssueDto(
+    githubIssueId: GithubIssueId,
+    productId: StripeProductId,
+    managerId: UserId,
+    payload: number = 5000,
+  ): CreateManagedIssueDto {
+    return {
+      githubIssueId,
+      productId,
+      requestedAmount: payload,
+      managerId,
+      contributorVisibility: ContributorVisibility.PUBLIC,
+      state: ManagedIssueState.OPEN,
+    };
+  },
+  managedIssueFromDto(
+    managedIssueId: ManagedIssueId,
+    dto: CreateManagedIssueDto,
+  ): ManagedIssue {
+    return new ManagedIssue(
+      managedIssueId,
+      dto.githubIssueId,
+      dto.productId,
+      dto.requestedAmount,
+      dto.managerId,
+      dto.contributorVisibility,
+      dto.state,
     );
   },
 };

@@ -56,7 +56,7 @@ class CompanyRepositoryImpl implements CompanyRepository {
 
   async getAll(): Promise<Company[]> {
     const result = await this.pool.query(`
-      SELECT id, tax_id, name, contact_person_id, address_id 
+      SELECT *
       FROM company
     `);
 
@@ -66,7 +66,7 @@ class CompanyRepositoryImpl implements CompanyRepository {
   async getById(id: CompanyId): Promise<Company | null> {
     const result = await this.pool.query(
       `
-      SELECT id, tax_id, name, contact_person_id, address_id 
+      SELECT *
       FROM company
       WHERE id = $1
       `,

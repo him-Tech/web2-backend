@@ -236,3 +236,47 @@ CREATE TABLE IF NOT EXISTS stripe_invoice_line
     CONSTRAINT positive_quantity CHECK (quantity > 0)
 );
 
+----------------------------
+--- Issue funding tables ---
+----------------------------
+
+
+CREATE TABLE IF NOT EXISTS managed_issue
+(
+    id                     SERIAL PRIMARY KEY,
+    github_issue_id        INTEGER     NOT NULL,
+
+    product_id             VARCHAR(50) NOT NULL,
+    requested_amount       INTEGER     NOT NULL,
+
+    manager_id             INTEGER     NOT NULL,
+    contributor_visibility VARCHAR(50) NOT NULL, -- 'public' or 'private'
+    state                  VARCHAR(50) NOT NULL, -- 'open', 'rejected', 'solved'
+
+    "created_at"           TIMESTAMP   NOT NULL DEFAULT now(),
+    "updated_at"           TIMESTAMP   NOT NULL DEFAULT now(),
+
+    CONSTRAINT fk_issue FOREIGN KEY (github_issue_id) REFERENCES github_issue (github_id) ON DELETE CASCADE,
+    CONSTRAINT fk_product FOREIGN KEY (product_id) REFERENCES stripe_product (stripe_id) ON DELETE CASCADE,
+    CONSTRAINT fk_manager FOREIGN KEY (manager_id) REFERENCES "app_user" (id) ON DELETE CASCADE
+);
+
+-- this table is used as event source events
+CREATE TABLE IF NOT EXISTS issue_funding
+(
+    id              SERIAL PRIMARY KEY,
+    github_issue_id INTEGER     NOT NULL,
+    user_id         INTEGER     NOT NULL,
+    product_id      VARCHAR(50) NOT NULL,
+    amount          INTEGER     NOT NULL,
+
+    "created_at"    TIMESTAMP   NOT NULL DEFAULT now(),
+    "updated_at"    TIMESTAMP   NOT NULL DEFAULT now(),
+
+    CONSTRAINT fk_issue FOREIGN KEY (github_issue_id) REFERENCES github_issue (github_id) ON DELETE CASCADE,
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES "app_user" (id) ON DELETE CASCADE,
+    CONSTRAINT fk_product FOREIGN KEY (product_id) REFERENCES stripe_product (stripe_id) ON DELETE CASCADE
+);
+
+
+

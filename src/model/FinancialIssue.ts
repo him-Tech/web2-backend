@@ -5,6 +5,7 @@ export class FinancialIssue {
   public repository: model.Repository;
   public issue: model.Issue;
   public openBy: model.Owner;
+
   public status: model.IssueStatus;
 
   constructor(

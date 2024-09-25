@@ -59,7 +59,7 @@ class AddressRepositoryImpl implements AddressRepository {
   async getByCompanyId(id: CompanyId): Promise<Address | null> {
     const result = await this.pool.query(
       `
-      SELECT a.id, a.name, a.line_1, a.line_2, a.city, a.state, a.postal_code, a.country
+      SELECT a.*
       FROM address a
       JOIN company c ON a.id = c.address_id
       WHERE c.id = $1
@@ -73,7 +73,7 @@ class AddressRepositoryImpl implements AddressRepository {
   async getCompanyUserAddress(id: UserId): Promise<Address | null> {
     const result = await this.pool.query(
       `
-      SELECT a.id, a.name, a.line_1, a.line_2, a.city, a.state, a.postal_code, a.country
+      SELECT a.*
       FROM user_company uc
       JOIN company c ON uc.company_id = c.id
       JOIN address a ON c.address_id = a.id
@@ -87,7 +87,7 @@ class AddressRepositoryImpl implements AddressRepository {
 
   async getAll(): Promise<Address[]> {
     const result = await this.pool.query(`
-      SELECT id, name, line_1, line_2, city, state, postal_code, country
+      SELECT *
       FROM address
     `);
 
@@ -97,7 +97,7 @@ class AddressRepositoryImpl implements AddressRepository {
   async getById(id: AddressId): Promise<Address | null> {
     const result = await this.pool.query(
       `
-      SELECT id, name, line_1, line_2, city, state, postal_code, country
+      SELECT *
       FROM address
       WHERE id = $1
       `,

@@ -54,7 +54,7 @@ class StripeProductRepositoryImpl implements StripeProductRepository {
 
   async getAll(): Promise<StripeProduct[]> {
     const result = await this.pool.query(`
-        SELECT stripe_id, unit, unit_amount, recurring
+        SELECT *
         FROM stripe_product
     `);
 
@@ -64,7 +64,7 @@ class StripeProductRepositoryImpl implements StripeProductRepository {
   async getById(id: StripeProductId): Promise<StripeProduct | null> {
     const result = await this.pool.query(
       `
-        SELECT stripe_id, unit, unit_amount, recurring
+        SELECT *
         FROM stripe_product
         WHERE stripe_id = $1
       `,
