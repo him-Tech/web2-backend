@@ -6,7 +6,10 @@ CREATE TABLE IF NOT EXISTS github_owner
 
     github_type       VARCHAR(127) NOT NULL,
     github_html_url   VARCHAR(510) NOT NULL,
-    github_avatar_url VARCHAR(510)
+    github_avatar_url VARCHAR(510),
+
+    "created_at"      TIMESTAMP    NOT NULL DEFAULT now(),
+    "updated_at"      TIMESTAMP    NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS github_repository
@@ -14,13 +17,17 @@ CREATE TABLE IF NOT EXISTS github_repository
     id                 SERIAL,
     github_id          INTEGER UNIQUE,
 
-    github_owner_id            INTEGER       NOT NULL,
-    github_owner_login         VARCHAR(255)  NOT NULL,
+    github_owner_id    INTEGER      NOT NULL,
+    github_owner_login VARCHAR(255) NOT NULL,
 
     github_name        VARCHAR(255) NOT NULL,
 
     github_html_url    VARCHAR(510) NOT NULL,
     github_description VARCHAR(510),
+
+    "created_at"       TIMESTAMP    NOT NULL DEFAULT now(),
+    "updated_at"       TIMESTAMP    NOT NULL DEFAULT now(),
+
     CONSTRAINT pk_github_repository PRIMARY KEY (github_owner_login, github_name),
 
     CONSTRAINT fk_github_owner_id FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT,
@@ -51,6 +58,9 @@ CREATE TABLE IF NOT EXISTS github_issue
     github_html_url            VARCHAR(510)  NOT NULL,
     github_created_at          VARCHAR(510),
     github_closed_at           VARCHAR(510),
+
+    "created_at"               TIMESTAMP     NOT NULL DEFAULT now(),
+    "updated_at"               TIMESTAMP     NOT NULL DEFAULT now(),
 
     CONSTRAINT pk_github_issue PRIMARY KEY (github_owner_login, github_repository_name, github_number),
 
@@ -88,9 +98,11 @@ CREATE TABLE IF NOT EXISTS "app_user"
     "is_email_verified" BOOLEAN            NOT NULL,
     "hashed_password"   VARCHAR(255),        -- Optional, used for local users
     "role"              VARCHAR(50)        NOT NULL DEFAULT 'ser',
+    github_owner_id     INTEGER,
+
     "created_at"        TIMESTAMP          NOT NULL DEFAULT now(),
     "updated_at"        TIMESTAMP          NOT NULL DEFAULT now(),
-    github_owner_id     INTEGER,
+
     CONSTRAINT fk_github_owner FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE SET NULL,
 
     CONSTRAINT chk_provider CHECK (
@@ -105,14 +117,17 @@ CREATE TABLE IF NOT EXISTS "app_user"
 
 CREATE TABLE IF NOT EXISTS address
 (
-    id          SERIAL PRIMARY KEY,
-    name        VARCHAR(255),
-    line_1      VARCHAR(255),
-    line_2      VARCHAR(255),
-    city        VARCHAR(100),
-    state       VARCHAR(100),
-    postal_code VARCHAR(20),
-    country     VARCHAR(100)
+    id           SERIAL PRIMARY KEY,
+    name         VARCHAR(255),
+    line_1       VARCHAR(255),
+    line_2       VARCHAR(255),
+    city         VARCHAR(100),
+    state        VARCHAR(100),
+    postal_code  VARCHAR(20),
+    country      VARCHAR(100),
+
+    "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+    "updated_at" TIMESTAMP NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS company
@@ -122,6 +137,10 @@ CREATE TABLE IF NOT EXISTS company
     name              VARCHAR(255),
     contact_person_id INTEGER,
     address_id        INTEGER,
+
+    "created_at"      TIMESTAMP NOT NULL DEFAULT now(),
+    "updated_at"      TIMESTAMP NOT NULL DEFAULT now(),
+
     CONSTRAINT fk_address FOREIGN KEY (address_id) REFERENCES address (id) ON DELETE RESTRICT
     -- Foreign key constraints for contact persons will be added later
 );
@@ -130,9 +149,14 @@ CREATE TABLE IF NOT EXISTS company
 
 CREATE TABLE IF NOT EXISTS user_company
 (
-    user_id    INTEGER,
-    company_id INTEGER,
+    user_id      INTEGER,
+    company_id   INTEGER,
+
+    "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+    "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
+
     PRIMARY KEY (user_id, company_id),
+
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES "app_user" (id) ON DELETE CASCADE,
     CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES "company" (id) ON DELETE CASCADE
 );
@@ -146,10 +170,13 @@ ALTER TABLE company
 
 CREATE TABLE IF NOT EXISTS stripe_customer
 (
-    id         SERIAL,
-    stripe_id  VARCHAR(50) PRIMARY KEY,
-    user_id    INTEGER NOT NULL,
-    company_id INTEGER,
+    id           SERIAL,
+    stripe_id    VARCHAR(50) PRIMARY KEY,
+    user_id      INTEGER   NOT NULL,
+    company_id   INTEGER,
+
+    "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+    "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES "app_user" (id) ON DELETE CASCADE,
     CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES "company" (id) ON DELETE CASCADE
@@ -158,11 +185,14 @@ CREATE TABLE IF NOT EXISTS stripe_customer
 -- example: represent the product 0.01 DoW
 CREATE TABLE IF NOT EXISTS stripe_product
 (
-    id          SERIAL,
-    stripe_id   VARCHAR(50) PRIMARY KEY,
-    unit        VARCHAR(50) NOT NULL, -- 'DoW'
-    unit_amount INTEGER     NOT NULL,
-    recurring   BOOLEAN     NOT NULL,
+    id           SERIAL,
+    stripe_id    VARCHAR(50) PRIMARY KEY,
+    unit         VARCHAR(50) NOT NULL, -- 'DoW'
+    unit_amount  INTEGER     NOT NULL,
+    recurring    BOOLEAN     NOT NULL,
+
+    "created_at" TIMESTAMP   NOT NULL DEFAULT now(),
+    "updated_at" TIMESTAMP   NOT NULL DEFAULT now(),
 
     CONSTRAINT positive_quantity CHECK (unit_amount > 0)
 );
@@ -181,18 +211,25 @@ CREATE TABLE IF NOT EXISTS stripe_invoice
     subtotal_excl_tax  NUMERIC(10, 2) NOT NULL,
     hosted_invoice_url TEXT           NOT NULL,
     invoice_pdf        TEXT           NOT NULL,
+
+    "created_at"       TIMESTAMP      NOT NULL DEFAULT now(),
+    "updated_at"       TIMESTAMP      NOT NULL DEFAULT now(),
+
     CONSTRAINT fk_customer FOREIGN KEY (customer_id) REFERENCES stripe_customer (stripe_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS stripe_invoice_line
 (
-    id          SERIAL,
-    stripe_id   VARCHAR(50) PRIMARY KEY,
-    invoice_id  VARCHAR(50) NOT NULL,
-    customer_id VARCHAR(50) NOT NULL,
-    product_id  VARCHAR(50) NOT NULL,
-    price_id    VARCHAR(50) NOT NULL,
-    quantity    INTEGER     NOT NULL, -- Quantity of the product
+    id           SERIAL,
+    stripe_id    VARCHAR(50) PRIMARY KEY,
+    invoice_id   VARCHAR(50) NOT NULL,
+    customer_id  VARCHAR(50) NOT NULL,
+    product_id   VARCHAR(50) NOT NULL,
+    price_id     VARCHAR(50) NOT NULL,
+    quantity     INTEGER     NOT NULL, -- Quantity of the product
+
+    "created_at" TIMESTAMP   NOT NULL DEFAULT now(),
+    "updated_at" TIMESTAMP   NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_invoice FOREIGN KEY (invoice_id) REFERENCES stripe_invoice (stripe_id) ON DELETE CASCADE,
     CONSTRAINT fk_customer FOREIGN KEY (customer_id) REFERENCES stripe_customer (stripe_id) ON DELETE CASCADE,

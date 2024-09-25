@@ -79,7 +79,8 @@ class RepositoryRepositoryImpl implements RepositoryRepository {
                   github_owner_login = EXCLUDED.github_owner_login,
                   github_name = EXCLUDED.github_name,
                   github_html_url = EXCLUDED.github_html_url,
-                  github_description = EXCLUDED.github_description
+                  github_description = EXCLUDED.github_description,
+                  updated_at = NOW()
             RETURNING github_id, github_owner_id, github_owner_login, github_name, github_html_url, github_description
           `,
         [

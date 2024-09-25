@@ -109,7 +109,8 @@ class IssueRepositoryImpl implements IssueRepository {
             github_closed_at = EXCLUDED.github_closed_at,
             github_open_by_owner_id = EXCLUDED.github_open_by_owner_id,
             github_open_by_owner_login = EXCLUDED.github_open_by_owner_login,
-            github_body = EXCLUDED.github_body
+            github_body = EXCLUDED.github_body,
+            updated_at = NOW()
         RETURNING *;
       `;
 

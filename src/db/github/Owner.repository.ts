@@ -77,12 +77,13 @@ class OwnerRepositoryImpl implements OwnerRepository {
             INSERT INTO github_owner (github_id, github_login, github_type, github_html_url, github_avatar_url)
             VALUES ($1, $2, $3, $4, $5)
             ON CONFLICT (github_login) DO UPDATE
-              SET github_id = EXCLUDED.github_id,
-                  github_type = EXCLUDED.github_type,
-                  github_html_url = EXCLUDED.github_html_url,
-                  github_avatar_url = EXCLUDED.github_avatar_url
+                SET github_id         = EXCLUDED.github_id,
+                    github_type       = EXCLUDED.github_type,
+                    github_html_url   = EXCLUDED.github_html_url,
+                    github_avatar_url = EXCLUDED.github_avatar_url,
+                    updated_at        = NOW()
             RETURNING github_id, github_login, github_type, github_html_url, github_avatar_url
-          `,
+        `,
         [
           owner.id.githubId,
           owner.id.login,
