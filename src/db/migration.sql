@@ -246,8 +246,7 @@ CREATE TABLE IF NOT EXISTS managed_issue
     id                     SERIAL PRIMARY KEY,
     github_issue_id        INTEGER     NOT NULL,
 
-    product_id             VARCHAR(50) NOT NULL,
-    requested_amount       INTEGER     NOT NULL,
+    requested_dow_amount       INTEGER     NOT NULL,
 
     manager_id             INTEGER     NOT NULL,
     contributor_visibility VARCHAR(50) NOT NULL, -- 'public' or 'private'
@@ -257,7 +256,6 @@ CREATE TABLE IF NOT EXISTS managed_issue
     "updated_at"           TIMESTAMP   NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_issue FOREIGN KEY (github_issue_id) REFERENCES github_issue (github_id) ON DELETE CASCADE,
-    CONSTRAINT fk_product FOREIGN KEY (product_id) REFERENCES stripe_product (stripe_id) ON DELETE CASCADE,
     CONSTRAINT fk_manager FOREIGN KEY (manager_id) REFERENCES "app_user" (id) ON DELETE CASCADE
 );
 

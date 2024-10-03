@@ -8,8 +8,7 @@ import {
 
 export interface CreateManagedIssueDto {
   githubIssueId: GithubIssueId;
-  productId: StripeProductId;
-  requestedAmount: number;
+  requestedDowAmount: number;
   managerId: UserId;
   contributorVisibility: ContributorVisibility;
   state: ManagedIssueState;

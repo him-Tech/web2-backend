@@ -5,7 +5,6 @@ import {
   getManagedIssueRepository,
   getOwnerRepository,
   getRepositoryRepository,
-  getStripeProductRepository,
   getUserRepository,
 } from "../../db/";
 import { CreateManagedIssueDto } from "../../dtos";
@@ -16,7 +15,6 @@ describe("ManagedIssueRepository", () => {
   const ownerRepo = getOwnerRepository();
   const repoRepo = getRepositoryRepository();
   const issueRepo = getIssueRepository();
-  const productRepo = getStripeProductRepository();
   const managedIssueRepo = getManagedIssueRepository();
 
   setupTestDB();
@@ -39,12 +37,8 @@ describe("ManagedIssueRepository", () => {
       const issue = Fixture.issue(issueId, ownerId);
       await issueRepo.insert(issue);
 
-      const productId = Fixture.stripeProductId();
-      await productRepo.insert(Fixture.stripeProduct(productId));
-
       const managedIssueDto = Fixture.createManagedIssueDto(
         issueId.githubId!,
-        productId,
         validUserId,
       );
 
@@ -61,7 +55,7 @@ describe("ManagedIssueRepository", () => {
     });
 
     // Add more test cases for `create`:
-    // - Test with invalid data (e.g., negative amount, invalid product ID, invalid enum values)
+    // - Test with invalid data (e.g., negative amount, invalid enum values)
     // - Verify error handling and database constraints
   });
 
@@ -77,12 +71,8 @@ describe("ManagedIssueRepository", () => {
       const issue = Fixture.issue(issueId, ownerId);
       await issueRepo.insert(issue);
 
-      const productId = Fixture.stripeProductId();
-      await productRepo.insert(Fixture.stripeProduct(productId));
-
       const managedIssueDto = Fixture.createManagedIssueDto(
         issueId.githubId!,
-        productId,
         validUserId,
       );
 

@@ -60,14 +60,13 @@ class ManagedIssueRepositoryImpl implements ManagedIssueRepository {
     try {
       const result = await client.query(
         `
-        INSERT INTO managed_issue (github_issue_id, product_id, requested_amount, manager_id, contributor_visibility, state)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING id, github_issue_id, product_id, requested_amount, manager_id, contributor_visibility, state
+        INSERT INTO managed_issue (github_issue_id, requested_dow_amount, manager_id, contributor_visibility, state)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING id, github_issue_id, requested_dow_amount, manager_id, contributor_visibility, state
         `,
         [
           managedIssue.githubIssueId.toString(),
-          managedIssue.productId.toString(),
-          managedIssue.requestedAmount,
+          managedIssue.requestedDowAmount,
           managedIssue.managerId.toString(),
           managedIssue.contributorVisibility,
           managedIssue.state,
@@ -89,18 +88,16 @@ class ManagedIssueRepositoryImpl implements ManagedIssueRepository {
         UPDATE managed_issue
         SET 
             github_issue_id = $1,
-            product_id = $2,
-            requested_amount = $3,
-            manager_id = $4,
-            contributor_visibility = $5,
-            state = $6
-        WHERE id = $7
-        RETURNING id, github_issue_id, product_id, requested_amount, manager_id, contributor_visibility, state
+            requested_dow_amount = $2,
+            manager_id = $3,
+            contributor_visibility = $4,
+            state = $5
+        WHERE id = $6
+        RETURNING id, github_issue_id, requested_dow_amount, manager_id, contributor_visibility, state
         `,
         [
           managedIssue.githubIssueId.toString(),
-          managedIssue.productId.toString(),
-          managedIssue.requestedAmount,
+          managedIssue.requestedDowAmount,
           managedIssue.managerId.toString(),
           managedIssue.contributorVisibility,
           managedIssue.state,

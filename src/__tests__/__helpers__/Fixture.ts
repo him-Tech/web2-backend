@@ -226,14 +226,12 @@ export const Fixture = {
   },
   createManagedIssueDto(
     githubIssueId: GithubIssueId,
-    productId: StripeProductId,
     managerId: UserId,
     payload: number = 5000,
   ): CreateManagedIssueDto {
     return {
       githubIssueId,
-      productId,
-      requestedAmount: payload,
+      requestedDowAmount: payload,
       managerId,
       contributorVisibility: ContributorVisibility.PUBLIC,
       state: ManagedIssueState.OPEN,
@@ -246,8 +244,7 @@ export const Fixture = {
     return new ManagedIssue(
       managedIssueId,
       dto.githubIssueId,
-      dto.productId,
-      dto.requestedAmount,
+      dto.requestedDowAmount,
       dto.managerId,
       dto.contributorVisibility,
       dto.state,

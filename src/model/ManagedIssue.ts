@@ -23,8 +23,7 @@ export class ManagedIssueId {
 export class ManagedIssue {
   id: ManagedIssueId;
   githubIssueId: GithubIssueId;
-  productId: StripeProductId;
-  requestedAmount: number;
+  requestedDowAmount: number;
   managerId: UserId;
   contributorVisibility: ContributorVisibility;
   state: ManagedIssueState;
@@ -32,16 +31,14 @@ export class ManagedIssue {
   constructor(
     id: ManagedIssueId,
     githubIssueId: GithubIssueId,
-    productId: StripeProductId,
-    requestedAmount: number,
+    requestedDowAmount: number,
     managerId: UserId,
     contributorVisibility: ContributorVisibility,
     state: ManagedIssueState,
   ) {
     this.id = id;
     this.githubIssueId = githubIssueId;
-    this.productId = productId;
-    this.requestedAmount = requestedAmount;
+    this.requestedDowAmount = requestedDowAmount;
     this.managerId = managerId;
     this.contributorVisibility = contributorVisibility;
     this.state = state;
@@ -51,8 +48,7 @@ export class ManagedIssue {
     const validator = new Validator(row);
     const id = validator.requiredNumber("id");
     const issueId = validator.requiredNumber("github_issue_id");
-    const productId = validator.requiredString("product_id");
-    const requestedAmount = validator.requiredNumber("requested_amount");
+    const requestedDowAmount = validator.requiredNumber("requested_dow_amount");
     const managerId = validator.requiredNumber("manager_id");
     const contributorVisibility = validator.requiredEnum(
       "contributor_visibility",
@@ -71,8 +67,7 @@ export class ManagedIssue {
     return new ManagedIssue(
       new ManagedIssueId(id),
       new GithubIssueId(issueId),
-      new StripeProductId(productId),
-      requestedAmount,
+      requestedDowAmount,
       new UserId(managerId),
       contributorVisibility,
       state,
