@@ -56,8 +56,7 @@ class IssueRepositoryImpl implements IssueRepository {
   }
 
   async getAll(): Promise<Issue[]> {
-    const query = `SELECT *
-                       FROM github_issue;`;
+    const query = `SELECT * FROM github_issue;`;
     const result = await this.pool.query(query);
 
     return this.getIssueList(result.rows);

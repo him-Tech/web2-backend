@@ -139,7 +139,6 @@ class StripeInvoiceRepositoryImpl implements StripeInvoiceRepository {
       await client.query("ROLLBACK");
       throw error;
     } finally {
-      console.log("finally");
       client.release();
     }
   }

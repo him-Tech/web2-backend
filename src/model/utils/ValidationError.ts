@@ -8,44 +8,49 @@ export class ValidationError extends Error {
 }
 
 class FieldValidationError extends ValidationError {
-  constructor(field: string, data: any, type: string) {
-    super(`Invalid type: ${field} is not a ${type}`, data);
+  constructor(path: string | string[], value: any, data: any, type: string) {
+    const p = typeof path === "string" ? path : path.join(".");
+    super(
+      `Invalid type: field "${p}", of value ${value} is not a ${type}`,
+      data,
+    );
   }
 }
 
 class StringValidationError extends FieldValidationError {
-  constructor(field: string, data: any) {
-    super(field, data, "string");
+  constructor(path: string | string[], value: any, data: any) {
+    super(path, value, data, "string");
   }
 }
 
 class NumberValidationError extends FieldValidationError {
-  constructor(field: string, data: any) {
-    super(field, data, "number");
+  constructor(path: string | string[], value: any, data: any) {
+    super(path, value, data, "number");
   }
 }
 
 class BooleanValidationError extends FieldValidationError {
-  constructor(field: string, data: any) {
-    super(field, data, "boolean");
+  constructor(path: string | string[], value: any, data: any) {
+    super(path, value, data, "boolean");
   }
 }
 
 class ArrayValidationError extends FieldValidationError {
-  constructor(field: string, data: any) {
-    super(field, data, "array");
+  constructor(path: string | string[], value: any, data: any) {
+    super(path, value, data, "array");
   }
 }
 
 class ObjectValidationError extends FieldValidationError {
-  constructor(field: string, data: any) {
-    super(field, data, "object");
+  constructor(path: string | string[], value: any, data: any) {
+    super(path, value, data, "object");
   }
 }
 
 class EnumValidationError extends ValidationError {
-  constructor(field: string, data: any, enumType: string[]) {
-    super(`${field}" is not contained in enum type ${enumType}`, data);
+  constructor(path: string | string[], data: any, enumType: string[]) {
+    const p = typeof path === "string" ? path : path.join(".");
+    super(`${p}" is not contained in enum type ${enumType}`, data);
   }
 }
 
@@ -84,7 +89,7 @@ export class Validator {
     const value = this.getValue(path);
     if (value === undefined || value === null) {
     } else if (typeof value !== "string") {
-      this.errors.push(new StringValidationError(value, this.data));
+      this.errors.push(new StringValidationError(path, value, this.data));
     } else {
       return value;
     }
@@ -94,7 +99,7 @@ export class Validator {
   requiredString(path: string | string[]): string {
     const value = this.getValue(path);
     if (typeof value !== "string") {
-      this.errors.push(new StringValidationError(value, this.data));
+      this.errors.push(new StringValidationError(path, value, this.data));
     } else {
       return value;
     }
@@ -109,7 +114,7 @@ export class Validator {
 
     if (value === undefined || value === null) {
     } else if (typeof value !== "number") {
-      this.errors.push(new NumberValidationError(this.data, value));
+      this.errors.push(new NumberValidationError(path, this.data, value));
       return;
     }
   }
@@ -123,7 +128,7 @@ export class Validator {
     }
 
     if (typeof value !== "number" || isNaN(value)) {
-      this.errors.push(new NumberValidationError(value, this.data));
+      this.errors.push(new NumberValidationError(path, value, this.data));
     } else {
       return value;
     }
@@ -132,7 +137,7 @@ export class Validator {
   requiredBoolean(path: string | string[]): void {
     const value = this.getValue(path);
     if (typeof value !== "boolean") {
-      this.errors.push(new BooleanValidationError(value, this.data));
+      this.errors.push(new BooleanValidationError(path, value, this.data));
     }
   }
 
@@ -140,7 +145,7 @@ export class Validator {
     const value = this.getValue(path);
     if (value === undefined || value === null) {
     } else if (typeof value !== "object") {
-      this.errors.push(new ObjectValidationError(value, this.data));
+      this.errors.push(new ObjectValidationError(path, value, this.data));
     }
   }
 
@@ -148,7 +153,7 @@ export class Validator {
   requiredObject(path: string | string[]): any {
     const value = this.getValue(path);
     if (typeof value !== "object") {
-      this.errors.push(new ObjectValidationError(value, this.data));
+      this.errors.push(new ObjectValidationError(path, value, this.data));
     } else {
       return value;
     }
@@ -158,7 +163,7 @@ export class Validator {
     const value = this.getValue(path);
     if (value === undefined || value === null) {
     } else if (!Array.isArray(value)) {
-      this.errors.push(new ArrayValidationError(value, this.data));
+      this.errors.push(new ArrayValidationError(path, value, this.data));
     }
   }
 
@@ -166,8 +171,7 @@ export class Validator {
     const value = this.getValue(path);
 
     if (!Array.isArray(value)) {
-      const p = typeof path === "string" ? path : path.join(".");
-      this.errors.push(new ArrayValidationError(p, this.data));
+      this.errors.push(new ArrayValidationError(path, value, this.data));
     }
   }
 
@@ -179,7 +183,7 @@ export class Validator {
     const value = this.getValue(path) as EnumType;
     const enumValues = Object.values(enumType) as EnumType[];
     if (!enumValues.includes(value)) {
-      this.errors.push(new EnumValidationError(value, value, enumType));
+      this.errors.push(new EnumValidationError(path, value, enumType));
     } else {
       return value;
     }

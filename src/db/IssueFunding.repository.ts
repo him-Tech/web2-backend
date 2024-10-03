@@ -59,15 +59,14 @@ class IssueFundingRepositoryImpl implements IssueFundingRepository {
     try {
       const result = await client.query(
         `
-        INSERT INTO issue_funding (github_issue_id, user_id, product_id, amount)
-        VALUES ($1, $2, $3, $4)
-        RETURNING id, github_issue_id, user_id, product_id, amount
+        INSERT INTO issue_funding (github_issue_id, user_id, dow_amount)
+        VALUES ($1, $2, $3)
+        RETURNING id, github_issue_id, user_id, dow_amount
         `,
         [
           issueFunding.githubIssueId.toString(),
           issueFunding.userId.toString(),
-          issueFunding.productId.toString(),
-          issueFunding.amount,
+          issueFunding.downAmount,
         ],
       );
 

@@ -6,7 +6,6 @@ import {
   getIssueRepository,
   getOwnerRepository,
   getRepositoryRepository,
-  getStripeProductRepository,
   getUserRepository,
 } from "../../db/";
 import { CreateIssueFundingDto } from "../../dtos";
@@ -17,7 +16,6 @@ describe("IssueFundingRepository", () => {
   const ownerRepo = getOwnerRepository();
   const repoRepo = getRepositoryRepository();
   const issueRepo = getIssueRepository();
-  const productRepo = getStripeProductRepository();
   const issueFundingRepo = getIssueFundingRepository();
 
   setupTestDB();
@@ -40,14 +38,10 @@ describe("IssueFundingRepository", () => {
       const issue = Fixture.issue(issueId, ownerId);
       await issueRepo.insert(issue);
 
-      const productId = Fixture.stripeProductId();
-      await productRepo.insert(Fixture.stripeProduct(productId));
-
       const issueFundingDto: CreateIssueFundingDto = {
         githubIssueId: issueId.githubId!,
         userId: validUserId,
-        productId,
-        amount: 5000,
+        downAmount: 5000,
       };
 
       expect(true).toEqual(true);
@@ -64,7 +58,7 @@ describe("IssueFundingRepository", () => {
     });
 
     // Add more test cases for `create`:
-    // - Test with invalid data (e.g., negative amount, invalid product ID)
+    // - Test with invalid data (e.g., negative amount,)
     // - Verify error handling and database constraints
   });
 
@@ -95,21 +89,16 @@ describe("IssueFundingRepository", () => {
       const issue = Fixture.issue(issueId, ownerId);
       await issueRepo.insert(issue);
 
-      const productId = Fixture.stripeProductId();
-      await productRepo.insert(Fixture.stripeProduct(productId));
-
       const issueFundingDto1: CreateIssueFundingDto = {
         githubIssueId: issueId.githubId!,
         userId: validUserId,
-        productId,
-        amount: 5000,
+        downAmount: 5000,
       };
 
       const issueFundingDto2: CreateIssueFundingDto = {
         githubIssueId: issueId.githubId!,
         userId: validUserId,
-        productId,
-        amount: 10000,
+        downAmount: 10000,
       };
 
       const issueFunding1 = await issueFundingRepo.create(issueFundingDto1);

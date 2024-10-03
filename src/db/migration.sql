@@ -267,15 +267,13 @@ CREATE TABLE IF NOT EXISTS issue_funding
     id              SERIAL PRIMARY KEY,
     github_issue_id INTEGER     NOT NULL,
     user_id         INTEGER     NOT NULL,
-    product_id      VARCHAR(50) NOT NULL,
-    amount          INTEGER     NOT NULL,
+    dow_amount          INTEGER     NOT NULL,
 
     "created_at"    TIMESTAMP   NOT NULL DEFAULT now(),
     "updated_at"    TIMESTAMP   NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_issue FOREIGN KEY (github_issue_id) REFERENCES github_issue (github_id) ON DELETE CASCADE,
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES "app_user" (id) ON DELETE CASCADE,
-    CONSTRAINT fk_product FOREIGN KEY (product_id) REFERENCES stripe_product (stripe_id) ON DELETE CASCADE
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES "app_user" (id) ON DELETE CASCADE
 );
 
 

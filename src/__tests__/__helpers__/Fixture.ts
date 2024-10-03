@@ -217,8 +217,7 @@ export const Fixture = {
       issueFundingId,
       dto.githubIssueId,
       dto.userId,
-      dto.productId,
-      dto.amount,
+      dto.downAmount,
     );
   },
   managedIssueId(): ManagedIssueId {

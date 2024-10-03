@@ -12,7 +12,7 @@ describe("StripeProductRepository", () => {
     it("should insert a product", async () => {
       const productId = new StripeProductId("1");
 
-      const product = Fixture.stripeProduct(productId.toString());
+      const product = Fixture.stripeProduct(productId);
 
       const created = await productRepo.insert(product);
       expect(created).toEqual(product);
@@ -24,7 +24,7 @@ describe("StripeProductRepository", () => {
     it("should fail with constraint violation if duplicate stripe_id is inserted", async () => {
       const productId = new StripeProductId("1");
 
-      const product = Fixture.stripeProduct(productId.toString());
+      const product = Fixture.stripeProduct(productId);
 
       await productRepo.insert(product);
 
@@ -51,7 +51,7 @@ describe("StripeProductRepository", () => {
     it("should return a product by ID", async () => {
       const productId = new StripeProductId("1");
 
-      const product = Fixture.stripeProduct(productId.toString());
+      const product = Fixture.stripeProduct(productId);
 
       await productRepo.insert(product);
 
@@ -65,8 +65,8 @@ describe("StripeProductRepository", () => {
       const productId1 = new StripeProductId("1");
       const productId2 = new StripeProductId("2");
 
-      const product1 = Fixture.stripeProduct(productId1.toString());
-      const product2 = Fixture.stripeProduct(productId2.toString());
+      const product1 = Fixture.stripeProduct(productId1);
+      const product2 = Fixture.stripeProduct(productId2);
 
       await productRepo.insert(product1);
       await productRepo.insert(product2);

@@ -1,5 +1,6 @@
 import fs from "fs";
 import {
+  GithubIssueId,
   Issue,
   IssueId,
   OwnerId,
@@ -26,7 +27,7 @@ describe("Issue", () => {
       console.log(object);
     }
 
-    const issueId = new IssueId(repositoryId, 3, 2538344642);
+    const issueId = new IssueId(repositoryId, 3, new GithubIssueId(2538344642));
 
     const expected = new Issue(
       issueId,
