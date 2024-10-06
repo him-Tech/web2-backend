@@ -1,5 +1,4 @@
 import fs from "fs";
-import { Fixture } from "../../__helpers__/Fixture";
 import { Issue, IssueId, OwnerId, RepositoryId } from "../../../model";
 
 describe("Issue", () => {

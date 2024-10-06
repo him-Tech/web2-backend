@@ -7,12 +7,7 @@ import {
 } from "../../../db";
 import { setupTestDB } from "../../__helpers__/jest.setup";
 import { Fixture } from "../../__helpers__/Fixture";
-import {
-  StripeCustomer,
-  StripeCustomerId,
-  StripeInvoiceLineId,
-  UserId,
-} from "../../../model";
+import { StripeCustomer, StripeInvoiceLineId, UserId } from "../../../model";
 
 describe("StripeInvoiceLineRepository", () => {
   setupTestDB();

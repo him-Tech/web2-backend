@@ -1,7 +1,7 @@
 import { setupTestDB } from "../../__helpers__/jest.setup";
 import { Fixture } from "../../__helpers__/Fixture";
 import { getStripeProductRepository } from "../../../db";
-import { StripeProduct, StripeProductId } from "../../../model";
+import { StripeProductId } from "../../../model";
 
 describe("StripeProductRepository", () => {
   setupTestDB();

@@ -3,11 +3,11 @@ import express from "express";
 import session from "express-session";
 import passport from "passport";
 import v1Routes from "./routes/v1";
-var cors = require("cors");
-
 import { errorHandler } from "./middlewares/errorHandler";
 import "./strategies";
 import { getPool } from "./dbPool";
+
+var cors = require("cors");
 
 export function createApp() {
   const app = express();

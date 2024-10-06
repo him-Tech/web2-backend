@@ -1,7 +1,7 @@
 import { Pool } from "pg";
 import {
-  StripeInvoiceLine,
   StripeInvoiceId,
+  StripeInvoiceLine,
   StripeInvoiceLineId,
 } from "../../model";
 import { getPool } from "../../dbPool";

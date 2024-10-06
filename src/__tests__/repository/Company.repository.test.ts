@@ -1,5 +1,5 @@
 import { setupTestDB } from "../__helpers__/jest.setup";
-import { Company, AddressId, CompanyId, UserId } from "../../model";
+import { AddressId, Company, CompanyId, UserId } from "../../model";
 import { Fixture } from "../__helpers__/Fixture";
 import {
   getAddressRepository,

@@ -1,6 +1,5 @@
 import { ValidationError, Validator } from "../utils";
 import { UserId } from "../user";
-import { CompanyId } from "../Company";
 
 export class StripeCustomerId {
   id: string;

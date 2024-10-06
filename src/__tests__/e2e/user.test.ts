@@ -1,4 +1,3 @@
-import request from "supertest";
 import { type Express } from "express";
 import { createApp } from "../../createApp";
 import { setupTestDB } from "../__helpers__/jest.setup";

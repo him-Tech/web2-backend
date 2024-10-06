@@ -13,8 +13,7 @@ import { StripeCustomer, StripeCustomerId, StripeInvoice } from "../model";
 import { ValidationError } from "express-validator";
 import { CreateSubscriptionDto } from "../dtos/CreateSubscription.dto";
 import { CreatePaymentIntentDto } from "../dtos/CreatePaymentIntent.dto";
-import { GetDowPricesResponse } from "../dtos";
-import { ResponseDto } from "../dtos";
+import { GetDowPricesResponse, ResponseDto } from "../dtos";
 
 // https://github.com/stripe-samples/subscriptions-with-card-and-direct-debit/blob/main/server/node/server.js
 const userRepo = getUserRepository();

@@ -1,4 +1,4 @@
-import { StripeInvoice, StripeInvoiceId } from "../../../model";
+import { StripeInvoice } from "../../../model";
 import * as fs from "fs";
 
 describe("StripeInvoice", () => {

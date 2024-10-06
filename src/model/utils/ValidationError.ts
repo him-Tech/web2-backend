@@ -1,6 +1,3 @@
-import e from "express";
-import { OwnerType } from "../github/Owner";
-
 export class ValidationError extends Error {
   constructor(message: string, data: any) {
     super(`${message}. Received: ${JSON.stringify(data, null, 2)}`);
