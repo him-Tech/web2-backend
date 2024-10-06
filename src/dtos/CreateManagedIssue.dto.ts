@@ -1,13 +1,12 @@
 import {
   ContributorVisibility,
-  GithubIssueId,
+  IssueId,
   ManagedIssueState,
-  StripeProductId,
   UserId,
 } from "../model/";
 
 export interface CreateManagedIssueDto {
-  githubIssueId: GithubIssueId;
+  githubIssueId: IssueId;
   requestedDowAmount: number;
   managerId: UserId;
   contributorVisibility: ContributorVisibility;

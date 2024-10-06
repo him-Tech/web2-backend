@@ -62,13 +62,13 @@ CREATE TABLE IF NOT EXISTS github_issue
     "created_at"               TIMESTAMP     NOT NULL DEFAULT now(),
     "updated_at"               TIMESTAMP     NOT NULL DEFAULT now(),
 
-    CONSTRAINT pk_github_issue PRIMARY KEY (github_owner_login, github_repository_name, github_number),
+    CONSTRAINT pk_github_issue_key PRIMARY KEY (github_owner_login, github_repository_name, github_number),
 
     CONSTRAINT fk_github_owner_id FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT,
     CONSTRAINT fk_github_owner_login FOREIGN KEY (github_owner_login) REFERENCES github_owner (github_login) ON DELETE RESTRICT,
 
     CONSTRAINT fk_github_repository_id FOREIGN KEY (github_repository_id) REFERENCES github_repository (github_id) ON DELETE RESTRICT,
-    CONSTRAINT fk_github_repository_name FOREIGN KEY (github_owner_login, github_repository_name) REFERENCES github_repository (github_owner_login, github_name) ON DELETE RESTRICT,
+    CONSTRAINT fk_github_repository FOREIGN KEY (github_owner_login, github_repository_name) REFERENCES github_repository (github_owner_login, github_name) ON DELETE RESTRICT,
 
     CONSTRAINT fk_github_open_by_owner_id FOREIGN KEY (github_open_by_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT,
     CONSTRAINT fk_github_open_by_owner_login FOREIGN KEY (github_open_by_owner_login) REFERENCES github_owner (github_login) ON DELETE RESTRICT
@@ -244,33 +244,64 @@ CREATE TABLE IF NOT EXISTS stripe_invoice_line
 CREATE TABLE IF NOT EXISTS managed_issue
 (
     id                     SERIAL PRIMARY KEY,
-    github_issue_id        INTEGER     NOT NULL,
 
-    requested_dow_amount       INTEGER     NOT NULL,
+    github_owner_id        INTEGER      NOT NULL,
+    github_owner_login     VARCHAR(255) NOT NULL,
 
-    manager_id             INTEGER     NOT NULL,
-    contributor_visibility VARCHAR(50) NOT NULL, -- 'public' or 'private'
-    state                  VARCHAR(50) NOT NULL, -- 'open', 'rejected', 'solved'
+    github_repository_id   INTEGER      NOT NULL,
+    github_repository_name VARCHAR(255) NOT NULL,
 
-    "created_at"           TIMESTAMP   NOT NULL DEFAULT now(),
-    "updated_at"           TIMESTAMP   NOT NULL DEFAULT now(),
+    github_issue_id        INTEGER NOT NULL,
+    github_issue_number    INTEGER      NOT NULL,
 
-    CONSTRAINT fk_issue FOREIGN KEY (github_issue_id) REFERENCES github_issue (github_id) ON DELETE CASCADE,
+    requested_dow_amount   INTEGER      NOT NULL,
+
+    manager_id             INTEGER      NOT NULL,
+    contributor_visibility VARCHAR(50)  NOT NULL, -- 'public' or 'private'
+    state                  VARCHAR(50)  NOT NULL, -- 'open', 'rejected', 'solved'
+
+    "created_at"           TIMESTAMP    NOT NULL DEFAULT now(),
+    "updated_at"           TIMESTAMP    NOT NULL DEFAULT now(),
+
+    CONSTRAINT fk_github_owner_id FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_github_repository_id FOREIGN KEY (github_repository_id) REFERENCES github_repository (github_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_github_issue_id FOREIGN KEY (github_issue_id) REFERENCES github_issue (github_id) ON DELETE RESTRICT,
+
+    CONSTRAINT fk_github_owner_login FOREIGN KEY (github_owner_login) REFERENCES github_owner (github_login) ON DELETE RESTRICT,
+    CONSTRAINT fk_github_repository FOREIGN KEY (github_owner_login, github_repository_name) REFERENCES github_repository (github_owner_login, github_name) ON DELETE RESTRICT,
+    CONSTRAINT fk_github_issue FOREIGN KEY (github_owner_login, github_repository_name, github_issue_number) REFERENCES github_issue (github_owner_login, github_repository_name, github_number) ON DELETE RESTRICT,
+
     CONSTRAINT fk_manager FOREIGN KEY (manager_id) REFERENCES "app_user" (id) ON DELETE CASCADE
 );
 
 -- this table is used as event source events
 CREATE TABLE IF NOT EXISTS issue_funding
 (
-    id              SERIAL PRIMARY KEY,
-    github_issue_id INTEGER     NOT NULL,
-    user_id         INTEGER     NOT NULL,
-    dow_amount          INTEGER     NOT NULL,
+    id                     SERIAL PRIMARY KEY,
 
-    "created_at"    TIMESTAMP   NOT NULL DEFAULT now(),
-    "updated_at"    TIMESTAMP   NOT NULL DEFAULT now(),
+    github_owner_id        INTEGER      NOT NULL,
+    github_owner_login     VARCHAR(255) NOT NULL,
 
-    CONSTRAINT fk_issue FOREIGN KEY (github_issue_id) REFERENCES github_issue (github_id) ON DELETE CASCADE,
+    github_repository_id   INTEGER      NOT NULL,
+    github_repository_name VARCHAR(255) NOT NULL,
+
+    github_issue_id        INTEGER NOT NULL,
+    github_issue_number    INTEGER      NOT NULL,
+
+    user_id                INTEGER      NOT NULL,
+    dow_amount             INTEGER      NOT NULL,
+
+    "created_at"           TIMESTAMP    NOT NULL DEFAULT now(),
+    "updated_at"           TIMESTAMP    NOT NULL DEFAULT now(),
+
+    CONSTRAINT fk_github_owner_id FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_github_repository_id FOREIGN KEY (github_repository_id) REFERENCES github_repository (github_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_github_issue_id FOREIGN KEY (github_issue_id) REFERENCES github_issue (github_id) ON DELETE RESTRICT,
+
+    CONSTRAINT fk_github_owner_login FOREIGN KEY (github_owner_login) REFERENCES github_owner (github_login) ON DELETE RESTRICT,
+    CONSTRAINT fk_github_repository FOREIGN KEY (github_owner_login, github_repository_name) REFERENCES github_repository (github_owner_login, github_name) ON DELETE RESTRICT,
+    CONSTRAINT fk_github_issue FOREIGN KEY (github_owner_login, github_repository_name, github_issue_number) REFERENCES github_issue (github_owner_login, github_repository_name, github_number) ON DELETE RESTRICT,
+
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES "app_user" (id) ON DELETE CASCADE
 );
 

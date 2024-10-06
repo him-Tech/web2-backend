@@ -10,22 +10,25 @@ export class OwnerId {
   }
 
   static fromGithubApi(json: any): OwnerId | ValidationError {
-    const validator = new Validator(json);
-    const id = validator.requiredNumber("id");
-    const login = validator.requiredString("login");
-
-    const error = validator.getFirstError();
-    if (error) {
-      return error;
-    }
-
-    return new OwnerId(login, id);
+    return OwnerId.fromAny(json, "login", "id");
   }
 
-  static fromBackend(json: any): OwnerId | ValidationError {
-    const validator = new Validator(json);
-    const login = validator.requiredString("github_login");
-    const id = validator.requiredNumber("github_id");
+  static fromBackendPrimaryKey(row: any): OwnerId | ValidationError {
+    return OwnerId.fromAny(row, "github_login", "github_id");
+  }
+
+  static fromBackendForeignKey(row: any): OwnerId | ValidationError {
+    return OwnerId.fromAny(row, "github_owner_login", "github_owner_id");
+  }
+
+  private static fromAny(
+    data: any,
+    loginKey: string,
+    idKey: string,
+  ): OwnerId | ValidationError {
+    const validator = new Validator(data);
+    const login = validator.requiredString(loginKey);
+    const id = validator.requiredNumber(idKey);
 
     const error = validator.getFirstError();
     if (error) {
@@ -104,7 +107,7 @@ export class Owner {
       return error;
     }
 
-    const ownerId = OwnerId.fromBackend(json);
+    const ownerId = OwnerId.fromBackendPrimaryKey(json);
     if (ownerId instanceof ValidationError) {
       return ownerId;
     }

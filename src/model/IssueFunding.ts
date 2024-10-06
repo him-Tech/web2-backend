@@ -1,7 +1,6 @@
 import { ValidationError, Validator } from "./utils";
-import { GithubIssueId, IssueId } from "./github";
+import { IssueId } from "./github";
 import { UserId } from "./user";
-import { StripeProductId } from "./stripe";
 
 export class IssueFundingId {
   id: number;
@@ -9,6 +8,7 @@ export class IssueFundingId {
   constructor(id: number) {
     this.id = id;
   }
+
   toString(): string {
     return this.id.toString();
   }
@@ -16,13 +16,13 @@ export class IssueFundingId {
 
 export class IssueFunding {
   id: IssueFundingId;
-  githubIssueId: GithubIssueId;
+  githubIssueId: IssueId;
   userId: UserId;
   dowAmount: number;
 
   constructor(
     id: IssueFundingId,
-    githubIssueId: GithubIssueId,
+    githubIssueId: IssueId,
     userId: UserId,
     amount: number,
   ) {
@@ -33,9 +33,13 @@ export class IssueFunding {
   }
 
   static fromBackend(row: any): IssueFunding | ValidationError {
+    const githubIssueId = IssueId.fromBackendForeignKey(row);
+    if (githubIssueId instanceof ValidationError) {
+      return githubIssueId;
+    }
+
     const validator = new Validator(row);
     const id = validator.requiredNumber("id");
-    const githubIssueId = validator.requiredNumber("github_issue_id");
     const userId = validator.requiredNumber("user_id");
     const amount = validator.requiredNumber("dow_amount");
 
@@ -46,7 +50,7 @@ export class IssueFunding {
 
     return new IssueFunding(
       new IssueFundingId(id),
-      new GithubIssueId(githubIssueId),
+      githubIssueId,
       new UserId(userId),
       amount,
     );

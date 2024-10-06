@@ -1,5 +1,5 @@
 import { ValidationError, Validator } from "./utils";
-import { GithubIssueId, StripeProductId, UserId, UserRole } from "./index";
+import { IssueId, UserId } from "./index";
 
 export enum ContributorVisibility {
   PUBLIC = "public",
@@ -22,7 +22,7 @@ export class ManagedIssueId {
 
 export class ManagedIssue {
   id: ManagedIssueId;
-  githubIssueId: GithubIssueId;
+  githubIssueId: IssueId;
   requestedDowAmount: number;
   managerId: UserId;
   contributorVisibility: ContributorVisibility;
@@ -30,7 +30,7 @@ export class ManagedIssue {
 
   constructor(
     id: ManagedIssueId,
-    githubIssueId: GithubIssueId,
+    githubIssueId: IssueId,
     requestedDowAmount: number,
     managerId: UserId,
     contributorVisibility: ContributorVisibility,
@@ -45,9 +45,13 @@ export class ManagedIssue {
   }
 
   static fromBackend(row: any): ManagedIssue | ValidationError {
+    const githubIssueId = IssueId.fromBackendForeignKey(row);
+    if (githubIssueId instanceof ValidationError) {
+      return githubIssueId;
+    }
+
     const validator = new Validator(row);
     const id = validator.requiredNumber("id");
-    const issueId = validator.requiredNumber("github_issue_id");
     const requestedDowAmount = validator.requiredNumber("requested_dow_amount");
     const managerId = validator.requiredNumber("manager_id");
     const contributorVisibility = validator.requiredEnum(
@@ -66,7 +70,7 @@ export class ManagedIssue {
 
     return new ManagedIssue(
       new ManagedIssueId(id),
-      new GithubIssueId(issueId),
+      githubIssueId,
       requestedDowAmount,
       new UserId(managerId),
       contributorVisibility,

@@ -15,7 +15,7 @@ export class RepositoryId {
   static fromGithubApi(json: any): RepositoryId | ValidationError {
     const validator = new Validator(json);
     const name = validator.requiredString("name");
-    const id = validator.requiredNumber("id");
+    const id = validator.optionalNumber("id");
 
     const ownerId = OwnerId.fromGithubApi(json.owner);
     if (ownerId instanceof ValidationError) {
@@ -30,22 +30,38 @@ export class RepositoryId {
     return new RepositoryId(ownerId, name, id);
   }
 
-  static fromBackend(json: any): RepositoryId | ValidationError {
-    const validator = new Validator(json);
-    const ownerGithubId = validator.requiredNumber("github_owner_id");
-    const ownerGithubLogin = validator.requiredString("github_owner_login");
+  static fromBackendPrimaryKey(row: any): RepositoryId | ValidationError {
+    return RepositoryId.fromAny(row, "github_name", "github_id");
+  }
 
-    const name = validator.requiredString("github_name");
-    const githubId = validator.requiredNumber("github_id");
+  static fromBackendForeignKey(row: any): RepositoryId | ValidationError {
+    return RepositoryId.fromAny(
+      row,
+      "github_repository_name",
+      "github_repository_id",
+    );
+  }
 
-    const ownerId = new OwnerId(ownerGithubLogin, ownerGithubId);
+  private static fromAny(
+    data: any,
+    nameKey: string,
+    idKey: string,
+  ): RepositoryId | ValidationError {
+    const ownerId = OwnerId.fromBackendForeignKey(data);
+    if (ownerId instanceof ValidationError) {
+      return ownerId;
+    }
+
+    const validator = new Validator(data);
+    const name = validator.requiredString(nameKey);
+    const id = validator.requiredNumber(idKey);
 
     const error = validator.getFirstError();
     if (error) {
       return error;
     }
 
-    return new RepositoryId(ownerId, name, githubId);
+    return new RepositoryId(ownerId, name, id);
   }
 }
 
@@ -87,7 +103,7 @@ export class Repository {
   }
 
   static fromBackend(json: any): Repository | ValidationError {
-    const repositoryId = RepositoryId.fromBackend(json);
+    const repositoryId = RepositoryId.fromBackendPrimaryKey(json);
     if (repositoryId instanceof ValidationError) {
       return repositoryId;
     }

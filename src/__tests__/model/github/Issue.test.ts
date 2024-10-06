@@ -1,12 +1,6 @@
 import fs from "fs";
-import {
-  GithubIssueId,
-  Issue,
-  IssueId,
-  OwnerId,
-  Repository,
-  RepositoryId,
-} from "../../../model";
+import { Fixture } from "../../__helpers__/Fixture";
+import { Issue, IssueId, OwnerId, RepositoryId } from "../../../model";
 
 describe("Issue", () => {
   it("fromGithubApi does not throw an error", () => {
@@ -27,7 +21,7 @@ describe("Issue", () => {
       console.log(object);
     }
 
-    const issueId = new IssueId(repositoryId, 3, new GithubIssueId(2538344642));
+    const issueId = new IssueId(repositoryId, 3, 2538344642);
 
     const expected = new Issue(
       issueId,

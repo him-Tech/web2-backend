@@ -9,7 +9,9 @@ export function getIssueFundingRepository(): IssueFundingRepository {
 
 export interface IssueFundingRepository {
   create(issueFunding: CreateIssueFundingDto): Promise<IssueFunding>;
+
   getById(id: IssueFundingId): Promise<IssueFunding | null>;
+
   getAll(): Promise<IssueFunding[]>;
 }
 
@@ -59,12 +61,32 @@ class IssueFundingRepositoryImpl implements IssueFundingRepository {
     try {
       const result = await client.query(
         `
-        INSERT INTO issue_funding (github_issue_id, user_id, dow_amount)
-        VALUES ($1, $2, $3)
-        RETURNING id, github_issue_id, user_id, dow_amount
-        `,
+                    INSERT INTO issue_funding (github_owner_id,
+                                               github_owner_login,
+                                               github_repository_id,
+                                               github_repository_name,
+                                               github_issue_id,
+                                               github_issue_number,
+                                               user_id,
+                                               dow_amount)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                    RETURNING id,
+                        github_owner_id,
+                        github_owner_login,
+                        github_repository_id,
+                        github_repository_name,
+                        github_issue_id,
+                        github_issue_number,
+                        user_id,
+                        dow_amount
+                `,
         [
-          issueFunding.githubIssueId.toString(),
+          issueFunding.githubIssueId.repositoryId.ownerId.githubId,
+          issueFunding.githubIssueId.repositoryId.ownerId.login,
+          issueFunding.githubIssueId.repositoryId.githubId,
+          issueFunding.githubIssueId.repositoryId.name,
+          issueFunding.githubIssueId.githubId,
+          issueFunding.githubIssueId.number,
           issueFunding.userId.toString(),
           issueFunding.downAmount,
         ],
@@ -79,10 +101,10 @@ class IssueFundingRepositoryImpl implements IssueFundingRepository {
   async getById(id: IssueFundingId): Promise<IssueFunding | null> {
     const result = await this.pool.query(
       `
-      SELECT *
-      FROM issue_funding
-      WHERE id = $1
-      `,
+                SELECT *
+                FROM issue_funding
+                WHERE id = $1
+            `,
       [id.toString()],
     );
 
@@ -91,9 +113,9 @@ class IssueFundingRepositoryImpl implements IssueFundingRepository {
 
   async getAll(): Promise<IssueFunding[]> {
     const result = await this.pool.query(`
-      SELECT *
-      FROM issue_funding
-    `);
+            SELECT *
+            FROM issue_funding
+        `);
 
     return this.getIssueFundingList(result.rows);
   }

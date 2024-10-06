@@ -6,7 +6,6 @@ import {
   ContributorVisibility,
   Email,
   GithubData,
-  GithubIssueId,
   Issue,
   IssueFunding,
   IssueFundingId,
@@ -39,7 +38,6 @@ import {
   CreateManagedIssueDto,
 } from "../../dtos";
 import { StripePriceId } from "../../model/stripe/StripePrice";
-import { RepositoryRepository } from "../../db";
 
 export const Fixture = {
   id(): number {
@@ -88,7 +86,7 @@ export const Fixture = {
 
   issueId(repositoryId: RepositoryId): IssueId {
     const number = this.id();
-    return new IssueId(repositoryId, number, new GithubIssueId(number));
+    return new IssueId(repositoryId, number, number);
   },
 
   issue(issueId: IssueId, openByOwnerId: OwnerId, payload = "payload"): Issue {
@@ -225,7 +223,7 @@ export const Fixture = {
     return new ManagedIssueId(number);
   },
   createManagedIssueDto(
-    githubIssueId: GithubIssueId,
+    githubIssueId: IssueId,
     managerId: UserId,
     payload: number = 5000,
   ): CreateManagedIssueDto {

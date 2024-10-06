@@ -60,12 +60,36 @@ class ManagedIssueRepositoryImpl implements ManagedIssueRepository {
     try {
       const result = await client.query(
         `
-        INSERT INTO managed_issue (github_issue_id, requested_dow_amount, manager_id, contributor_visibility, state)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING id, github_issue_id, requested_dow_amount, manager_id, contributor_visibility, state
+            INSERT INTO managed_issue (github_owner_id,
+                                       github_owner_login,
+                                       github_repository_id,
+                                       github_repository_name,
+                                       github_issue_id,
+                                       github_issue_number,
+                                       requested_dow_amount,
+                                       manager_id,
+                                       contributor_visibility,
+                                       state)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            RETURNING id,
+              github_owner_id,
+              github_owner_login,
+              github_repository_id,
+              github_repository_name,
+              github_issue_id,
+              github_issue_number,
+                requested_dow_amount, 
+                manager_id, 
+                contributor_visibility, 
+                state
         `,
         [
-          managedIssue.githubIssueId.toString(),
+          managedIssue.githubIssueId.repositoryId.ownerId.githubId,
+          managedIssue.githubIssueId.repositoryId.ownerId.login,
+          managedIssue.githubIssueId.repositoryId.githubId,
+          managedIssue.githubIssueId.repositoryId.name,
+          managedIssue.githubIssueId.githubId,
+          managedIssue.githubIssueId.number,
           managedIssue.requestedDowAmount,
           managedIssue.managerId.toString(),
           managedIssue.contributorVisibility,
@@ -86,17 +110,37 @@ class ManagedIssueRepositoryImpl implements ManagedIssueRepository {
       const result = await client.query(
         `
         UPDATE managed_issue
-        SET 
-            github_issue_id = $1,
-            requested_dow_amount = $2,
-            manager_id = $3,
-            contributor_visibility = $4,
-            state = $5
-        WHERE id = $6
-        RETURNING id, github_issue_id, requested_dow_amount, manager_id, contributor_visibility, state
+        SET
+            github_owner_id = $1,
+            github_owner_login = $2,
+            github_repository_id = $3,
+            github_repository_name = $4,
+            github_issue_id = $5,
+            github_issue_number = $6,
+                requested_dow_amount = $7, 
+                manager_id = $8, 
+                contributor_visibility = $9, 
+                state = $10
+        WHERE id = $11
+        RETURNING id,
+          github_owner_id,
+          github_owner_login,
+          github_repository_id,
+          github_repository_name,
+          github_issue_id,
+          github_issue_number,
+            requested_dow_amount, 
+            manager_id, 
+            contributor_visibility, 
+            state
         `,
         [
-          managedIssue.githubIssueId.toString(),
+          managedIssue.githubIssueId.repositoryId.ownerId.githubId,
+          managedIssue.githubIssueId.repositoryId.ownerId.login,
+          managedIssue.githubIssueId.repositoryId.githubId,
+          managedIssue.githubIssueId.repositoryId.name,
+          managedIssue.githubIssueId.githubId,
+          managedIssue.githubIssueId.number,
           managedIssue.requestedDowAmount,
           managedIssue.managerId.toString(),
           managedIssue.contributorVisibility,

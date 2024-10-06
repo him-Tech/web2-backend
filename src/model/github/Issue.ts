@@ -2,28 +2,12 @@ import { OwnerId } from "./Owner";
 import { RepositoryId } from "./Repository";
 import { ValidationError, Validator } from "../utils";
 
-export class GithubIssueId {
-  id: number;
-
-  constructor(id: number) {
-    this.id = id;
-  }
-
-  toString(): string {
-    return this.id.toString();
-  }
-}
-
 export class IssueId {
   repositoryId: RepositoryId;
   number: number;
-  githubId?: GithubIssueId;
+  githubId?: number;
 
-  constructor(
-    repositoryId: RepositoryId,
-    number: number,
-    githubId?: GithubIssueId,
-  ) {
+  constructor(repositoryId: RepositoryId, number: number, githubId?: number) {
     this.repositoryId = repositoryId;
     this.number = number;
     this.githubId = githubId;
@@ -42,7 +26,37 @@ export class IssueId {
       return error;
     }
 
-    return new IssueId(repositoryId, number, new GithubIssueId(id));
+    return new IssueId(repositoryId, number, id);
+  }
+
+  static fromBackend(row: any): IssueId | ValidationError {
+    return IssueId.fromAny(row, "github_number", "github_id");
+  }
+
+  static fromBackendForeignKey(row: any): IssueId | ValidationError {
+    return IssueId.fromAny(row, "github_issue_number", "github_issue_id");
+  }
+
+  static fromAny(
+    row: any,
+    numberKey: string,
+    idKey: string,
+  ): IssueId | ValidationError {
+    const repositoryId = RepositoryId.fromBackendForeignKey(row);
+    if (repositoryId instanceof ValidationError) {
+      return repositoryId;
+    }
+
+    const validator = new Validator(row);
+    const number = validator.requiredNumber(numberKey);
+    const id = validator.requiredNumber(idKey);
+
+    const error = validator.getFirstError();
+    if (error) {
+      return error;
+    }
+
+    return new IssueId(repositoryId, number, id);
   }
 }
 
@@ -92,7 +106,7 @@ export class Issue {
       return error;
     }
 
-    const issueId = new IssueId(repositoryId, number, new GithubIssueId(id));
+    const issueId = new IssueId(repositoryId, number, id);
     const ownerId = OwnerId.fromGithubApi(openByObject);
     if (ownerId instanceof ValidationError) {
       return ownerId;
@@ -142,7 +156,7 @@ export class Issue {
       repositoryName,
       repositoryGithubId,
     );
-    const issueId = new IssueId(repositoryId, number, new GithubIssueId(id));
+    const issueId = new IssueId(repositoryId, number, id);
     const openByOwnerId = new OwnerId(openByLogin, openById);
 
     return new Issue(

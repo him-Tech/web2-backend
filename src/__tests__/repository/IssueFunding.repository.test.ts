@@ -39,7 +39,7 @@ describe("IssueFundingRepository", () => {
       await issueRepo.insert(issue);
 
       const issueFundingDto: CreateIssueFundingDto = {
-        githubIssueId: issueId.githubId!,
+        githubIssueId: issueId,
         userId: validUserId,
         downAmount: 5000,
       };
@@ -90,13 +90,13 @@ describe("IssueFundingRepository", () => {
       await issueRepo.insert(issue);
 
       const issueFundingDto1: CreateIssueFundingDto = {
-        githubIssueId: issueId.githubId!,
+        githubIssueId: issueId,
         userId: validUserId,
         downAmount: 5000,
       };
 
       const issueFundingDto2: CreateIssueFundingDto = {
-        githubIssueId: issueId.githubId!,
+        githubIssueId: issueId,
         userId: validUserId,
         downAmount: 10000,
       };

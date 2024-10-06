@@ -105,7 +105,7 @@ export class Validator {
     }
   }
 
-  optionalNumber(path: string | string[]): void {
+  optionalNumber(path: string | string[]): number | undefined {
     let value = this.getValue(path);
 
     if (typeof value === "string") {
@@ -116,6 +116,8 @@ export class Validator {
     } else if (typeof value !== "number") {
       this.errors.push(new NumberValidationError(path, this.data, value));
       return;
+    } else {
+      return value;
     }
   }
 

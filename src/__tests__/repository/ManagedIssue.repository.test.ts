@@ -38,7 +38,7 @@ describe("ManagedIssueRepository", () => {
       await issueRepo.insert(issue);
 
       const managedIssueDto = Fixture.createManagedIssueDto(
-        issueId.githubId!,
+        issueId,
         validUserId,
       );
 
@@ -72,7 +72,7 @@ describe("ManagedIssueRepository", () => {
       await issueRepo.insert(issue);
 
       const managedIssueDto = Fixture.createManagedIssueDto(
-        issueId.githubId!,
+        issueId,
         validUserId,
       );
 

@@ -1,7 +1,7 @@
-import { GithubIssueId, UserId } from "../model";
+import { IssueId, UserId } from "../model";
 
 export interface CreateIssueFundingDto {
-  githubIssueId: GithubIssueId;
+  githubIssueId: IssueId;
   userId: UserId;
   downAmount: number;
 }
