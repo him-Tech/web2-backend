@@ -35,7 +35,7 @@ describe("ManagedIssueRepository", () => {
 
       const issueId = Fixture.issueId(repositoryId);
       const issue = Fixture.issue(issueId, ownerId);
-      await issueRepo.insert(issue);
+      await issueRepo.createOrUpdate(issue);
 
       const managedIssueDto = Fixture.createManagedIssueDto(
         issueId,
@@ -69,7 +69,7 @@ describe("ManagedIssueRepository", () => {
 
       const issueId = Fixture.issueId(repositoryId);
       const issue = Fixture.issue(issueId, ownerId);
-      await issueRepo.insert(issue);
+      await issueRepo.createOrUpdate(issue);
 
       const managedIssueDto = Fixture.createManagedIssueDto(
         issueId,

@@ -1,5 +1,5 @@
 import { Pool } from "pg";
-import { ManagedIssue, ManagedIssueId } from "../model";
+import { IssueId, ManagedIssue, ManagedIssueId } from "../model";
 import { getPool } from "../dbPool";
 import { CreateManagedIssueDto } from "../dtos";
 
@@ -11,6 +11,7 @@ export interface ManagedIssueRepository {
   create(managedIssue: CreateManagedIssueDto): Promise<ManagedIssue>;
   update(managedIssue: ManagedIssue): Promise<ManagedIssue>;
   getById(id: ManagedIssueId): Promise<ManagedIssue | null>;
+  getByIssueId(issueId: IssueId): Promise<ManagedIssue | null>;
   getAll(): Promise<ManagedIssue[]>;
 }
 
@@ -163,6 +164,23 @@ class ManagedIssueRepositoryImpl implements ManagedIssueRepository {
       WHERE id = $1
       `,
       [id.id],
+    );
+
+    return this.getOptionalManagedIssue(result.rows);
+  }
+
+  async getByIssueId(issueId: IssueId): Promise<ManagedIssue | null> {
+    const result = await this.pool.query(
+      `
+        SELECT *
+        FROM managed_issue
+        WHERE github_owner_login = $1 AND github_repository_name = $2 AND github_issue_number = $3
+        `,
+      [
+        issueId.repositoryId.ownerId.login,
+        issueId.repositoryId.name,
+        issueId.number,
+      ],
     );
 
     return this.getOptionalManagedIssue(result.rows);

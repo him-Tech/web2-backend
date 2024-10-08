@@ -32,7 +32,7 @@ export class ManagedIssue {
     id: ManagedIssueId,
     githubIssueId: IssueId,
     requestedDowAmount: number,
-    managerId: UserId,
+    managerId: UserId, // TODO: need to change to User
     contributorVisibility: ContributorVisibility,
     state: ManagedIssueState,
   ) {

@@ -8,7 +8,7 @@ export function getIssueRepository(): IssueRepository {
 }
 
 export interface IssueRepository {
-  insert(issue: Issue): Promise<Issue>;
+  createOrUpdate(issue: Issue): Promise<Issue>;
 
   getById(id: IssueId): Promise<Issue | null>;
 
@@ -75,7 +75,7 @@ class IssueRepositoryImpl implements IssueRepository {
     return this.getOptionalIssue(result.rows);
   }
 
-  async insert(issue: Issue): Promise<Issue> {
+  async createOrUpdate(issue: Issue): Promise<Issue> {
     const client = await this.pool.connect();
 
     try {

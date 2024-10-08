@@ -251,7 +251,7 @@ CREATE TABLE IF NOT EXISTS managed_issue
     github_repository_id   INTEGER      NOT NULL,
     github_repository_name VARCHAR(255) NOT NULL,
 
-    github_issue_id        INTEGER NOT NULL,
+    github_issue_id        INTEGER      NOT NULL,
     github_issue_number    INTEGER      NOT NULL,
 
     requested_dow_amount   INTEGER      NOT NULL,
@@ -285,7 +285,7 @@ CREATE TABLE IF NOT EXISTS issue_funding
     github_repository_id   INTEGER      NOT NULL,
     github_repository_name VARCHAR(255) NOT NULL,
 
-    github_issue_id        INTEGER NOT NULL,
+    github_issue_id        INTEGER      NOT NULL,
     github_issue_number    INTEGER      NOT NULL,
 
     user_id                INTEGER      NOT NULL,

@@ -34,8 +34,8 @@ describe("/api/v1/auth", () => {
       .get("/api/v1/auth/status")
       .set("Cookie", loginResponse.headers["set-cookie"]);
 
-    console.log("Response Body:", response.body);
-    console.log("Response Status:", response.status);
+    // console.log("Response Body:", response.body);
+    // console.log("Response Status:", response.status);
 
     expect(response.statusCode).toBe(200);
 

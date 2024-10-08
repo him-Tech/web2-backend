@@ -16,8 +16,6 @@ describe("Issue", () => {
 
     if (object instanceof Error) {
       console.error(object);
-    } else {
-      console.log(object);
     }
 
     const issueId = new IssueId(repositoryId, 3, 2538344642);

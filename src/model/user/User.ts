@@ -1,6 +1,6 @@
 import { LocalUser } from "./LocalUser";
-import { ThirdPartyUser } from "./ThirdPartyUser";
-import { Owner } from "../github/Owner";
+import { GithubData, ThirdPartyUser } from "./ThirdPartyUser";
+import { Owner } from "../github";
 import { ValidationError, Validator } from "../utils";
 
 export class UserId {
@@ -35,6 +35,14 @@ export class User implements Express.User {
       return this.data.email;
     } else {
       return this.data.email() ?? null;
+    }
+  }
+
+  githubData(): GithubData | null {
+    if (this.data instanceof ThirdPartyUser) {
+      return this.data.providerData;
+    } else {
+      return null;
     }
   }
 

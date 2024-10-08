@@ -10,7 +10,6 @@ export class UserController {
     request: Request,
     response: Response<User[] | ValidationError[]>,
   ) {
-    console.log("Getting all users");
     const users = await repo.getAll();
     response.send(users);
   }

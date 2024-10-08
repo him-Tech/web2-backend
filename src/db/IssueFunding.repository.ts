@@ -1,5 +1,5 @@
-import { Pool } from "pg";
-import { IssueFunding, IssueFundingId } from "../model";
+import { Pool, QueryResult } from "pg";
+import { IssueFunding, IssueFundingId, IssueId } from "../model";
 import { getPool } from "../dbPool";
 import { CreateIssueFundingDto } from "../dtos";
 
@@ -12,7 +12,7 @@ export interface IssueFundingRepository {
 
   getById(id: IssueFundingId): Promise<IssueFunding | null>;
 
-  getAll(): Promise<IssueFunding[]>;
+  getAll(issueId?: IssueId): Promise<IssueFunding[]>;
 }
 
 class IssueFundingRepositoryImpl implements IssueFundingRepository {
@@ -111,12 +111,28 @@ class IssueFundingRepositoryImpl implements IssueFundingRepository {
     return this.getOptionalIssueFunding(result.rows);
   }
 
-  async getAll(): Promise<IssueFunding[]> {
-    const result = await this.pool.query(`
+  async getAll(issueId?: IssueId): Promise<IssueFunding[]> {
+    let result: QueryResult<any>;
+
+    if (issueId) {
+      result = await this.pool.query(
+        `
+                SELECT *
+                FROM issue_funding
+                WHERE github_owner_login = $1 AND github_repository_name = $2 AND github_issue_number = $3
+            `,
+        [
+          issueId.repositoryId.ownerId.login,
+          issueId.repositoryId.name,
+          issueId.number,
+        ],
+      );
+    } else {
+      result = await this.pool.query(`
             SELECT *
             FROM issue_funding
         `);
-
+    }
     return this.getIssueFundingList(result.rows);
   }
 }

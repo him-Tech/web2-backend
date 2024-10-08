@@ -1,0 +1,207 @@
+import { setupTestDB } from "../__helpers__/jest.setup";
+import {
+  FinancialIssue,
+  Issue,
+  IssueId,
+  Owner,
+  OwnerId,
+  Repository,
+  RepositoryId,
+  UserId,
+} from "../../model";
+
+import {
+  getIssueFundingRepository,
+  getIssueRepository,
+  getManagedIssueRepository,
+  getOwnerRepository,
+  getRepositoryRepository,
+  getUserRepository,
+} from "../../db/";
+import { CreateIssueFundingDto } from "../../dtos";
+import { Fixture } from "../__helpers__/Fixture";
+import { getFinancialIssueRepository } from "../../db/FinancialIssue.repository";
+import { GitHubApi } from "../../services/github.service";
+
+describe("FinancialIssueRepository", () => {
+  setupTestDB();
+
+  const userRepo = getUserRepository();
+  const ownerRepo = getOwnerRepository();
+  const repoRepo = getRepositoryRepository();
+  const issueRepo = getIssueRepository();
+  const managedIssueRepo = getManagedIssueRepository();
+  const issueFundingRepo = getIssueFundingRepository();
+
+  class GitHubApiMock implements GitHubApi {
+    owner: Owner;
+    repository: Repository;
+    issue: Issue;
+
+    constructor(owner: Owner, repository: Repository, issue: Issue) {
+      this.owner = owner;
+      this.repository = repository;
+      this.issue = issue;
+    }
+    async getOwnerAndRepository(
+      repositoryId: RepositoryId,
+    ): Promise<[Owner, Repository]> {
+      return [this.owner, this.repository];
+    }
+
+    async getIssue(issueId: IssueId): Promise<[Issue, Owner]> {
+      return [this.issue, this.owner];
+    }
+  }
+
+  let userId: UserId;
+
+  const ownerId1: OwnerId = Fixture.ownerId();
+  const repositoryId1: RepositoryId = Fixture.repositoryId(ownerId1);
+  const issueId1: IssueId = Fixture.issueId(repositoryId1);
+  const owner1: Owner = Fixture.owner(ownerId1);
+  const repository1: Repository = Fixture.repository(repositoryId1);
+  const issue1: Issue = Fixture.issue(issueId1, ownerId1);
+
+  const ownerId2: OwnerId = Fixture.ownerId();
+  const repositoryId2: RepositoryId = Fixture.repositoryId(ownerId2);
+  const issueId2: IssueId = Fixture.issueId(repositoryId2);
+  const owner2: Owner = Fixture.owner(ownerId2);
+  const repository2: Repository = Fixture.repository(repositoryId2);
+  const issue2: Issue = Fixture.issue(issueId2, ownerId2);
+
+  beforeEach(async () => {
+    const validUser = await userRepo.insertLocal(Fixture.createUserDto());
+    userId = validUser.id;
+  });
+
+  describe("get", () => {
+    it("should return a financial issue, even if the DB is empty", async () => {
+      const financialIssueRepo = getFinancialIssueRepository(
+        new GitHubApiMock(owner1, repository1, issue1),
+      );
+
+      const financialIssue = await financialIssueRepo.get(issueId1);
+
+      const expected = new FinancialIssue(
+        owner1,
+        repository1,
+        issue1,
+        undefined,
+        [],
+      );
+      expect(financialIssue).toEqual(expected);
+
+      /* GitHub's data was inserted in the DB*/
+
+      const owner = await ownerRepo.getById(ownerId1);
+      expect(owner).toEqual(owner1);
+
+      const repo = await repoRepo.getById(repositoryId1);
+      expect(repo).toEqual(repository1);
+
+      const issue = await issueRepo.getById(issueId1);
+      expect(issue).toEqual(issue1);
+    });
+  });
+
+  describe("getAll", () => {
+    it("One managedIssue issueFunding are defined for an issue", async () => {
+      const financialIssueRepo = getFinancialIssueRepository(
+        new GitHubApiMock(owner1, repository1, issue1),
+      );
+
+      await ownerRepo.insertOrUpdate(owner1);
+      await repoRepo.insertOrUpdate(repository1);
+      await issueRepo.createOrUpdate(issue1);
+
+      /* Inserting issue fundings */
+      const issueFundingDto1: CreateIssueFundingDto = {
+        githubIssueId: issueId1,
+        userId: userId,
+        downAmount: 5000,
+      };
+
+      const issueFundingDto2: CreateIssueFundingDto = {
+        githubIssueId: issueId1,
+        userId: userId,
+        downAmount: 10000,
+      };
+
+      const issueFunding1 = await issueFundingRepo.create(issueFundingDto1);
+      const issueFunding2 = await issueFundingRepo.create(issueFundingDto2);
+
+      /* Inserting managed issues */
+      const managedIssueDto = Fixture.createManagedIssueDto(issueId1, userId);
+      const managedIssue = await managedIssueRepo.create(managedIssueDto);
+
+      const financialIssuea = await financialIssueRepo.getAll();
+
+      const expected = new FinancialIssue(
+        owner1,
+        repository1,
+        issue1,
+        managedIssue,
+        [issueFunding1, issueFunding2],
+      );
+
+      expect(financialIssuea).toHaveLength(1);
+      expect(financialIssuea).toContainEqual(expected);
+    });
+
+    it("One managedIssue is defined for an issue and 2 issueFunding are defined for an other issue", async () => {
+      const financialIssueRepo = getFinancialIssueRepository(
+        new GitHubApiMock(owner1, repository1, issue1),
+      );
+
+      await ownerRepo.insertOrUpdate(owner1);
+      await repoRepo.insertOrUpdate(repository1);
+      await issueRepo.createOrUpdate(issue1);
+
+      await ownerRepo.insertOrUpdate(owner2);
+      await repoRepo.insertOrUpdate(repository2);
+      await issueRepo.createOrUpdate(issue2);
+
+      /* Inserting issue fundings */
+      const issueFundingDto1: CreateIssueFundingDto = {
+        githubIssueId: issueId1,
+        userId: userId,
+        downAmount: 5000,
+      };
+
+      const issueFundingDto2: CreateIssueFundingDto = {
+        githubIssueId: issueId1,
+        userId: userId,
+        downAmount: 10000,
+      };
+
+      const issueFunding1 = await issueFundingRepo.create(issueFundingDto1);
+      const issueFunding2 = await issueFundingRepo.create(issueFundingDto2);
+
+      /* Inserting managed issues */
+      const managedIssueDto = Fixture.createManagedIssueDto(issueId2, userId);
+      const managedIssue = await managedIssueRepo.create(managedIssueDto);
+
+      const financialIssuea = await financialIssueRepo.getAll();
+
+      const expected1 = new FinancialIssue(
+        owner1,
+        repository1,
+        issue1,
+        undefined,
+        [issueFunding1, issueFunding2],
+      );
+      const expected2 = new FinancialIssue(
+        owner2,
+        repository2,
+        issue2,
+        managedIssue,
+        [],
+      );
+
+      expect(financialIssuea).toHaveLength(2);
+      expect(financialIssuea).toContainEqual(expected1);
+      expect(financialIssuea).toContainEqual(expected2);
+    });
+  });
+});

@@ -36,7 +36,7 @@ describe("IssueFundingRepository", () => {
 
       const issueId = Fixture.issueId(repositoryId);
       const issue = Fixture.issue(issueId, ownerId);
-      await issueRepo.insert(issue);
+      await issueRepo.createOrUpdate(issue);
 
       const issueFundingDto: CreateIssueFundingDto = {
         githubIssueId: issueId,
@@ -87,7 +87,7 @@ describe("IssueFundingRepository", () => {
 
       const issueId = Fixture.issueId(repositoryId);
       const issue = Fixture.issue(issueId, ownerId);
-      await issueRepo.insert(issue);
+      await issueRepo.createOrUpdate(issue);
 
       const issueFundingDto1: CreateIssueFundingDto = {
         githubIssueId: issueId,

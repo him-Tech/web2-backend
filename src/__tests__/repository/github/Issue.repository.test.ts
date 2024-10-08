@@ -29,7 +29,7 @@ describe("IssueRepository", () => {
 
         const issueId = Fixture.issueId(repositoryId);
         const issue = Fixture.issue(issueId, ownerId);
-        const created = await issueRepo.insert(issue);
+        const created = await issueRepo.createOrUpdate(issue);
         expect(created).toEqual(issue);
 
         const found = await issueRepo.getById(issue.id);
@@ -44,7 +44,7 @@ describe("IssueRepository", () => {
         const issue = Fixture.issue(issueId, ownerId);
 
         try {
-          await issueRepo.insert(issue);
+          await issueRepo.createOrUpdate(issue);
           // If the insertion doesn't throw, fail the test
           fail(
             "Expected foreign key constraint violation, but no error was thrown.",
@@ -66,10 +66,10 @@ describe("IssueRepository", () => {
 
         const issueId = Fixture.issueId(repositoryId);
         const issue = Fixture.issue(issueId, ownerId);
-        await issueRepo.insert(issue);
+        await issueRepo.createOrUpdate(issue);
 
         const updatedIssue = Fixture.issue(issueId, ownerId, "updated-payload");
-        const updated = await issueRepo.insert(updatedIssue);
+        const updated = await issueRepo.createOrUpdate(updatedIssue);
         expect(updated).toEqual(updatedIssue);
 
         const found = await issueRepo.getById(issue.id);
@@ -98,7 +98,7 @@ describe("IssueRepository", () => {
 
       const issueId = Fixture.issueId(repositoryId);
       const issue = Fixture.issue(issueId, ownerId);
-      await issueRepo.insert(issue);
+      await issueRepo.createOrUpdate(issue);
 
       const undefinedOwnerId = new OwnerId(ownerId.login, undefined);
       const undefinedRepositoryId = new RepositoryId(
@@ -130,8 +130,8 @@ describe("IssueRepository", () => {
       const issue1 = Fixture.issue(issueId1, ownerId);
       const issue2 = Fixture.issue(issueId2, ownerId);
 
-      await issueRepo.insert(issue1);
-      await issueRepo.insert(issue2);
+      await issueRepo.createOrUpdate(issue1);
+      await issueRepo.createOrUpdate(issue2);
 
       const allIssues = await issueRepo.getAll();
 

@@ -1,4 +1,4 @@
-import { Issue, Owner, OwnerId, Repository, RepositoryId } from "../model";
+import { Issue, IssueId, Owner, Repository, RepositoryId } from "../model";
 
 if (!process.env.GITHUB_TOKEN) {
   throw new Error("GITHUB_TOKEN is not set");
@@ -10,26 +10,18 @@ export function getGitHubAPI(): GitHubApi {
 
 export interface GitHubApi {
   // returns the issue and the owner that opened the issue
-  getIssue(
-    owner: string,
-    repo: string,
-    number: number,
-  ): Promise<[Issue, Owner]>;
+  getIssue(issueId: IssueId): Promise<[Issue, Owner]>;
+
   getOwnerAndRepository(
-    owner: string,
-    repo: string,
+    repositoryId: RepositoryId,
   ): Promise<[Owner, Repository]>;
 }
 
 class GitHubApiImpl implements GitHubApi {
-  async getIssue(
-    owner: string,
-    repo: string,
-    number: number,
-  ): Promise<[Issue, Owner]> {
+  async getIssue(issueId: IssueId): Promise<[Issue, Owner]> {
     try {
       const response: Response = await fetch(
-        `https://api.github.com/repos/${owner.trim()}/${repo.trim()}/issues/${number}`,
+        `https://api.github.com/repos/${issueId.repositoryId.ownerId.login.trim()}/${issueId.repositoryId.name.trim()}/issues/${issueId.number}`,
         {
           method: "GET",
           headers: {
@@ -40,11 +32,10 @@ class GitHubApiImpl implements GitHubApi {
       );
       if (response.ok) {
         const json = await response.json();
-        const repositoryId: RepositoryId = new RepositoryId(
-          new OwnerId(owner),
-          repo,
+        const issue: Issue | Error = Issue.fromGithubApi(
+          issueId.repositoryId,
+          json,
         );
-        const issue: Issue | Error = Issue.fromGithubApi(repositoryId, json);
         const openBy: Owner | Error = Owner.fromGithubApi(json.user);
         if (issue instanceof Error) {
           return Promise.reject(issue);
@@ -66,12 +57,11 @@ class GitHubApiImpl implements GitHubApi {
   }
 
   async getOwnerAndRepository(
-    owner: string,
-    repo: string,
+    repositoryId: RepositoryId,
   ): Promise<[Owner, Repository]> {
     try {
       const response: Response = await fetch(
-        `https://api.github.com/repos/${owner.trim()}/${repo.trim()}`,
+        `https://api.github.com/repos/${repositoryId.ownerId.login.trim()}/${repositoryId.name.trim()}`,
         {
           method: "GET",
           headers: {

@@ -10,8 +10,6 @@ describe("Owner", () => {
     const json = JSON.parse(data);
     const object = Owner.fromGithubApi(json);
 
-    console.log(object);
-
     const expected = new Owner(
       new OwnerId("Open-Source-Economy", 141809657),
       OwnerType.Organization,
@@ -20,5 +18,6 @@ describe("Owner", () => {
     );
 
     expect(object).toBeInstanceOf(Owner);
+    expect(object).toEqual(expected);
   });
 });

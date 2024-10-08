@@ -12,8 +12,6 @@ describe("Repository", () => {
 
     if (object instanceof Error) {
       console.error(object);
-    } else {
-      console.log(object);
     }
 
     const ownerId = new OwnerId("Open-Source-Economy", 141809657);
