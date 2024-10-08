@@ -6,18 +6,24 @@ import { getStripeCustomerRepository, getUserRepository } from "../../../db";
 describe("StripeCustomerRepository", () => {
   setupTestDB();
 
+  let validUserId: UserId;
+
+  beforeEach(async () => {
+    const validUser = await userRepo.insertLocal(Fixture.createUserDto());
+    validUserId = validUser.id;
+  });
+
   const customerRepo = getStripeCustomerRepository();
   const userRepo = getUserRepository();
 
   describe("create", () => {
     it("should work", async () => {
-      const userId = new UserId(1);
-      const customerId = new StripeCustomerId("123");
+      const customerId = Fixture.stripeCustomerId();
 
       // Insert user before inserting the customer
       await userRepo.insertLocal(Fixture.createUserDto());
 
-      const customer = new StripeCustomer(customerId, userId);
+      const customer = new StripeCustomer(customerId, validUserId);
       const created = await customerRepo.insert(customer);
 
       expect(created).toEqual(customer);
@@ -28,9 +34,8 @@ describe("StripeCustomerRepository", () => {
 
     it("should fail with foreign key constraint error if user is not inserted", async () => {
       const customerId = new StripeCustomerId("123");
-      const userId = new UserId(Fixture.id()); // UserId that does not exist in the database
 
-      const customer = new StripeCustomer(customerId, userId);
+      const customer = new StripeCustomer(customerId, Fixture.userId());
 
       try {
         await customerRepo.insert(customer);
@@ -56,16 +61,14 @@ describe("StripeCustomerRepository", () => {
 
   describe("getAll", () => {
     it("should return all customers", async () => {
-      const userId = new UserId(1);
-
       // Insert user before inserting the customer
       await userRepo.insertLocal(Fixture.createUserDto());
 
       const customerId1 = new StripeCustomerId("123");
       const customerId2 = new StripeCustomerId("abc");
 
-      const customer1 = new StripeCustomer(customerId1, userId);
-      const customer2 = new StripeCustomer(customerId2, userId);
+      const customer1 = new StripeCustomer(customerId1, validUserId);
+      const customer2 = new StripeCustomer(customerId2, validUserId);
 
       await customerRepo.insert(customer1);
       await customerRepo.insert(customer2);

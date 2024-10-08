@@ -1,5 +1,5 @@
 import { setupTestDB } from "../__helpers__/jest.setup";
-import { IssueFundingId, UserId } from "../../model";
+import { UserId } from "../../model";
 
 import {
   getIssueFundingRepository,
@@ -51,9 +51,7 @@ describe("IssueFundingRepository", () => {
         Fixture.issueFundingFromDto(created.id, issueFundingDto),
       );
 
-      const found = await issueFundingRepo.getById(
-        new IssueFundingId(created.id.id),
-      );
+      const found = await issueFundingRepo.getById(created.id);
       expect(found).toEqual(created);
     });
 
@@ -64,7 +62,7 @@ describe("IssueFundingRepository", () => {
 
   describe("getById", () => {
     it("should return null if issue funding not found", async () => {
-      const nonExistentIssueFundingId = new IssueFundingId(999999);
+      const nonExistentIssueFundingId = Fixture.issueFundingId();
       const found = await issueFundingRepo.getById(nonExistentIssueFundingId);
 
       expect(found).toBeNull();

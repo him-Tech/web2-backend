@@ -146,7 +146,7 @@ class ManagedIssueRepositoryImpl implements ManagedIssueRepository {
           managedIssue.managerId.toString(),
           managedIssue.contributorVisibility,
           managedIssue.state,
-          managedIssue.id.id,
+          managedIssue.id.uuid,
         ],
       );
 
@@ -163,7 +163,7 @@ class ManagedIssueRepositoryImpl implements ManagedIssueRepository {
       FROM managed_issue
       WHERE id = $1
       `,
-      [id.id],
+      [id.uuid],
     );
 
     return this.getOptionalManagedIssue(result.rows);

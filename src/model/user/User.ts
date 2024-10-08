@@ -4,14 +4,14 @@ import { Owner } from "../github";
 import { ValidationError, Validator } from "../utils";
 
 export class UserId {
-  id: number;
+  uuid: string;
 
-  constructor(id: number) {
-    this.id = id;
+  constructor(uuid: string) {
+    this.uuid = uuid;
   }
 
   toString(): string {
-    return this.id.toString();
+    return this.uuid.toString();
   }
 }
 
@@ -48,7 +48,7 @@ export class User implements Express.User {
 
   static fromRaw(row: any, owner: Owner | null = null): User | ValidationError {
     const validator = new Validator(row);
-    const id = validator.requiredNumber("id");
+    const id = validator.requiredString("id");
     const role = validator.requiredEnum(
       "role",
       Object.values(UserRole) as UserRole[],

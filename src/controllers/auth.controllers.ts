@@ -5,7 +5,7 @@ import { StatusCodes } from "http-status-codes";
 export class AuthController {
   static async status(request: Request, response: Response<User | null>) {
     if (request.isAuthenticated()) {
-      return response.status(StatusCodes.OK).send(request.user);
+      return response.status(StatusCodes.OK).send(request.user! as User); // TODO: json instead of send ?
     } else {
       return response.status(StatusCodes.OK).send(null);
     }

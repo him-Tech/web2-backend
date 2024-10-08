@@ -1,8 +1,7 @@
 import { setupTestDB } from "../../__helpers__/jest.setup";
 import { OwnerId, RepositoryId } from "../../../model";
 import { Fixture } from "../../__helpers__/Fixture";
-import { getOwnerRepository } from "../../../db/github/Owner.repository";
-import { getRepositoryRepository } from "../../../db/github/Repository.repository";
+import { getOwnerRepository, getRepositoryRepository } from "../../../db";
 
 describe("RepositoryRepository", () => {
   const ownerRepo = getOwnerRepository();

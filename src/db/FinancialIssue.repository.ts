@@ -47,19 +47,31 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
   }
 
   async get(issueId: IssueId): Promise<FinancialIssue> {
-    const githubRepoPromise: Promise<[Owner, Repository]> = this.githubService
-      .getOwnerAndRepository(issueId.repositoryId)
-      .then(([owner, repo]) => {
-        this.ownerRepo.insertOrUpdate(owner);
-        this.repoRepo.insertOrUpdate(repo);
-        return [owner, repo];
-      });
+    const githubRepoPromise: Promise<[Owner, Repository]> =
+      this.githubService.getOwnerAndRepository(issueId.repositoryId);
+    const githubIssuePromise: Promise<[Issue, Owner]> =
+      this.githubService.getIssue(issueId);
 
-    const githubIssuePromise: Promise<Issue> = this.githubService
-      .getIssue(issueId)
-      .then(([issue, _]) => {
-        this.issueRepo.createOrUpdate(issue);
-        return issue;
+    Promise.all([githubRepoPromise, githubIssuePromise])
+      .then(([repoResult, issueResult]) => {
+        const [owner, repo] = repoResult;
+        const [issue, issueCreatedBy] = issueResult; // Renamed createdBy to issueCreatedBy for clarity
+
+        this.ownerRepo
+          .insertOrUpdate(owner as Owner)
+          .then(() => {
+            this.repoRepo.insertOrUpdate(repo as Repository);
+          })
+          .then(() => {
+            // Then insert the issue and its creator
+            return Promise.all([
+              this.issueRepo.createOrUpdate(issue as Issue),
+              this.ownerRepo.insertOrUpdate(issueCreatedBy as Owner),
+            ]);
+          });
+      })
+      .catch((error) => {
+        console.error("Error fetching GitHub data:", error);
       });
 
     const owner: Promise<Owner> = this.ownerRepo
@@ -80,11 +92,13 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
         }
         return repo;
       });
+
     const issue: Promise<Issue> = this.issueRepo
       .getById(issueId)
       .then(async (issue) => {
         if (!issue) {
-          return await githubIssuePromise;
+          const [issue, _] = await githubIssuePromise;
+          return issue;
         }
         return issue;
       });

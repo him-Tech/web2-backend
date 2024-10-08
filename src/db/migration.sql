@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS github_owner
 (
-    id                SERIAL,
+    id                UUID         NOT NULL DEFAULT gen_random_uuid(),
     github_id         INTEGER PRIMARY KEY,
     github_login      VARCHAR(255) NOT NULL UNIQUE,
 
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS github_owner
 
 CREATE TABLE IF NOT EXISTS github_repository
 (
-    id                 SERIAL,
+    id                 UUID         NOT NULL DEFAULT gen_random_uuid(),
     github_id          INTEGER UNIQUE,
 
     github_owner_id    INTEGER      NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS github_repository
 -- github_closed_at TIMESTAMP,
 CREATE TABLE IF NOT EXISTS github_issue
 (
-    id                         SERIAL,
+    id                         UUID          NOT NULL DEFAULT gen_random_uuid(),
     github_id                  INTEGER UNIQUE,
 
     github_owner_id            INTEGER       NOT NULL,
@@ -90,18 +90,18 @@ CREATE INDEX "IDX_session_expire" ON "user_session" ("expire");
 
 CREATE TABLE IF NOT EXISTS "app_user"
 (
-    "id"                SERIAL PRIMARY KEY NOT NULL,
+    "id"                UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     "provider"          VARCHAR(50),         -- Optional, used for third-party users
     "third_party_id"    VARCHAR(100) UNIQUE, -- Optional, used for third-party users
     "name"              VARCHAR(255),
     "email"             VARCHAR(255) UNIQUE,
-    "is_email_verified" BOOLEAN            NOT NULL,
+    "is_email_verified" BOOLEAN          NOT NULL,
     "hashed_password"   VARCHAR(255),        -- Optional, used for local users
-    "role"              VARCHAR(50)        NOT NULL DEFAULT 'ser',
+    "role"              VARCHAR(50)      NOT NULL DEFAULT 'ser',
     github_owner_id     INTEGER,
 
-    "created_at"        TIMESTAMP          NOT NULL DEFAULT now(),
-    "updated_at"        TIMESTAMP          NOT NULL DEFAULT now(),
+    "created_at"        TIMESTAMP        NOT NULL DEFAULT now(),
+    "updated_at"        TIMESTAMP        NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_github_owner FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE SET NULL,
 
@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS "app_user"
 
 CREATE TABLE IF NOT EXISTS address
 (
-    id           SERIAL PRIMARY KEY,
+    id           UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     name         VARCHAR(255),
     line_1       VARCHAR(255),
     line_2       VARCHAR(255),
@@ -126,20 +126,20 @@ CREATE TABLE IF NOT EXISTS address
     postal_code  VARCHAR(20),
     country      VARCHAR(100),
 
-    "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-    "updated_at" TIMESTAMP NOT NULL DEFAULT now()
+    "created_at" TIMESTAMP        NOT NULL DEFAULT now(),
+    "updated_at" TIMESTAMP        NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS company
 (
-    id                SERIAL PRIMARY KEY,
+    id                UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     tax_id            VARCHAR(50) UNIQUE,
     name              VARCHAR(255),
-    contact_person_id INTEGER,
-    address_id        INTEGER,
+    contact_person_id UUID,
+    address_id        UUID,
 
-    "created_at"      TIMESTAMP NOT NULL DEFAULT now(),
-    "updated_at"      TIMESTAMP NOT NULL DEFAULT now(),
+    "created_at"      TIMESTAMP        NOT NULL DEFAULT now(),
+    "updated_at"      TIMESTAMP        NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_address FOREIGN KEY (address_id) REFERENCES address (id) ON DELETE RESTRICT
     -- Foreign key constraints for contact persons will be added later
@@ -149,8 +149,8 @@ CREATE TABLE IF NOT EXISTS company
 
 CREATE TABLE IF NOT EXISTS user_company
 (
-    user_id      INTEGER,
-    company_id   INTEGER,
+    user_id      UUID,
+    company_id   UUID,
 
     "created_at" TIMESTAMP NOT NULL DEFAULT now(),
     "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
@@ -170,9 +170,9 @@ ALTER TABLE company
 
 CREATE TABLE IF NOT EXISTS stripe_customer
 (
-    id           SERIAL,
+    id           UUID      NOT NULL DEFAULT gen_random_uuid(),
     stripe_id    VARCHAR(50) PRIMARY KEY,
-    user_id      INTEGER   NOT NULL,
+    user_id      UUID      NOT NULL,
 
     "created_at" TIMESTAMP NOT NULL DEFAULT now(),
     "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS stripe_customer
 -- example: represent the product 0.01 DoW
 CREATE TABLE IF NOT EXISTS stripe_product
 (
-    id           SERIAL,
+    id           UUID        NOT NULL DEFAULT gen_random_uuid(),
     stripe_id    VARCHAR(50) PRIMARY KEY,
     unit         VARCHAR(50) NOT NULL, -- 'DoW'
     unit_amount  INTEGER     NOT NULL,
@@ -197,7 +197,7 @@ CREATE TABLE IF NOT EXISTS stripe_product
 
 CREATE TABLE IF NOT EXISTS stripe_invoice
 (
-    id                 SERIAL,
+    id                 UUID           NOT NULL DEFAULT gen_random_uuid(),
     stripe_id          VARCHAR(50) PRIMARY KEY,
     customer_id        VARCHAR(50)    NOT NULL,
     paid               BOOLEAN        NOT NULL,
@@ -218,7 +218,7 @@ CREATE TABLE IF NOT EXISTS stripe_invoice
 
 CREATE TABLE IF NOT EXISTS stripe_invoice_line
 (
-    id           SERIAL,
+    id           UUID        NOT NULL DEFAULT gen_random_uuid(),
     stripe_id    VARCHAR(50) PRIMARY KEY,
     invoice_id   VARCHAR(50) NOT NULL,
     customer_id  VARCHAR(50) NOT NULL,
@@ -243,25 +243,25 @@ CREATE TABLE IF NOT EXISTS stripe_invoice_line
 
 CREATE TABLE IF NOT EXISTS managed_issue
 (
-    id                     SERIAL PRIMARY KEY,
+    id                     UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
 
-    github_owner_id        INTEGER      NOT NULL,
-    github_owner_login     VARCHAR(255) NOT NULL,
+    github_owner_id        INTEGER          NOT NULL,
+    github_owner_login     VARCHAR(255)     NOT NULL,
 
-    github_repository_id   INTEGER      NOT NULL,
-    github_repository_name VARCHAR(255) NOT NULL,
+    github_repository_id   INTEGER          NOT NULL,
+    github_repository_name VARCHAR(255)     NOT NULL,
 
-    github_issue_id        INTEGER      NOT NULL,
-    github_issue_number    INTEGER      NOT NULL,
+    github_issue_id        INTEGER          NOT NULL,
+    github_issue_number    INTEGER          NOT NULL,
 
-    requested_dow_amount   INTEGER      NOT NULL,
+    requested_dow_amount   INTEGER          NOT NULL,
 
-    manager_id             INTEGER      NOT NULL,
-    contributor_visibility VARCHAR(50)  NOT NULL, -- 'public' or 'private'
-    state                  VARCHAR(50)  NOT NULL, -- 'open', 'rejected', 'solved'
+    manager_id             UUID             NOT NULL,
+    contributor_visibility VARCHAR(50)      NOT NULL, -- 'public' or 'private'
+    state                  VARCHAR(50)      NOT NULL, -- 'open', 'rejected', 'solved'
 
-    "created_at"           TIMESTAMP    NOT NULL DEFAULT now(),
-    "updated_at"           TIMESTAMP    NOT NULL DEFAULT now(),
+    "created_at"           TIMESTAMP        NOT NULL DEFAULT now(),
+    "updated_at"           TIMESTAMP        NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_github_owner_id FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT,
     CONSTRAINT fk_github_repository_id FOREIGN KEY (github_repository_id) REFERENCES github_repository (github_id) ON DELETE RESTRICT,
@@ -277,22 +277,22 @@ CREATE TABLE IF NOT EXISTS managed_issue
 -- this table is used as event source events
 CREATE TABLE IF NOT EXISTS issue_funding
 (
-    id                     SERIAL PRIMARY KEY,
+    id                     UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
 
-    github_owner_id        INTEGER      NOT NULL,
-    github_owner_login     VARCHAR(255) NOT NULL,
+    github_owner_id        INTEGER          NOT NULL,
+    github_owner_login     VARCHAR(255)     NOT NULL,
 
-    github_repository_id   INTEGER      NOT NULL,
-    github_repository_name VARCHAR(255) NOT NULL,
+    github_repository_id   INTEGER          NOT NULL,
+    github_repository_name VARCHAR(255)     NOT NULL,
 
-    github_issue_id        INTEGER      NOT NULL,
-    github_issue_number    INTEGER      NOT NULL,
+    github_issue_id        INTEGER          NOT NULL,
+    github_issue_number    INTEGER          NOT NULL,
 
-    user_id                INTEGER      NOT NULL,
-    dow_amount             INTEGER      NOT NULL,
+    user_id                UUID             NOT NULL,
+    dow_amount             INTEGER          NOT NULL,
 
-    "created_at"           TIMESTAMP    NOT NULL DEFAULT now(),
-    "updated_at"           TIMESTAMP    NOT NULL DEFAULT now(),
+    "created_at"           TIMESTAMP        NOT NULL DEFAULT now(),
+    "updated_at"           TIMESTAMP        NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_github_owner_id FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT,
     CONSTRAINT fk_github_repository_id FOREIGN KEY (github_repository_id) REFERENCES github_repository (github_id) ON DELETE RESTRICT,

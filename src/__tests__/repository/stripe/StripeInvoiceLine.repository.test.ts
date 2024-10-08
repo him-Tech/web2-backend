@@ -18,15 +18,21 @@ describe("StripeInvoiceLineRepository", () => {
   const invoiceRepo = getStripeInvoiceRepository();
   const customerRepo = getStripeCustomerRepository();
 
+  let validUserId: UserId;
+
+  beforeEach(async () => {
+    const validUser = await userRepo.insertLocal(Fixture.createUserDto());
+    validUserId = validUser.id;
+  });
+
   describe("create", () => {
     it("should work", async () => {
-      const userId = new UserId(1);
       const customerId = Fixture.stripeCustomerId();
       const invoiceId = Fixture.stripeInvoiceId();
       const productId = Fixture.stripeProductId();
 
       await userRepo.insertLocal(Fixture.createUserDto());
-      await customerRepo.insert(new StripeCustomer(customerId, userId));
+      await customerRepo.insert(new StripeCustomer(customerId, validUserId));
 
       await productRepo.insert(Fixture.stripeProduct(productId));
       await invoiceRepo.insert(
@@ -49,13 +55,12 @@ describe("StripeInvoiceLineRepository", () => {
     });
 
     it("should fail with foreign key constraint error if invoice or customer is not inserted", async () => {
-      const userId = new UserId(1);
       const customerId = Fixture.stripeCustomerId();
       const invoiceId = Fixture.stripeInvoiceId();
       const productId = Fixture.stripeProductId();
 
       await userRepo.insertLocal(Fixture.createUserDto());
-      await customerRepo.insert(new StripeCustomer(customerId, userId));
+      await customerRepo.insert(new StripeCustomer(customerId, validUserId));
       await productRepo.insert(Fixture.stripeProduct(productId));
 
       const invoiceLineId = Fixture.stripeInvoiceLineId();
@@ -92,13 +97,12 @@ describe("StripeInvoiceLineRepository", () => {
 
   describe("getAll", () => {
     it("should return all invoice lines", async () => {
-      const userId = new UserId(1);
       const customerId = Fixture.stripeCustomerId();
       const invoiceId = Fixture.stripeInvoiceId();
       const productId = Fixture.stripeProductId();
 
       await userRepo.insertLocal(Fixture.createUserDto());
-      await customerRepo.insert(new StripeCustomer(customerId, userId));
+      await customerRepo.insert(new StripeCustomer(customerId, validUserId));
       await productRepo.insert(Fixture.stripeProduct(productId));
       await invoiceRepo.insert(
         Fixture.stripeInvoice(invoiceId, customerId, []),

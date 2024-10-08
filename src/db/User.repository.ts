@@ -6,10 +6,10 @@ import {
   ThirdPartyUserId,
   User,
   UserId,
-} from "../model"; // Adjust the import paths as necessary
+} from "../model";
 import { getPool } from "../dbPool";
 import { CreateLocalUserDto } from "../dtos";
-import { encrypt } from "../strategies/helpers"; // Adjust the import path as necessary
+import { encrypt } from "../strategies/helpers";
 
 export function getUserRepository(): UserRepository {
   return new UserRepositoryImpl(getPool());
@@ -131,7 +131,7 @@ class UserRepositoryImpl implements UserRepository {
       LEFT JOIN github_owner go ON au.github_owner_id = go.github_id
       WHERE au.id = $1
             `,
-      [id.id],
+      [id.uuid],
     );
     return this.getOptionalUser(result.rows);
   }

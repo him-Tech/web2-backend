@@ -9,6 +9,7 @@ import {
 } from "../../db/";
 import { CreateManagedIssueDto } from "../../dtos";
 import { Fixture } from "../__helpers__/Fixture";
+import { v4 as uuidv } from "uuid";
 
 describe("ManagedIssueRepository", () => {
   const userRepo = getUserRepository();
@@ -49,7 +50,7 @@ describe("ManagedIssueRepository", () => {
       );
 
       const found = await managedIssueRepo.getById(
-        new ManagedIssueId(created.id.id),
+        new ManagedIssueId(created.id.uuid),
       );
       expect(found).toEqual(created);
     });
@@ -108,7 +109,7 @@ describe("ManagedIssueRepository", () => {
 
   describe("getById", () => {
     it("should return null if managed issue not found", async () => {
-      const nonExistentManagedIssueId = new ManagedIssueId(999999);
+      const nonExistentManagedIssueId = new ManagedIssueId(uuidv());
       const found = await managedIssueRepo.getById(nonExistentManagedIssueId);
 
       expect(found).toBeNull();

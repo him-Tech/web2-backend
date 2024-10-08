@@ -70,7 +70,7 @@ class CompanyRepositoryImpl implements CompanyRepository {
       FROM company
       WHERE id = $1
       `,
-      [id.id],
+      [id.uuid],
     );
 
     return this.getOptionalCompany(result.rows);
@@ -90,7 +90,7 @@ class CompanyRepositoryImpl implements CompanyRepository {
       VALUES ($1, $2, $3) 
       RETURNING id, tax_id, name, address_id
       `,
-        [company.taxId, company.name, company.addressId?.id ?? null],
+        [company.taxId, company.name, company.addressId?.uuid ?? null],
       );
 
       const insertedCompany = this.getOneCompany(result.rows);
@@ -102,7 +102,7 @@ class CompanyRepositoryImpl implements CompanyRepository {
               INSERT INTO user_company (user_id, company_id)
               VALUES ($1, $2)
             `,
-          [company.contactPersonId.id, insertedCompany.id.id],
+          [company.contactPersonId.uuid, insertedCompany.id.uuid],
         );
       }
 
@@ -113,7 +113,7 @@ class CompanyRepositoryImpl implements CompanyRepository {
       SET contact_person_id = $1
       WHERE id = $2
       `,
-        [company.contactPersonId?.id ?? null, insertedCompany.id.id],
+        [company.contactPersonId?.uuid ?? null, insertedCompany.id.uuid],
       );
 
       await client.query("COMMIT");
@@ -140,7 +140,7 @@ class CompanyRepositoryImpl implements CompanyRepository {
           VALUES ($1, $2)
           ON CONFLICT (user_id, company_id) DO NOTHING
           `,
-          [company.contactPersonId.id, company.id.id],
+          [company.contactPersonId.uuid, company.id.uuid],
         );
       }
 
@@ -157,9 +157,9 @@ class CompanyRepositoryImpl implements CompanyRepository {
         [
           company.taxId,
           company.name,
-          company.contactPersonId?.id ?? null,
-          company.addressId?.id ?? null,
-          company.id.id,
+          company.contactPersonId?.uuid ?? null,
+          company.addressId?.uuid ?? null,
+          company.id.uuid,
         ],
       );
 

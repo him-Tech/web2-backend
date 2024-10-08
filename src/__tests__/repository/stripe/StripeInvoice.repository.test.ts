@@ -1,10 +1,5 @@
 import { setupTestDB } from "../../__helpers__/jest.setup";
-import {
-  CompanyId,
-  StripeCustomer,
-  StripeInvoiceLine,
-  UserId,
-} from "../../../model";
+import { StripeCustomer, StripeInvoiceLine, UserId } from "../../../model";
 import { Fixture } from "../../__helpers__/Fixture";
 import {
   getCompanyRepository,
@@ -20,6 +15,13 @@ import { StripePriceId } from "../../../model/stripe/StripePrice";
 describe("StripeInvoiceRepository", () => {
   setupTestDB();
 
+  let validUserId: UserId;
+
+  beforeEach(async () => {
+    const validUser = await userRepo.insertLocal(Fixture.createUserDto());
+    validUserId = validUser.id;
+  });
+
   const userRepo = getUserRepository();
   const companyRepo = getCompanyRepository();
   const customerRepo = getStripeCustomerRepository();
@@ -29,8 +31,6 @@ describe("StripeInvoiceRepository", () => {
 
   describe("create", () => {
     it("should insert an invoice with lines", async () => {
-      const userId = new UserId(1);
-
       const customerId = Fixture.stripeCustomerId();
       const invoiceId = Fixture.stripeInvoiceId();
       const productId = Fixture.stripeProductId();
@@ -41,7 +41,7 @@ describe("StripeInvoiceRepository", () => {
       // Insert user, company and customer before inserting the customer
       await userRepo.insertLocal(Fixture.createUserDto());
       await companyRepo.insert({} as CreateCompanyDto);
-      const customer = new StripeCustomer(customerId, userId);
+      const customer = new StripeCustomer(customerId, validUserId);
       await customerRepo.insert(customer);
       await productRepo.insert(Fixture.stripeProduct(productId));
 
@@ -59,9 +59,6 @@ describe("StripeInvoiceRepository", () => {
     });
 
     it("should rollback transaction if inserting lines fails", async () => {
-      const userId = new UserId(1);
-      const companyId = new CompanyId(1);
-
       const customerId = Fixture.stripeCustomerId();
       const invoiceId = Fixture.stripeInvoiceId();
       const productId = Fixture.stripeProductId();
@@ -72,7 +69,7 @@ describe("StripeInvoiceRepository", () => {
       // Insert user, company and customer before inserting the customer
       await userRepo.insertLocal(Fixture.createUserDto());
       await companyRepo.insert({} as CreateCompanyDto);
-      const customer = new StripeCustomer(customerId, userId);
+      const customer = new StripeCustomer(customerId, validUserId);
       await customerRepo.insert(customer);
       await productRepo.insert(Fixture.stripeProduct(productId));
 

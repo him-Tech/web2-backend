@@ -94,6 +94,8 @@ describe("FinancialIssueRepository", () => {
 
       /* GitHub's data was inserted in the DB*/
 
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // wait 1 second to be sure that the data is inserted in the DB (async on financialIssueRepo.get)
+
       const owner = await ownerRepo.getById(ownerId1);
       expect(owner).toEqual(owner1);
 

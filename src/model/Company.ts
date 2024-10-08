@@ -3,14 +3,14 @@ import { AddressId } from "./Address";
 import { ValidationError, Validator } from "./utils";
 
 export class CompanyId {
-  id: number;
+  uuid: string;
 
-  constructor(id: number) {
-    this.id = id;
+  constructor(uuid: string) {
+    this.uuid = uuid;
   }
 
   toString(): string {
-    return this.id.toString();
+    return this.uuid.toString();
   }
 }
 
@@ -37,7 +37,7 @@ export class Company {
 
   static fromBackend(row: any): Company | ValidationError {
     const validator = new Validator(row);
-    validator.requiredNumber("id");
+    validator.requiredString("id");
     validator.optionalString("tax_id");
     validator.optionalString("name");
     validator.optionalNumber("contact_person_id");

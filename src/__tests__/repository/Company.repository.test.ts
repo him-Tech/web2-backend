@@ -1,5 +1,5 @@
 import { setupTestDB } from "../__helpers__/jest.setup";
-import { AddressId, Company, CompanyId, UserId } from "../../model";
+import { AddressId, Company, UserId } from "../../model";
 import { Fixture } from "../__helpers__/Fixture";
 import {
   getAddressRepository,
@@ -44,7 +44,7 @@ describe("CompanyRepository", () => {
 
       const created = await companyRepo.insert(company);
 
-      expect(created).toEqual(Fixture.companyFromDto(created.id.id, company));
+      expect(created).toEqual(Fixture.companyFromDto(created.id, company));
 
       const found = await companyRepo.getById(created.id);
       expect(found).toEqual(created);
@@ -125,7 +125,7 @@ describe("CompanyRepository", () => {
       const updated = await companyRepo.update(updatedCompany);
 
       // Assert that the contact person ID has been updated
-      expect(updated.contactPersonId?.id).toEqual(validUserId2.id);
+      expect(updated.contactPersonId?.uuid).toEqual(validUserId2.uuid);
 
       const found = await companyRepo.getById(created.id);
       expect(found).toEqual(updated);
@@ -134,7 +134,7 @@ describe("CompanyRepository", () => {
 
   describe("getById", () => {
     it("should return null if company not found", async () => {
-      const nonExistentCompanyId = new CompanyId(999999);
+      const nonExistentCompanyId = Fixture.companyId();
       const found = await companyRepo.getById(nonExistentCompanyId);
 
       expect(found).toBeNull();
@@ -145,14 +145,14 @@ describe("CompanyRepository", () => {
     it("should return all companies", async () => {
       const company = {} as CreateCompanyDto;
 
-      await companyRepo.insert(company);
-      await companyRepo.insert(company);
+      const company1 = await companyRepo.insert(company);
+      const company2 = await companyRepo.insert(company);
 
       const allCompanies = await companyRepo.getAll();
 
       expect(allCompanies).toHaveLength(2);
-      expect(allCompanies).toContainEqual(Fixture.company(1));
-      expect(allCompanies).toContainEqual(Fixture.company(2));
+      expect(allCompanies).toContainEqual(Fixture.company(company1.id));
+      expect(allCompanies).toContainEqual(Fixture.company(company2.id));
     });
 
     it("should return an empty array if no companies exist", async () => {

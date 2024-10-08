@@ -101,7 +101,7 @@ class AddressRepositoryImpl implements AddressRepository {
       FROM address
       WHERE id = $1
       `,
-      [id.id],
+      [id.uuid],
     );
 
     return this.getOptionalAddress(result.rows);
@@ -161,7 +161,7 @@ class AddressRepositoryImpl implements AddressRepository {
           address.state,
           address.postalCode,
           address.country,
-          address.id.id,
+          address.id.uuid,
         ],
       );
 

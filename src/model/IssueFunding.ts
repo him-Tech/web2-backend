@@ -3,14 +3,14 @@ import { IssueId } from "./github";
 import { UserId } from "./user";
 
 export class IssueFundingId {
-  id: number;
+  uuid: string;
 
-  constructor(id: number) {
-    this.id = id;
+  constructor(uuid: string) {
+    this.uuid = uuid;
   }
 
   toString(): string {
-    return this.id.toString();
+    return this.uuid.toString();
   }
 }
 
@@ -39,8 +39,8 @@ export class IssueFunding {
     }
 
     const validator = new Validator(row);
-    const id = validator.requiredNumber("id");
-    const userId = validator.requiredNumber("user_id");
+    const id = validator.requiredString("id");
+    const userId = validator.requiredString("user_id");
     const amount = validator.requiredNumber("dow_amount");
 
     const error = validator.getFirstError();

@@ -4,7 +4,6 @@ import {
   Provider,
   ThirdPartyUser,
   ThirdPartyUserId,
-  UserId,
   UserRole,
 } from "../../model";
 import { Fixture } from "../__helpers__/Fixture";
@@ -90,7 +89,7 @@ describe("UserRepository", () => {
 
   describe("getById", () => {
     it("should return null if user not found", async () => {
-      const nonExistentUserId = new UserId(999999);
+      const nonExistentUserId = Fixture.userId();
       const found = await repo.getById(nonExistentUserId);
 
       expect(found).toBeNull();

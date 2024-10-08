@@ -38,10 +38,19 @@ import {
   CreateManagedIssueDto,
 } from "../../dtos";
 import { StripePriceId } from "../../model/stripe/StripePrice";
+import { v4 as uuid } from "uuid";
 
 export const Fixture = {
   id(): number {
     return Math.floor(Math.random() * 1000000);
+  },
+  uuid(): string {
+    return uuid();
+  },
+
+  userId(): UserId {
+    const id = this.uuid();
+    return new UserId(id);
   },
 
   thirdPartyUser(
@@ -58,7 +67,7 @@ export const Fixture = {
   },
   createUserDto(): CreateLocalUserDto {
     return {
-      email: "d@gmail.com" + this.id(),
+      email: "d@gmail.com" + this.uuid(),
       password: "password",
     } as CreateLocalUserDto;
   },
@@ -74,7 +83,7 @@ export const Fixture = {
 
   repositoryId(ownerId: OwnerId): RepositoryId {
     const id = this.id();
-    return new RepositoryId(ownerId, `repo-${id.toString()}`, id);
+    return new RepositoryId(ownerId, `repo-${id}`, id);
   },
 
   repository(
@@ -100,12 +109,16 @@ export const Fixture = {
       payload,
     );
   },
-  address(addressId: number): Address {
-    return new Address(new AddressId(addressId));
+  addressId(): AddressId {
+    const uuid = this.uuid();
+    return new AddressId(uuid);
   },
-  addressFromDto(addressId: number, dto: CreateAddressDto): Address {
+  address(addressId: AddressId): Address {
+    return new Address(addressId);
+  },
+  addressFromDto(addressId: AddressId, dto: CreateAddressDto): Address {
     return new Address(
-      new AddressId(addressId),
+      addressId,
       dto.name,
       dto.line1,
       dto.line2,
@@ -115,22 +128,27 @@ export const Fixture = {
       dto.country,
     );
   },
+
+  companyId(): CompanyId {
+    const uuid = this.uuid();
+    return new CompanyId(uuid);
+  },
   company(
-    companyId: number,
-    contactPersonId: number | null = null,
-    addressId: number | null = null,
+    companyId: CompanyId,
+    contactPersonId: UserId | null = null,
+    addressId: AddressId | null = null,
   ): Company {
     return new Company(
-      new CompanyId(companyId),
+      companyId,
       null,
       null,
-      contactPersonId !== null ? new UserId(contactPersonId) : null,
-      addressId !== null ? new AddressId(addressId) : null,
+      contactPersonId,
+      addressId !== null ? addressId : null,
     );
   },
-  companyFromDto(companyId: number, dto: CreateCompanyDto): Company {
+  companyFromDto(companyId: CompanyId, dto: CreateCompanyDto): Company {
     return new Company(
-      new CompanyId(companyId),
+      companyId,
       dto.taxId ?? null,
       dto.name ?? null,
       dto.contactPersonId ?? null,
@@ -139,8 +157,8 @@ export const Fixture = {
   },
 
   stripeProductId(): StripeProductId {
-    const number = this.id();
-    return new StripeProductId(number.toString());
+    const uuid = this.uuid();
+    return new StripeProductId(uuid);
   },
 
   stripeProduct(productId: StripeProductId): StripeProduct {
@@ -148,17 +166,17 @@ export const Fixture = {
   },
 
   stripeCustomerId(): StripeCustomerId {
-    const number = this.id();
-    return new StripeCustomerId(number.toString());
+    const uuid = this.uuid();
+    return new StripeCustomerId(uuid);
   },
   stripePriceId(): StripePriceId {
-    const number = this.id();
-    return new StripePriceId(number.toString());
+    const uuid = this.uuid();
+    return new StripePriceId(uuid);
   },
 
   stripeInvoiceId(): StripeInvoiceId {
-    const number = this.id();
-    return new StripeInvoiceId(number.toString());
+    const uuid = this.uuid();
+    return new StripeInvoiceId(uuid);
   },
 
   stripeInvoice(
@@ -183,8 +201,8 @@ export const Fixture = {
   },
 
   stripeInvoiceLineId(): StripeInvoiceLineId {
-    const number = this.id();
-    return new StripeInvoiceLineId(number.toString());
+    const uuid = this.uuid();
+    return new StripeInvoiceLineId(uuid);
   },
   stripeInvoiceLine(
     stripeId: StripeInvoiceLineId,
@@ -203,14 +221,14 @@ export const Fixture = {
   },
 
   issueFundingId(): IssueFundingId {
-    const number = this.id();
-    return new IssueFundingId(number);
+    const uuid = this.uuid();
+    return new IssueFundingId(uuid);
   },
 
   issueFundingFromDto(
     issueFundingId: IssueFundingId,
     dto: CreateIssueFundingDto,
-  ): Address {
+  ): IssueFunding {
     return new IssueFunding(
       issueFundingId,
       dto.githubIssueId,
@@ -219,8 +237,8 @@ export const Fixture = {
     );
   },
   managedIssueId(): ManagedIssueId {
-    const number = this.id();
-    return new ManagedIssueId(number);
+    const uuid = this.uuid();
+    return new ManagedIssueId(uuid);
   },
   createManagedIssueDto(
     githubIssueId: IssueId,

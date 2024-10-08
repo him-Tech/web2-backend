@@ -1,10 +1,10 @@
 import { ValidationError, Validator } from "./utils";
 
 export class AddressId {
-  id: number;
+  uuid: string;
 
-  constructor(id: number) {
-    this.id = id;
+  constructor(uuid: string) {
+    this.uuid = uuid;
   }
 }
 
@@ -58,7 +58,7 @@ export class Address {
 
   static fromBackend(row: any): Address | ValidationError {
     const validator = new Validator(row);
-    const id = validator.requiredNumber("id");
+    const id = validator.requiredString("id");
     const name = validator.optionalString("name");
     const line1 = validator.optionalString("line_1");
     const line2 = validator.optionalString("line_2");

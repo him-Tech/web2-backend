@@ -1,5 +1,5 @@
 import { setupTestDB } from "../__helpers__/jest.setup";
-import { AddressId, CompanyId, UserId } from "../../model";
+import { UserId } from "../../model";
 import { Fixture } from "../__helpers__/Fixture";
 import {
   getAddressRepository,
@@ -29,11 +29,9 @@ describe("AddressRepository", () => {
 
       const created = await addressRepo.create(addressDto);
 
-      expect(created).toEqual(
-        Fixture.addressFromDto(created.id.id, addressDto),
-      );
+      expect(created).toEqual(Fixture.addressFromDto(created.id, addressDto));
 
-      const found = await addressRepo.getById(new AddressId(created.id.id));
+      const found = await addressRepo.getById(created.id);
       expect(found).toEqual(created);
     });
   });
@@ -53,22 +51,22 @@ describe("AddressRepository", () => {
       } as CreateAddressDto;
 
       const updated = await addressRepo.update(
-        Fixture.addressFromDto(created.id.id, updatedAddressDto),
+        Fixture.addressFromDto(created.id, updatedAddressDto),
       );
 
       expect(created.id).toEqual(updated.id);
       expect(updated).toEqual(
-        Fixture.addressFromDto(created.id.id, updatedAddressDto),
+        Fixture.addressFromDto(created.id, updatedAddressDto),
       );
 
-      const found = await addressRepo.getById(new AddressId(updated.id.id));
+      const found = await addressRepo.getById(updated.id);
       expect(found).toEqual(updated);
     });
   });
 
   describe("getById", () => {
     it("should return null if address not found", async () => {
-      const nonExistentAddressId = new AddressId(999999);
+      const nonExistentAddressId = Fixture.addressId();
       const found = await addressRepo.getById(nonExistentAddressId);
 
       expect(found).toBeNull();
@@ -92,10 +90,9 @@ describe("AddressRepository", () => {
       } as CreateCompanyDto;
 
       const company = await companyRepo.insert(companyDto);
-      const companyId = new CompanyId(company.id.id);
 
       // Fetch the address using getByCompanyId
-      const address = await addressRepo.getByCompanyId(companyId);
+      const address = await addressRepo.getByCompanyId(company.id);
 
       expect(address).toEqual(created);
     });
@@ -108,10 +105,9 @@ describe("AddressRepository", () => {
       } as CreateCompanyDto;
 
       const company = await companyRepo.insert(companyDto);
-      const companyId = new CompanyId(company.id.id);
 
       // Fetch the address
-      const address = await addressRepo.getByCompanyId(companyId);
+      const address = await addressRepo.getByCompanyId(company.id);
 
       expect(address).toBeNull();
     });
@@ -157,21 +153,25 @@ describe("AddressRepository", () => {
     });
 
     it("should return all company address", async () => {
-      const addressId1 = Fixture.id();
-      const addressId2 = Fixture.id();
+      const addressId1 = Fixture.uuid();
+      const addressId2 = Fixture.uuid();
 
       const address = {
         name: "Company Name",
       } as CreateAddressDto;
 
-      await addressRepo.create(address);
-      await addressRepo.create(address);
+      const address1 = await addressRepo.create(address);
+      const address2 = await addressRepo.create(address);
 
       const alladdress = await addressRepo.getAll();
 
       expect(alladdress).toHaveLength(2);
-      expect(alladdress).toContainEqual(Fixture.addressFromDto(1, address));
-      expect(alladdress).toContainEqual(Fixture.addressFromDto(2, address));
+      expect(alladdress).toContainEqual(
+        Fixture.addressFromDto(address1.id, address),
+      );
+      expect(alladdress).toContainEqual(
+        Fixture.addressFromDto(address2.id, address),
+      );
     });
   });
 });

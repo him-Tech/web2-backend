@@ -13,10 +13,10 @@ export enum ManagedIssueState {
 }
 
 export class ManagedIssueId {
-  id: number;
+  uuid: string;
 
-  constructor(id: number) {
-    this.id = id;
+  constructor(uuid: string) {
+    this.uuid = uuid;
   }
 }
 
@@ -51,9 +51,9 @@ export class ManagedIssue {
     }
 
     const validator = new Validator(row);
-    const id = validator.requiredNumber("id");
+    const id = validator.requiredString("id");
     const requestedDowAmount = validator.requiredNumber("requested_dow_amount");
-    const managerId = validator.requiredNumber("manager_id");
+    const managerId = validator.requiredString("manager_id");
     const contributorVisibility = validator.requiredEnum(
       "contributor_visibility",
       Object.values(ContributorVisibility) as ContributorVisibility[],
