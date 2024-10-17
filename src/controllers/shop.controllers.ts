@@ -14,17 +14,12 @@ import { ValidationError } from "express-validator";
 import { CreateSubscriptionDto } from "../dtos/CreateSubscription.dto";
 import { CreatePaymentIntentDto } from "../dtos/CreatePaymentIntent.dto";
 import { GetDowPricesResponse, ResponseDto } from "../dtos";
+import { config, logger } from "../config";
 
 // https://github.com/stripe-samples/subscriptions-with-card-and-direct-debit/blob/main/server/node/server.js
 const userRepo = getUserRepository();
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("STRIPE_SECRET_KEY not found");
-}
-if (!process.env.STRIPE_WEBHOOK_SECRET) {
-  throw new Error("STRIPE_WEBHOOK_SECRET not found");
-}
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(config.stripe.secretKey);
 const stripeInvoiceRepo = getStripeInvoiceRepository();
 const stripeCustomerRepo = getStripeCustomerRepository();
 
@@ -82,7 +77,7 @@ export class ShopController {
 
     // TODO: For the POC, we should have less than 100 prices
     if (prices.has_more) {
-      console.warn("More than 100 prices found");
+      logger.warn("More than 100 prices found");
     }
 
     const subscriptionPrices: Stripe.Price[] = prices.data.filter((price) => {
@@ -221,10 +216,10 @@ export class ShopController {
         req.body,
         // @ts-ignore
         req.headers["stripe-signature"],
-        process.env.STRIPE_WEBHOOK_SECRET,
+        config.stripe.webhookSecret,
       );
     } catch (err) {
-      console.error(`⚠️  Webhook signature verification failed.`, err);
+      logger.error(`⚠️  Webhook signature verification failed.`, err);
       return res.sendStatus(StatusCodes.BAD_REQUEST);
     }
 
@@ -244,7 +239,7 @@ export class ShopController {
           throw invoice;
         }
 
-        console.log(`🔔  Webhook received: ${eventType}!`);
+        logger.debug(`🔔  Webhook received: ${eventType}!`);
 
         await stripeInvoiceRepo.insert(invoice);
         break;
@@ -255,14 +250,14 @@ export class ShopController {
         // Funds have been captured
         // Fulfill any orders, e-mail receipts, etc
         // To cancel the payment after capture you will need to issue a Refund (https://stripe.com/docs/api/refunds).
-        console.log(`🔔  Webhook received: ${data.object}!`);
-        console.log("💰 Payment captured!");
+        logger.debug(`🔔  Webhook received: ${data.object}!`);
+        logger.debug("💰 Payment captured!");
         break;
 
       case "payment_intent.payment_failed":
         // const paymentIntent = data as Stripe.PaymentIntent.DA;
-        console.log(`🔔  Webhook received: ${data.object}!`);
-        console.log("❌ Payment failed.");
+        logger.debug(`🔔  Webhook received: ${data.object}!`);
+        logger.debug("❌ Payment failed.");
         break;
       default:
     }

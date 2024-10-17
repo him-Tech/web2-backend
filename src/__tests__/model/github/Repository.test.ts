@@ -1,5 +1,6 @@
 import fs from "fs";
 import { OwnerId, Repository, RepositoryId } from "../../../model";
+import { logger } from "../../../config";
 
 describe("Repository", () => {
   it("fromGithubApi does not throw an error", () => {
@@ -11,7 +12,7 @@ describe("Repository", () => {
     const object = Repository.fromGithubApi(json);
 
     if (object instanceof Error) {
-      console.error(object);
+      logger.error(object);
     }
 
     const ownerId = new OwnerId("Open-Source-Economy", 141809657);

@@ -1,8 +1,5 @@
 import { Issue, IssueId, Owner, Repository, RepositoryId } from "../model";
-
-if (!process.env.GITHUB_TOKEN) {
-  throw new Error("GITHUB_TOKEN is not set");
-}
+import { config } from "../config";
 
 export function getGitHubAPI(): GitHubApi {
   return new GitHubApiImpl();
@@ -25,7 +22,7 @@ class GitHubApiImpl implements GitHubApi {
         {
           method: "GET",
           headers: {
-            Authorization: "Token " + process.env.GITHUB_TOKEN,
+            Authorization: "Token " + config.github.requestToken,
             "Content-Type": "application/x-www-form-urlencoded",
           },
         },

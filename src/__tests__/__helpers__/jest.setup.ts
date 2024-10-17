@@ -1,6 +1,7 @@
 import { Migration } from "../../db/migration";
 import { afterAll, afterEach, beforeEach } from "@jest/globals";
 import { getPool } from "../../dbPool";
+import { logger } from "../../config";
 
 export const setupTestDB = () => {
   const pool = getPool();
@@ -11,7 +12,7 @@ export const setupTestDB = () => {
       await migration.drop();
       await migration.migrate();
     } catch (error) {
-      console.error("Error during migration in beforeAll: ", error);
+      logger.error("Error during migration in beforeAll: ", error);
       throw error;
     }
   });
@@ -20,7 +21,7 @@ export const setupTestDB = () => {
     try {
       await migration.drop();
     } catch (error) {
-      console.error("Error during migration drop in afterAll: ", error);
+      logger.error("Error during migration drop in afterAll: ", error);
       throw error;
     }
   });

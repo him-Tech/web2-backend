@@ -1,11 +1,16 @@
 import express from "express";
-
 import session from "express-session";
 import passport from "passport";
 import v1Routes from "./routes/v1";
-import { errorHandler } from "./middlewares/errorHandler";
+import { errorConverter, errorHandler } from "./middlewares/errorHandler";
 import "./strategies";
 import { getPool } from "./dbPool";
+import helmet from "helmet";
+import { StatusCodes } from "http-status-codes";
+import * as morgan from "./config";
+import { config, NodeEnv } from "./config";
+import { authLimiter } from "./middlewares/rateLimiter";
+import { ApiError } from "./model/utils/ApiError";
 
 var cors = require("cors");
 
@@ -13,15 +18,26 @@ export function createApp() {
   const app = express();
   const pgSession = require("connect-pg-simple")(session);
 
-  // TODO: production
-  const corsOptions = {
-    origin: "http://localhost:3000",
-    credentials: true, // access-control-allow-credentials:true
-    optionSuccessStatus: 200,
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Add allowed methods
-    allowedHeaders: "Content-Type, Authorization", // Add allowed headers if needed
-  };
+  let corsOptions = {};
+  if (config.env === NodeEnv.Local) {
+    corsOptions = {
+      origin: "http://localhost:3000",
+      credentials: true, // access-control-allow-credentials:true
+      optionSuccessStatus: 200,
+      methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+      allowedHeaders: "Content-Type, Authorization",
+    };
+  }
+
   app.use(cors(corsOptions));
+
+  if (config.env !== NodeEnv.Local) {
+    app.use(morgan.successHandler);
+    app.use(morgan.errorHandler);
+  }
+
+  // set security HTTP headers
+  app.use(helmet());
 
   app.use(express.json());
   // Use JSON parser for all non-webhook routes.
@@ -49,11 +65,28 @@ export function createApp() {
     }),
   );
 
+  // sanitize request data
+  // TODO: lolo
+  // app.use(xss());
+
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // limit repeated failed requests to auth endpoints
+  if (config.env === NodeEnv.Production) {
+    app.use("/api/v1/auth", authLimiter);
+  }
   app.use("/api/v1", v1Routes);
 
+  // send back a 404 error for any unknown api request
+  app.use((req, res, next) => {
+    next(new ApiError(StatusCodes.NOT_FOUND, "Not found"));
+  });
+
+  // convert error to ApiError, if needed
+  app.use(errorConverter);
+
+  // handle error
   app.use(errorHandler);
 
   return app;

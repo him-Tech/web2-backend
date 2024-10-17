@@ -20,7 +20,6 @@ describe("/api/v1/auth", () => {
     });
 
     // login
-
     const loginResponse = await request(app).post("/api/v1/auth/login").send({
       email: email,
       password: password,

@@ -2,17 +2,15 @@ import passport from "passport";
 import { Strategy } from "passport-github";
 import { getUserRepository, UserRepository } from "../db/";
 import { Provider, ThirdPartyUser, ThirdPartyUserId } from "../model";
+import { config } from "../config";
 
-if (!process.env.GITHUB_CLIENT_ID || !process.env.GITHUB_CLIENT_SECRET) {
-  throw new Error("GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET must be set");
-}
 const repo: UserRepository = getUserRepository();
 
 passport.use(
   <passport.Strategy>new Strategy(
     {
-      clientID: process.env.GITHUB_CLIENT_ID as string,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+      clientID: config.github.clientId,
+      clientSecret: config.github.clientSecret,
       callbackURL: "/api/v1/auth/redirect/github",
       scope: [""],
     },

@@ -17,6 +17,7 @@ import {
 import { getManagedIssueRepository } from "./ManagedIssue.repository";
 import { getIssueFundingRepository } from "./IssueFunding.repository";
 import { getGitHubAPI, GitHubApi } from "../services/github.service";
+import { logger } from "../config";
 
 export function getFinancialIssueRepository(
   gitHubApi: GitHubApi = getGitHubAPI(),
@@ -71,7 +72,7 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
           });
       })
       .catch((error) => {
-        console.error("Error fetching GitHub data:", error);
+        logger.error("Error fetching GitHub data:", error);
       });
 
     const owner: Promise<Owner> = this.ownerRepo
@@ -120,7 +121,7 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
     let managedIssues: Map<number | undefined, ManagedIssue> = new Map(
       allManagedIssues.map((m) => {
         if (!m.githubIssueId || !m.githubIssueId.githubId) {
-          console.error(
+          logger.error(
             `ManagedIssue of github issue id: ${m.githubIssueId}, does not have a githubId field defined in the DB`,
           );
         }
@@ -133,7 +134,7 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
     allIssueFundings.forEach((i) => {
       const githubId = i.githubIssueId?.githubId;
       if (!githubId) {
-        console.error(
+        logger.error(
           `IssueFunding of github issue id: ${i.githubIssueId}, does not have a githubId field defined in the DB`,
         );
         return; // Skip if githubId is undefined
@@ -173,7 +174,7 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
     const financialIssues: FinancialIssue[] = [];
     for (const [githubId, issueId] of issueIds) {
       if (!githubId) {
-        console.error(
+        logger.error(
           `Issue with github id: ${issueId}, does not have an id field defined in the DB`,
         );
         continue; // Skip if githubId is undefined
@@ -187,7 +188,7 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
       const issue = await this.issueRepo.getById(issueId);
 
       if (!owner || !repo || !issue) {
-        console.error(
+        logger.error(
           `Financial issue with github id: ${githubId}, does not have a valid owner, repo, or issue in the DB`,
         );
         continue; // Use continue to skip to the next iteration

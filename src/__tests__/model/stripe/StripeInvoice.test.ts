@@ -1,5 +1,6 @@
 import { StripeInvoice } from "../../../model";
 import * as fs from "fs";
+import { logger } from "../../../config";
 
 describe("StripeInvoice", () => {
   it("fromStripeApi does not throw an error", () => {
@@ -11,7 +12,7 @@ describe("StripeInvoice", () => {
     const invoice = StripeInvoice.fromStripeApi(json);
 
     if (invoice instanceof Error) {
-      console.error(invoice);
+      logger.error(invoice);
     }
     expect(invoice).toBeInstanceOf(StripeInvoice);
   });

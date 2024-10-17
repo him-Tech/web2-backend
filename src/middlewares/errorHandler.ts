@@ -1,20 +1,46 @@
 import { NextFunction, Request, Response } from "express";
+import { config, logger, NodeEnv } from "../config";
+import { StatusCodes } from "http-status-codes";
+import { ApiError } from "../model/utils/ApiError";
 
-export function errorHandler(
+export function errorConverter(
   err: Error,
   req: Request,
   res: Response,
   next: NextFunction,
 ) {
-  const errorStatus = res.statusCode !== 200 ? res.statusCode : 500;
-  res.status(errorStatus);
+  let error = err;
+  if (!(error instanceof ApiError)) {
+    const statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
+    const message = error.message || "Internal Server Error";
+    error = new ApiError(statusCode, message, false, err.stack);
+  }
+  next(error);
+}
 
-  const responseBody = {
-    message: err.message,
-    stack: err.stack, // TODO: not for production
+export function errorHandler(
+  err: ApiError,
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  let { statusCode, message } = err;
+  if (config.env === NodeEnv.Production && !err.isOperational) {
+    statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
+    message = "Internal Server Error";
+  }
+
+  res.locals.errorMessage = err.message;
+
+  const response = {
+    code: statusCode,
+    message,
+    ...(config.env !== NodeEnv.Production && { stack: err.stack }),
   };
-  console.log("Catch error: ", err.message);
-  console.error(err.stack); // TODO: log
 
-  res.send("Something went wrong!");
+  if (config.env === NodeEnv.Local) {
+    logger.error(err);
+  }
+
+  res.status(statusCode).send(response);
 }

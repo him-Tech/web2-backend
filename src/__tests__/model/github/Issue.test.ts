@@ -1,5 +1,6 @@
 import fs from "fs";
 import { Issue, IssueId, OwnerId, RepositoryId } from "../../../model";
+import { logger } from "../../../config";
 
 describe("Issue", () => {
   it("fromGithubApi does not throw an error", () => {
@@ -15,7 +16,7 @@ describe("Issue", () => {
     const object = Issue.fromGithubApi(repositoryId, json);
 
     if (object instanceof Error) {
-      console.error(object);
+      logger.error(object);
     }
 
     const issueId = new IssueId(repositoryId, 3, 2538344642);
