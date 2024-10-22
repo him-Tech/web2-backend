@@ -1,5 +1,5 @@
-import { StripeCustomerId } from "../model";
-import { PriceItem } from "./stripe";
+import { StripeCustomerId } from "../../model";
+import { PriceItem } from "./index";
 
 export interface CreateSubscriptionDto {
   stripeCustomerId: StripeCustomerId;

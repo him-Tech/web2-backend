@@ -8,11 +8,11 @@ import {
 } from "../db/";
 import { StatusCodes } from "http-status-codes";
 import Stripe from "stripe";
-import { CreateCustomerDto } from "../dtos/CreateCustomer.dto";
+import { CreateCustomerDto } from "../dtos/stripe";
 import { StripeCustomer, StripeCustomerId, StripeInvoice } from "../model";
 import { ValidationError } from "express-validator";
-import { CreateSubscriptionDto } from "../dtos/CreateSubscription.dto";
-import { CreatePaymentIntentDto } from "../dtos/CreatePaymentIntent.dto";
+import { CreateSubscriptionDto } from "../dtos/stripe";
+import { CreatePaymentIntentDto } from "../dtos/stripe";
 import { GetDowPricesResponse, ResponseDto } from "../dtos";
 import { config, logger } from "../config";
 
@@ -26,7 +26,7 @@ const stripeCustomerRepo = getStripeCustomerRepository();
 const addressRepo = getAddressRepository();
 const stripeProductRepo = getStripeProductRepository();
 
-export class ShopController {
+export class StripeController {
   private static async calculateTax(orderAmount: number, currency: string) {
     const taxCalculation: Stripe.Tax.Calculation =
       await stripe.tax.calculations.create({

@@ -133,10 +133,13 @@ export class Validator {
     }
   }
 
-  requiredBoolean(path: string | string[]): void {
+  // @ts-ignore
+  requiredBoolean(path: string | string[]): boolean {
     const value = this.getValue(path);
     if (typeof value !== "boolean") {
       this.errors.push(new BooleanValidationError(path, value, this.data));
+    } else {
+      return value;
     }
   }
 

@@ -26,8 +26,7 @@ describe("StripeInvoiceRepository", () => {
   const companyRepo = getCompanyRepository();
   const customerRepo = getStripeCustomerRepository();
   const productRepo = getStripeProductRepository();
-  const invoiceRepo = getStripeInvoiceRepository();
-  const invoiceLineRepo = getStripeInvoiceLineRepository();
+  const stripeInvoiceRepo = getStripeInvoiceRepository();
 
   describe("create", () => {
     it("should insert an invoice with lines", async () => {
@@ -51,10 +50,10 @@ describe("StripeInvoiceRepository", () => {
       ];
 
       const invoice = Fixture.stripeInvoice(invoiceId, customerId, lines);
-      const created = await invoiceRepo.insert(invoice);
+      const created = await stripeInvoiceRepo.insert(invoice);
       expect(created).toEqual(invoice);
 
-      const found = await invoiceRepo.getById(invoiceId);
+      const found = await stripeInvoiceRepo.getById(invoiceId);
       expect(found).toEqual(invoice);
     });
 
@@ -87,9 +86,9 @@ describe("StripeInvoiceRepository", () => {
       ];
 
       const invoice = Fixture.stripeInvoice(invoiceId, customerId, lines);
-      await expect(invoiceRepo.insert(invoice)).rejects.toThrow(Error);
+      await expect(stripeInvoiceRepo.insert(invoice)).rejects.toThrow(Error);
 
-      const found = await invoiceRepo.getById(invoiceId);
+      const found = await stripeInvoiceRepo.getById(invoiceId);
       expect(found).toBeNull();
     });
   });

@@ -11,4 +11,8 @@ router.get(
   GithubController.issue,
 );
 
+// TODO: add validation schema
+// TODO: add authentication middleware
+router.post("/:owner/:repo/issues/:number/fund", GithubController.fundIssue);
+
 export default router;

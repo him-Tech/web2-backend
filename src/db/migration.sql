@@ -130,6 +130,7 @@ CREATE TABLE IF NOT EXISTS address
     "updated_at" TIMESTAMP        NOT NULL DEFAULT now()
 );
 
+-- TODO: add VAT number
 CREATE TABLE IF NOT EXISTS company
 (
     id                UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
@@ -170,12 +171,12 @@ ALTER TABLE company
 
 CREATE TABLE IF NOT EXISTS stripe_customer
 (
-    id           UUID      NOT NULL DEFAULT gen_random_uuid(),
-    stripe_id    VARCHAR(50) PRIMARY KEY,
-    user_id      UUID      NOT NULL,
+    id           UUID        NOT NULL DEFAULT gen_random_uuid(),
+    stripe_id    VARCHAR(50) NOT NULL PRIMARY KEY,
+    user_id      UUID        NOT NULL,
 
-    "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-    "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
+    "created_at" TIMESTAMP   NOT NULL DEFAULT now(),
+    "updated_at" TIMESTAMP   NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES "app_user" (id) ON DELETE CASCADE
 );
@@ -184,7 +185,7 @@ CREATE TABLE IF NOT EXISTS stripe_customer
 CREATE TABLE IF NOT EXISTS stripe_product
 (
     id           UUID        NOT NULL DEFAULT gen_random_uuid(),
-    stripe_id    VARCHAR(50) PRIMARY KEY,
+    stripe_id    VARCHAR(50) NOT NULL PRIMARY KEY,
     unit         VARCHAR(50) NOT NULL, -- 'DoW'
     unit_amount  INTEGER     NOT NULL,
     recurring    BOOLEAN     NOT NULL,
@@ -198,7 +199,7 @@ CREATE TABLE IF NOT EXISTS stripe_product
 CREATE TABLE IF NOT EXISTS stripe_invoice
 (
     id                 UUID           NOT NULL DEFAULT gen_random_uuid(),
-    stripe_id          VARCHAR(50) PRIMARY KEY,
+    stripe_id          VARCHAR(50)    NOT NULL PRIMARY KEY,
     customer_id        VARCHAR(50)    NOT NULL,
     paid               BOOLEAN        NOT NULL,
     account_country    VARCHAR(255)   NOT NULL,
@@ -219,7 +220,7 @@ CREATE TABLE IF NOT EXISTS stripe_invoice
 CREATE TABLE IF NOT EXISTS stripe_invoice_line
 (
     id           UUID        NOT NULL DEFAULT gen_random_uuid(),
-    stripe_id    VARCHAR(50) PRIMARY KEY,
+    stripe_id    VARCHAR(50) NOT NULL PRIMARY KEY,
     invoice_id   VARCHAR(50) NOT NULL,
     customer_id  VARCHAR(50) NOT NULL,
     product_id   VARCHAR(50) NOT NULL,
@@ -236,10 +237,30 @@ CREATE TABLE IF NOT EXISTS stripe_invoice_line
     CONSTRAINT positive_quantity CHECK (quantity > 0)
 );
 
+-----------------------------
+--- Manual invoice tables ---
+-----------------------------
+
+CREATE TABLE IF NOT EXISTS manual_invoice
+(
+    id           UUID           NOT NULL DEFAULT gen_random_uuid(),
+    number       INTEGER        NOT NULL,
+    company_id   UUID,
+    user_id      UUID,
+    paid         BOOLEAN        NOT NULL DEFAULT true,
+    dow_amount   NUMERIC(10, 4) NOT NULL,
+
+    "created_at" TIMESTAMP      NOT NULL DEFAULT now(),
+    "updated_at" TIMESTAMP      NOT NULL DEFAULT now(),
+
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES "app_user" (id) ON DELETE CASCADE,
+    CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES "company" (id) ON DELETE CASCADE,
+    CONSTRAINT chk_company_or_user CHECK (company_id IS NOT NULL OR user_id IS NOT NULL)
+);
+
 ----------------------------
 --- Issue funding tables ---
 ----------------------------
-
 
 CREATE TABLE IF NOT EXISTS managed_issue
 (
@@ -254,7 +275,7 @@ CREATE TABLE IF NOT EXISTS managed_issue
     github_issue_id        INTEGER          NOT NULL,
     github_issue_number    INTEGER          NOT NULL,
 
-    requested_dow_amount   INTEGER          NOT NULL,
+    requested_dow_amount   NUMERIC(10, 4)   NOT NULL,
 
     manager_id             UUID             NOT NULL,
     contributor_visibility VARCHAR(50)      NOT NULL, -- 'public' or 'private'
@@ -289,7 +310,7 @@ CREATE TABLE IF NOT EXISTS issue_funding
     github_issue_number    INTEGER          NOT NULL,
 
     user_id                UUID             NOT NULL,
-    dow_amount             INTEGER          NOT NULL,
+    dow_amount             NUMERIC(10, 4)   NOT NULL,
 
     "created_at"           TIMESTAMP        NOT NULL DEFAULT now(),
     "updated_at"           TIMESTAMP        NOT NULL DEFAULT now(),

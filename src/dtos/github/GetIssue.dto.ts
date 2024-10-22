@@ -1,3 +1,5 @@
+import { FinancialIssue } from "../../model";
+
 export interface GetIssueDto {}
 
 export interface GetIssueQueryParams {
@@ -6,4 +8,6 @@ export interface GetIssueQueryParams {
   number: number;
 }
 
-export interface GetIssueResponse {}
+export interface GetIssueResponse {
+  issue: FinancialIssue;
+}

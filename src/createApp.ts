@@ -42,7 +42,7 @@ export function createApp() {
   app.use(express.json());
   // Use JSON parser for all non-webhook routes.
   app.use((req, res, next) => {
-    if (req.originalUrl === "/api/v1/shop/webhook") {
+    if (req.originalUrl === "/api/v1/stripe/webhook") {
       // TODO refactor
       next();
     } else {

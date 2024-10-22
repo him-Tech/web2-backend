@@ -13,6 +13,8 @@ import {
   ManagedIssue,
   ManagedIssueId,
   ManagedIssueState,
+  ManualInvoice,
+  ManualInvoiceId,
   Owner,
   OwnerId,
   OwnerType,
@@ -36,6 +38,7 @@ import {
   CreateIssueFundingDto,
   CreateLocalUserDto,
   CreateManagedIssueDto,
+  CreateManualInvoiceDto,
 } from "../../dtos";
 import { StripePriceId } from "../../model/stripe/StripePrice";
 import { v4 as uuid } from "uuid";
@@ -133,6 +136,15 @@ export const Fixture = {
     const uuid = this.uuid();
     return new CompanyId(uuid);
   },
+
+  createCompanyDto(): CreateCompanyDto {
+    return {
+      name: "company",
+      taxId: "taxId",
+      contactPersonId: null,
+      addressId: null,
+    } as CreateCompanyDto;
+  },
   company(
     companyId: CompanyId,
     contactPersonId: UserId | null = null,
@@ -217,6 +229,39 @@ export const Fixture = {
       productId,
       new StripePriceId("100"),
       100,
+    );
+  },
+
+  manualInvoiceId(): ManualInvoiceId {
+    const uuid = this.uuid();
+    return new ManualInvoiceId(uuid);
+  },
+
+  createManualInvoiceDto(
+    companyId?: CompanyId,
+    userId?: UserId,
+    paid: boolean = true,
+    dowAmount: number = 100.0,
+  ): CreateManualInvoiceDto {
+    return {
+      number: 1,
+      companyId,
+      userId,
+      paid,
+      dowAmount,
+    } as CreateManualInvoiceDto;
+  },
+  manualInvoiceFromDto(
+    id: ManualInvoiceId,
+    dto: CreateManualInvoiceDto,
+  ): ManualInvoice {
+    return new ManualInvoice(
+      id,
+      dto.number,
+      dto.companyId,
+      dto.userId,
+      dto.paid,
+      dto.dowAmount,
     );
   },
 

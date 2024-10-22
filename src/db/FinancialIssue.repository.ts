@@ -28,7 +28,6 @@ export function getFinancialIssueRepository(
 // TODO: optimize this implementation
 export interface FinancialIssueRepository {
   get(issueId: IssueId): Promise<FinancialIssue | null>;
-
   getAll(): Promise<FinancialIssue[]>;
 }
 
@@ -56,7 +55,7 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
     Promise.all([githubRepoPromise, githubIssuePromise])
       .then(([repoResult, issueResult]) => {
         const [owner, repo] = repoResult;
-        const [issue, issueCreatedBy] = issueResult; // Renamed createdBy to issueCreatedBy for clarity
+        const [issue, issueCreatedBy] = issueResult;
 
         this.ownerRepo
           .insertOrUpdate(owner as Owner)

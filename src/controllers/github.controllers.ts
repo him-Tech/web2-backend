@@ -1,49 +1,112 @@
 import { Request, Response } from "express";
-import { ResponseDto } from "../dtos";
 import {
-  GetIssuesDto,
-  GetIssuesQueryParams,
-  GetIssuesResponse,
-} from "../dtos/GetIssues.dto";
+  CreateIssueFundingDto,
+  FundIssueDto,
+  FundIssueQueryParams,
+  FundIssueResponse,
+  ResponseDto,
+} from "../dtos";
+import { GetIssuesDto, GetIssuesQueryParams, GetIssuesResponse } from "../dtos";
+import { GetIssueDto, GetIssueQueryParams, GetIssueResponse } from "../dtos";
 import {
-  GetIssueDto,
-  GetIssueQueryParams,
-  GetIssueResponse,
-} from "../dtos/GetIssue.dto";
-import { getGitHubAPI } from "../services/github.service";
-import * as model from "../model";
-import { FinancialIssue } from "../model";
+  IssueId,
+  ManagedIssueState,
+  OwnerId,
+  RepositoryId,
+  User,
+} from "../model";
+import { getFinancialIssueRepository } from "../db/FinancialIssue.repository";
+import { StatusCodes } from "http-status-codes";
+import {
+  getDowNumberRepository,
+  getIssueFundingRepository,
+  getManagedIssueRepository,
+} from "../db";
+import { ApiError } from "../model/utils/ApiError";
 
-const github = getGitHubAPI();
+const financialIssueRepository = getFinancialIssueRepository();
+const dowNumberRepository = getDowNumberRepository();
+const managedIssueRepository = getManagedIssueRepository();
+const issueFundingRepo = getIssueFundingRepository();
 
 export class GithubController {
   static async issues(
-    request: Request<{}, {}, GetIssuesDto, GetIssuesQueryParams>,
-    response: Response<ResponseDto<GetIssuesResponse>>,
-  ) {}
+    req: Request<{}, {}, GetIssuesDto, GetIssuesQueryParams>,
+    res: Response<ResponseDto<GetIssuesResponse>>,
+  ) {
+    const issues = await financialIssueRepository.getAll();
+
+    const response: GetIssuesResponse = {
+      issues: issues,
+    };
+    res.status(StatusCodes.OK).send({ data: response });
+  }
 
   static async issue(
-    request: Request<{}, {}, GetIssueDto, GetIssueQueryParams>,
-    response: Response<ResponseDto<GetIssueResponse>>,
+    req: Request<{}, {}, GetIssueDto, GetIssueQueryParams>,
+    res: Response<ResponseDto<GetIssueResponse>>,
   ) {
-    const { params }: GetIssueQueryParams = request;
-    const [owner, repository] = await github.getOwnerAndRepository(
-      params.owner,
-      params.repo,
+    const { params }: GetIssueQueryParams = req;
+    const ownerId = new OwnerId(params.owner);
+    const repositoryId = new RepositoryId(ownerId, params.repo);
+    const issueId = new IssueId(repositoryId, params.number);
+
+    const issue = await financialIssueRepository.get(issueId);
+
+    if (issue === null) {
+      res.sendStatus(StatusCodes.NOT_FOUND);
+    } else {
+      const response: GetIssueResponse = {
+        issue: issue,
+      };
+
+      res.status(StatusCodes.OK).send({ data: response });
+    }
+  }
+
+  // TODO: security issue - this operation does not have an atomic check for the user's DoWs, user can spend DoWs that they don't have
+  static async fundIssue(
+    req: Request<{}, {}, FundIssueDto, FundIssueQueryParams>,
+    res: Response<ResponseDto<FundIssueResponse>>,
+  ) {
+    const user = req.user! as User;
+
+    const { params }: FundIssueQueryParams = req;
+    const ownerId = new OwnerId(params.owner);
+    const repositoryId = new RepositoryId(ownerId, params.repo);
+    const issueId = new IssueId(repositoryId, params.number);
+
+    const managedIssue = await managedIssueRepository.getByIssueId(issueId);
+    if (
+      managedIssue !== null &&
+      managedIssue.state === ManagedIssueState.REJECTED
+    ) {
+      throw new ApiError(
+        StatusCodes.FORBIDDEN,
+        "Cannot fund an issue where funding was rejected before.",
+      );
+    }
+
+    const availableDoWs = await dowNumberRepository.getAvailableDoWs(
+      user.id,
+      req.body.companyId,
     );
-    const [issue, openedBy] = await github.getIssue(
-      params.owner,
-      params.repo,
-      params.number,
-    );
+    if (availableDoWs > req.body.dowAmount) {
+      throw new ApiError(StatusCodes.PAYMENT_REQUIRED, "Not enough DoWs");
+    }
+    if (availableDoWs < 0) {
+      throw new ApiError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "The amount of available DoWs is negative",
+      );
+    }
 
-    // TODO: error handling
-    const amountCollected = 30; //await sdk.getIssueFundingAmount({ financialIssue, repository: repo, number: number });
+    await issueFundingRepo.create({
+      issueId,
+      userId: user.id,
+      downAmount: req.body.dowAmount,
+    } as CreateIssueFundingDto);
 
-    const issueStatus = issue.closedAt
-      ? new model.Closed(amountCollected)
-      : new model.CollectToBeApproved(amountCollected);
-
-    return new FinancialIssue(owner, repository, issue, openedBy, issueStatus);
+    return res.sendStatus(StatusCodes.CREATED);
   }
 }

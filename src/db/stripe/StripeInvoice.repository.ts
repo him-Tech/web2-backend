@@ -1,5 +1,11 @@
 import { Pool } from "pg";
-import { StripeInvoice, StripeInvoiceId, StripeInvoiceLine } from "../../model";
+import {
+  CompanyId,
+  StripeInvoice,
+  StripeInvoiceId,
+  StripeInvoiceLine,
+  UserId,
+} from "../../model";
 import { getPool } from "../../dbPool";
 import {
   getStripeInvoiceLineRepository,
@@ -141,5 +147,37 @@ class StripeInvoiceRepositoryImpl implements StripeInvoiceRepository {
     } finally {
       client.release();
     }
+  }
+
+  async getAllInvoicePaidBy(id: CompanyId | UserId): Promise<any[]> {
+    let result;
+
+    if (id instanceof CompanyId) {
+      result = await this.pool.query(
+        `
+                SELECT *
+                FROM stripe_invoice
+                WHERE customer_id IN (
+                    SELECT stripe_id FROM stripe_customer WHERE user_id IN (
+                        SELECT user_id FROM user_company WHERE company_id = $1
+                    )
+                ) AND paid = TRUE
+                `,
+        [id.toString()],
+      );
+    } else {
+      result = await this.pool.query(
+        `
+                SELECT *
+                FROM stripe_invoice
+                WHERE customer_id IN (
+                    SELECT stripe_id FROM stripe_customer WHERE user_id = $1
+                ) AND paid = TRUE
+                `,
+        [id.toString()],
+      );
+    }
+
+    return result.rows;
   }
 }
