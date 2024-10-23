@@ -7,3 +7,4 @@ export * from "./ManagedIssue.repository";
 export * from "./IssueFunding.repository";
 export * from "./ManualInvoice.repository";
 export * from "./DowNumber.repository";
+export * from "./UserCompany.repository";

@@ -88,12 +88,12 @@ class CompanyRepositoryImpl implements CompanyRepository {
         `
       INSERT INTO company (tax_id, name, address_id)
       VALUES ($1, $2, $3) 
-      RETURNING id, tax_id, name, address_id
+      RETURNING id
       `,
         [company.taxId, company.name, company.addressId?.uuid ?? null],
       );
 
-      const insertedCompany = this.getOneCompany(result.rows);
+      const insertedCompany: Company = this.getOneCompany(result.rows);
 
       // 2. Insert into user_company
       if (company.contactPersonId instanceof UserId) {
@@ -107,18 +107,19 @@ class CompanyRepositoryImpl implements CompanyRepository {
       }
 
       // 3. Update the company record with the correct contact_person_id
-      await client.query(
+      const finalResult = await client.query(
         `
       UPDATE company
       SET contact_person_id = $1
       WHERE id = $2
+      RETURNING *
       `,
         [company.contactPersonId?.uuid ?? null, insertedCompany.id.uuid],
       );
 
       await client.query("COMMIT");
 
-      return insertedCompany;
+      return this.getOneCompany(finalResult.rows);
     } catch (error) {
       await client.query("ROLLBACK");
       throw error;

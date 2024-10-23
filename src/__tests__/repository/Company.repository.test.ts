@@ -4,6 +4,7 @@ import { Fixture } from "../__helpers__/Fixture";
 import {
   getAddressRepository,
   getCompanyRepository,
+  getUserCompanyRepository,
   getUserRepository,
 } from "../../db/";
 import { CreateAddressDto, CreateCompanyDto } from "../../dtos";
@@ -11,6 +12,7 @@ import { CreateAddressDto, CreateCompanyDto } from "../../dtos";
 describe("CompanyRepository", () => {
   const addressRepo = getAddressRepository();
   const userRepo = getUserRepository();
+  const userCompanyRepo = getUserCompanyRepository();
   const companyRepo = getCompanyRepository();
 
   setupTestDB();
@@ -20,15 +22,7 @@ describe("CompanyRepository", () => {
   let validUserId2: UserId;
 
   beforeEach(async () => {
-    const addressDto = {
-      name: "Valid Address",
-      line1: "123 Test St",
-      city: "Test City",
-      state: "Test State",
-      postalCode: "12345",
-      country: "Test Country",
-    } as CreateAddressDto;
-    const address = await addressRepo.create(addressDto);
+    const address = await addressRepo.create(Fixture.createAddressDto());
     validAddressId = address.id;
 
     const validUser = await userRepo.insertLocal(Fixture.createUserDto());
@@ -39,8 +33,8 @@ describe("CompanyRepository", () => {
   });
 
   describe("insert", () => {
-    it("should insert a new company", async () => {
-      const company = {} as CreateCompanyDto;
+    it("when addressId and contactPersonId are null", async () => {
+      const company = Fixture.createCompanyDto();
 
       const created = await companyRepo.insert(company);
 
@@ -49,17 +43,55 @@ describe("CompanyRepository", () => {
       const found = await companyRepo.getById(created.id);
       expect(found).toEqual(created);
     });
+
+    it("when addressId is NOT null", async () => {
+      const company = Fixture.createCompanyDto(undefined, validAddressId);
+
+      const created = await companyRepo.insert(company);
+
+      expect(created).toEqual(Fixture.companyFromDto(created.id, company));
+
+      const found = await companyRepo.getById(created.id);
+      expect(found).toEqual(created);
+    });
+
+    it("when contactPersonId is NOT null - should update user_company table", async () => {
+      const company = Fixture.createCompanyDto(validUserId);
+
+      const created = await companyRepo.insert(company);
+
+      expect(created).toEqual(Fixture.companyFromDto(created.id, company));
+
+      const found = await companyRepo.getById(created.id);
+      expect(found).toEqual(created);
+
+      const userCompany = await userCompanyRepo.getByCompanyId(created.id);
+      expect(userCompany).toHaveLength(1);
+      expect(userCompany[0]).toEqual(validUserId);
+    });
   });
 
   describe("update", () => {
-    it("should handle updating contact_person_id and address_id to NULL", async () => {
+    it("should handle updating with no data changes", async () => {
+      const initialCompany = Fixture.createCompanyDto(
+        validUserId,
+        validAddressId,
+      );
+
+      const created = await companyRepo.insert(initialCompany);
+
+      const updated = await companyRepo.update(created);
+
+      const found = await companyRepo.getById(created.id);
+      expect(found).toEqual(updated);
+    });
+
+    it("should handle updating and address_id to NULL", async () => {
       // Insert a company with a non-null contact person ID
-      const initialCompany = {
-        taxId: "12345",
-        name: "Initial Company",
-        contactPersonId: validUserId,
-        addressId: validAddressId,
-      } as CreateCompanyDto;
+      const initialCompany = Fixture.createCompanyDto(
+        validUserId,
+        validAddressId,
+      );
 
       const created = await companyRepo.insert(initialCompany);
 
@@ -84,7 +116,6 @@ describe("CompanyRepository", () => {
       const created = await companyRepo.insert({
         taxId: "123456",
         name: "Company A",
-        contactPersonId: validUserId,
         addressId: validAddressId,
       } as CreateCompanyDto);
 
@@ -92,7 +123,7 @@ describe("CompanyRepository", () => {
         created.id,
         "00000",
         "Company B",
-        validUserId,
+        null,
         validAddressId,
       );
 

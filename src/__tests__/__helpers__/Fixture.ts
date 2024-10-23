@@ -116,6 +116,16 @@ export const Fixture = {
     const uuid = this.uuid();
     return new AddressId(uuid);
   },
+  createAddressDto(): CreateAddressDto {
+    return {
+      name: "Valid Address",
+      line1: "123 Test St",
+      city: "Test City",
+      state: "Test State",
+      postalCode: "12345",
+      country: "Test Country",
+    } as CreateAddressDto;
+  },
   address(addressId: AddressId): Address {
     return new Address(addressId);
   },
@@ -137,12 +147,15 @@ export const Fixture = {
     return new CompanyId(uuid);
   },
 
-  createCompanyDto(): CreateCompanyDto {
+  createCompanyDto(
+    contactPersonId?: UserId,
+    addressId?: AddressId,
+  ): CreateCompanyDto {
     return {
       name: "company",
       taxId: "taxId",
-      contactPersonId: null,
-      addressId: null,
+      contactPersonId: contactPersonId ?? null,
+      addressId: addressId ?? null,
     } as CreateCompanyDto;
   },
   company(
