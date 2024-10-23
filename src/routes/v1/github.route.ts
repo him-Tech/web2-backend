@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { GithubController } from "../../controllers/github.controllers";
+import { isAuth } from "../../middlewares/isAuth";
 
 const router = Router();
 
@@ -12,7 +13,10 @@ router.get(
 );
 
 // TODO: add validation schema
-// TODO: add authentication middleware
-router.post("/:owner/:repo/issues/:number/fund", GithubController.fundIssue);
+router.post(
+  "/:owner/:repo/issues/:number/fund",
+  isAuth,
+  GithubController.fundIssue,
+);
 
 export default router;
