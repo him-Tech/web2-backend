@@ -1,9 +1,10 @@
 import { setupTestDB } from "../__helpers__/jest.setup";
-import { UserId } from "../../model";
+import { CompanyUserRole, UserId } from "../../model";
 import { Fixture } from "../__helpers__/Fixture";
 import {
   getAddressRepository,
   getCompanyRepository,
+  getUserCompanyRepository,
   getUserRepository,
 } from "../../db/";
 import { CreateAddressDto, CreateCompanyDto } from "../../dtos";
@@ -11,6 +12,7 @@ import { CreateAddressDto, CreateCompanyDto } from "../../dtos";
 describe("AddressRepository", () => {
   const userRepo = getUserRepository();
   const companyRepo = getCompanyRepository();
+  const userCompanyRepo = getUserCompanyRepository();
   const addressRepo = getAddressRepository();
 
   setupTestDB();
@@ -129,7 +131,12 @@ describe("AddressRepository", () => {
         addressId: created.id,
       } as CreateCompanyDto;
 
-      await companyRepo.insert(companyDto);
+      const company = await companyRepo.insert(companyDto);
+      await userCompanyRepo.insert(
+        validUserId,
+        company.id,
+        CompanyUserRole.ADMIN,
+      );
 
       // Fetch the address using the user ID
       const address = await addressRepo.getCompanyUserAddress(validUserId);

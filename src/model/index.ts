@@ -7,3 +7,4 @@ export * from "./Company";
 export * from "./IssueFunding";
 export * from "./ManagedIssue";
 export * from "./ManualInvoice";
+export * from "./CompanyUserPermissionToken";

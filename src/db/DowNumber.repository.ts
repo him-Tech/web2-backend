@@ -10,6 +10,11 @@ export function getDowNumberRepository(): DowNumberRepository {
 
 // TODO: optimize this implementation
 export interface DowNumberRepository {
+  /**
+   *
+   * @param userId
+   * @param companyId If provided, returns the amount of the company
+   */
   getAvailableDoWs(userId: UserId, companyId?: CompanyId): Promise<number>;
 }
 
@@ -43,7 +48,7 @@ class DowNumberRepositoryImpl implements DowNumberRepository {
     );
     totalDoWsPaid += amountPaidWithStripe;
 
-    const totalFunding = await this.getTotalFundingFrom(companyId ?? userId);
+    const totalFunding = await this.getIssueFundingFrom(companyId ?? userId);
 
     if (totalFunding < 0) {
       logger.error(
@@ -100,7 +105,7 @@ class DowNumberRepositoryImpl implements DowNumberRepository {
     }
   }
 
-  private async getTotalFundingFrom(id: CompanyId | UserId): Promise<number> {
+  private async getIssueFundingFrom(id: CompanyId | UserId): Promise<number> {
     let result;
 
     if (id instanceof CompanyId) {
@@ -108,18 +113,18 @@ class DowNumberRepositoryImpl implements DowNumberRepository {
                 SELECT SUM(if.dow_amount) AS total_funding
                 FROM issue_funding if
                          JOIN user_company uc ON if.user_id = uc.user_id
-                         JOIN managed_issue mi ON if.github_issue_id = mi.github_issue_id
+                         LEFT JOIN managed_issue mi ON if.github_issue_id = mi.github_issue_id
                 WHERE uc.company_id = $1
-                  AND mi.state != 'rejected'
+                  AND (mi.state != 'rejected' OR mi.state is NULL)
             `;
       result = await this.pool.query(query, [id.toString()]);
     } else {
       const query = `
                 SELECT SUM(if.dow_amount) AS total_funding
                 FROM issue_funding if
-                         JOIN managed_issue mi ON if.github_issue_id = mi.github_issue_id
+                         LEFT JOIN managed_issue mi ON if.github_issue_id = mi.github_issue_id
                 WHERE if.user_id = $1
-                  AND mi.state != 'rejected'
+                  AND (mi.state != 'rejected' OR mi.state is NULL)
             `;
       result = await this.pool.query(query, [id.toString()]);
     }

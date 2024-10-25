@@ -6,10 +6,11 @@ import {
   ThirdPartyUserId,
   User,
   UserId,
+  UserRole,
 } from "../model";
 import { getPool } from "../dbPool";
 import { CreateLocalUserDto } from "../dtos";
-import { encrypt } from "../strategies/helpers";
+import { encrypt } from "../model/utils";
 
 export function getUserRepository(): UserRepository {
   return new UserRepositoryImpl(getPool());
@@ -88,23 +89,15 @@ class UserRepositoryImpl implements UserRepository {
   async getAll(): Promise<User[]> {
     const result = await this.pool.query(
       `
-              SELECT
-                  au.id,
-                  au.name,
-                  au.email,
-                  au.is_email_verified,
-                  au.hashed_password,
-                  au.role,
-                  au.provider,
-                  au.third_party_id,
-                  go.github_id,
-                  go.github_type,
-                  go.github_login,
-                  go.github_html_url,
-                  go.github_avatar_url
-              FROM app_user au
-                       LEFT JOIN github_owner go ON au.github_owner_id = go.github_id
-          `,
+                SELECT au.*,
+                       go.github_id,
+                       go.github_type,
+                       go.github_login,
+                       go.github_html_url,
+                       go.github_avatar_url
+                FROM app_user au
+                         LEFT JOIN github_owner go ON au.github_owner_id = go.github_id
+            `,
       [],
     );
     return this.getUserList(result.rows);
@@ -113,28 +106,47 @@ class UserRepositoryImpl implements UserRepository {
   async getById(id: UserId): Promise<User | null> {
     const result = await this.pool.query(
       `
-              SELECT 
-        au.id, 
-        au.name, 
-        au.email,
-        au.is_email_verified,
-        au.hashed_password, 
-        au.role, 
-        au.provider, 
-        au.third_party_id,
-        go.github_id,
-        go.github_type,
-        go.github_login,
-        go.github_html_url,
-        go.github_avatar_url
-      FROM app_user au
-      LEFT JOIN github_owner go ON au.github_owner_id = go.github_id
-      WHERE au.id = $1
+                SELECT au.*,
+                       go.github_id,
+                       go.github_type,
+                       go.github_login,
+                       go.github_html_url,
+                       go.github_avatar_url
+                FROM app_user au
+                         LEFT JOIN github_owner go ON au.github_owner_id = go.github_id
+                WHERE au.id = $1
             `,
       [id.uuid],
     );
     return this.getOptionalUser(result.rows);
   }
+
+  // async insertLocal(user: CreateLocalUserDto): Promise<User> {
+  //     const client = await this.pool.connect();
+  //
+  //     const hashedPassword = await encrypt.hashPassword(user.password);
+  //
+  //     try {
+  //         const result = await client.query(
+  //             `
+  //                 INSERT INTO app_user (name, email, is_email_verified, hashed_password, role)
+  //                 VALUES ($1, $2, $3, $4, $5)
+  //                 RETURNING id, name, email, is_email_verified, hashed_password, role
+  //             `,
+  //             [user.name, user.email, false, hashedPassword, user.role.toString()],
+  //         );
+  //
+  //         return await this.getOneUser(result.rows);
+  //     } catch (error: unknown) {
+  //         // TODO: Type guard to check if error has `code` property
+  //         if (error instanceof Error && (error as any).code === '23505') { // TODO: PostgreSQL error code for unique_violation
+  //             throw new Error('User with this email already exists');
+  //         }
+  //         throw error;
+  //     } finally {
+  //         client.release();
+  //     }
+  // }
 
   async insertLocal(user: CreateLocalUserDto): Promise<User> {
     const client = await this.pool.connect();
@@ -170,16 +182,15 @@ class UserRepositoryImpl implements UserRepository {
       // Insert or update the Github owner
       const ownerResult = await client.query(
         `
-            INSERT INTO github_owner (github_id, github_type, github_login, github_html_url, github_avatar_url)
-            VALUES ($1, $2, $3, $4, $5)
-            ON CONFLICT (github_id) DO UPDATE 
-            SET 
-                github_type = EXCLUDED.github_type,
-                github_login = EXCLUDED.github_login,
-                github_html_url = EXCLUDED.github_html_url,
-                github_avatar_url = EXCLUDED.github_avatar_url
-            RETURNING github_id, github_type, github_login, github_html_url, github_avatar_url
-            `,
+                    INSERT INTO github_owner (github_id, github_type, github_login, github_html_url, github_avatar_url)
+                    VALUES ($1, $2, $3, $4, $5)
+                    ON CONFLICT (github_id) DO UPDATE
+                        SET github_type       = EXCLUDED.github_type,
+                            github_login      = EXCLUDED.github_login,
+                            github_html_url   = EXCLUDED.github_html_url,
+                            github_avatar_url = EXCLUDED.github_avatar_url
+                    RETURNING github_id, github_type, github_login, github_html_url, github_avatar_url
+                `,
         [
           owner.id.githubId,
           owner.type,
@@ -198,22 +209,26 @@ class UserRepositoryImpl implements UserRepository {
       // Insert or update the ThirdPartyUser
       const userResult = await client.query(
         `
-            INSERT INTO app_user (provider, third_party_id, name, email, is_email_verified, role, github_owner_id)
-            VALUES ($1, $2, $3, $4, TRUE, 'user', $5) 
-            ON CONFLICT (third_party_id) DO UPDATE 
-            SET 
-                provider = EXCLUDED.provider,
-                name = EXCLUDED.name,
-                email = EXCLUDED.email,
-                github_owner_id = EXCLUDED.github_owner_id
-            RETURNING id, provider, third_party_id, name, email, role
-            `,
+                    INSERT INTO app_user (provider, third_party_id, name, email, is_email_verified, role,
+                                          github_owner_id, github_owner_login)
+                    VALUES ($1, $2, $3, $4, TRUE, $5, $6, $7)
+                    ON CONFLICT (third_party_id) DO UPDATE
+                        SET provider           = EXCLUDED.provider,
+                            name               = EXCLUDED.name,
+                            email              = EXCLUDED.email,
+                            role               = EXCLUDED.role,
+                            github_owner_id    = EXCLUDED.github_owner_id,
+                            github_owner_login = EXCLUDED.github_owner_login
+                    RETURNING *
+                `,
         [
           user.provider,
           user.id.id,
           user.providerData.owner.id.login || null, // Use the owner's name from providerData
           user.email(),
+          UserRole.USER,
           githubOwner.id.githubId,
+          githubOwner.id.login,
         ],
       );
 
@@ -231,23 +246,22 @@ class UserRepositoryImpl implements UserRepository {
   async findOne(email: string): Promise<User | null> {
     const result = await this.pool.query(
       `
-              SELECT 
-        au.id, 
-        au.name, 
-        au.email, 
-        au.is_email_verified, 
-        au.hashed_password, 
-        au.role, 
-        au.provider, 
-        au.third_party_id,
-        go.github_id,
-        go.github_type,
-        go.github_login,
-        go.github_html_url,
-        go.github_avatar_url
-      FROM app_user au
-      LEFT JOIN github_owner go ON au.github_owner_id = go.github_id
-      WHERE au.email = $1
+                SELECT au.id,
+                       au.name,
+                       au.email,
+                       au.is_email_verified,
+                       au.hashed_password,
+                       au.role,
+                       au.provider,
+                       au.third_party_id,
+                       go.github_id,
+                       go.github_type,
+                       go.github_login,
+                       go.github_html_url,
+                       go.github_avatar_url
+                FROM app_user au
+                         LEFT JOIN github_owner go ON au.github_owner_id = go.github_id
+                WHERE au.email = $1
             `,
       [email],
     );
@@ -260,24 +274,24 @@ class UserRepositoryImpl implements UserRepository {
   ): Promise<User | null> {
     const result = await this.pool.query(
       `
-      SELECT 
-        au.id, 
-        au.name, 
-        au.email, 
-        au.is_email_verified, 
-        au.hashed_password, 
-        au.role, 
-        au.provider, 
-        au.third_party_id,
-        go.github_id,
-        go.github_type,
-        go.github_login,
-        go.github_html_url,
-        go.github_avatar_url
-      FROM app_user au
-      LEFT JOIN github_owner go ON au.github_owner_id = go.github_id
-      WHERE au.third_party_id = $1 AND au.provider = $2
-    `,
+                SELECT au.id,
+                       au.name,
+                       au.email,
+                       au.is_email_verified,
+                       au.hashed_password,
+                       au.role,
+                       au.provider,
+                       au.third_party_id,
+                       go.github_id,
+                       go.github_type,
+                       go.github_login,
+                       go.github_html_url,
+                       go.github_avatar_url
+                FROM app_user au
+                         LEFT JOIN github_owner go ON au.github_owner_id = go.github_id
+                WHERE au.third_party_id = $1
+                  AND au.provider = $2
+            `,
       [id.id, provider],
     );
     return this.getOptionalUser(result.rows);

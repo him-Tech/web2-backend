@@ -56,7 +56,7 @@ describe("IssueFundingRepository", () => {
     });
 
     // Add more test cases for `create`:
-    // - Test with invalid data (e.g., negative amount,)
+    // - Test with invalid data (e.g., negative amount)
     // - Verify error handling and database constraints
   });
 

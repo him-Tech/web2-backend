@@ -3,6 +3,9 @@ import {
   AddressId,
   Company,
   CompanyId,
+  CompanyUserPermissionToken,
+  CompanyUserPermissionTokenId,
+  CompanyUserRole,
   ContributorVisibility,
   Email,
   GithubData,
@@ -35,6 +38,7 @@ import {
 import {
   CreateAddressDto,
   CreateCompanyDto,
+  CreateCompanyUserPermissionTokenDto,
   CreateIssueFundingDto,
   CreateLocalUserDto,
   CreateManagedIssueDto,
@@ -147,27 +151,18 @@ export const Fixture = {
     return new CompanyId(uuid);
   },
 
-  createCompanyDto(
-    contactPersonId?: UserId,
-    addressId?: AddressId,
-  ): CreateCompanyDto {
+  createCompanyDto(addressId?: AddressId): CreateCompanyDto {
     return {
       name: "company",
       taxId: "taxId",
-      contactPersonId: contactPersonId ?? null,
       addressId: addressId ?? null,
     } as CreateCompanyDto;
   },
-  company(
-    companyId: CompanyId,
-    contactPersonId: UserId | null = null,
-    addressId: AddressId | null = null,
-  ): Company {
+  company(companyId: CompanyId, addressId: AddressId | null = null): Company {
     return new Company(
       companyId,
       null,
       null,
-      contactPersonId,
       addressId !== null ? addressId : null,
     );
   },
@@ -176,7 +171,6 @@ export const Fixture = {
       companyId,
       dto.taxId ?? null,
       dto.name ?? null,
-      dto.contactPersonId ?? null,
       dto.addressId ?? null,
     );
   },
@@ -322,6 +316,34 @@ export const Fixture = {
       dto.managerId,
       dto.contributorVisibility,
       dto.state,
+    );
+  },
+
+  createUserCompanyPermissionTokenDto(
+    userEmail: string,
+    companyId: CompanyId,
+    expiresAt: Date = new Date(Date.now() + 1000 * 60 * 60 * 24), // Default to 1 day in the future
+  ): CreateCompanyUserPermissionTokenDto {
+    return {
+      userEmail,
+      token: `token-${Math.floor(Math.random() * 1000000)}`,
+      companyId,
+      companyUserRole: CompanyUserRole.READ,
+      expiresAt,
+    };
+  },
+
+  userCompanyPermissionTokenFromDto(
+    tokenId: CompanyUserPermissionTokenId,
+    dto: CreateCompanyUserPermissionTokenDto,
+  ): CompanyUserPermissionToken {
+    return new CompanyUserPermissionToken(
+      tokenId,
+      dto.userEmail,
+      dto.token,
+      dto.companyId,
+      dto.companyUserRole,
+      dto.expiresAt,
     );
   },
 };

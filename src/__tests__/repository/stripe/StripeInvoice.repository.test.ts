@@ -4,7 +4,6 @@ import { Fixture } from "../../__helpers__/Fixture";
 import {
   getCompanyRepository,
   getStripeCustomerRepository,
-  getStripeInvoiceLineRepository,
   getStripeInvoiceRepository,
   getStripeProductRepository,
   getUserRepository,

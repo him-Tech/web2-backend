@@ -11,12 +11,13 @@ export class UserId {
   }
 
   toString(): string {
-    return this.uuid.toString();
+    return this.uuid;
   }
 }
 
 export enum UserRole {
-  user = "user",
+  SUPER_ADMIN = "super_admin",
+  USER = "user",
 }
 
 export class User implements Express.User {

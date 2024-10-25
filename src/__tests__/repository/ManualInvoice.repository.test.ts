@@ -1,9 +1,9 @@
 import { setupTestDB } from "../__helpers__/jest.setup";
-import { ManualInvoiceId, UserId, CompanyId } from "../../model";
+import { CompanyId, ManualInvoiceId, UserId } from "../../model";
 import {
+  getCompanyRepository,
   getManualInvoiceRepository,
   getUserRepository,
-  getCompanyRepository,
 } from "../../db/";
 import { CreateManualInvoiceDto } from "../../dtos";
 import { Fixture } from "../__helpers__/Fixture";
@@ -37,10 +37,26 @@ describe("ManualInvoiceRepository", () => {
         Fixture.manualInvoiceFromDto(created.id, manualInvoiceDto),
       );
 
-      const found = await manualInvoiceRepo.getById(
-        new ManualInvoiceId(created.id.uuid),
-      );
+      const found = await manualInvoiceRepo.getById(created.id);
       expect(found).toEqual(created);
+    });
+
+    it("can not have companyId and userId defined", async () => {
+      // TODO: improve type to not have to make this test
+      const manualInvoiceDto: CreateManualInvoiceDto =
+        Fixture.createManualInvoiceDto(companyId, userId);
+
+      try {
+        await manualInvoiceRepo.create(manualInvoiceDto);
+        // If the insertion doesn't throw, fail the test
+        fail(
+          "Expected foreign key constraint violation, but no error was thrown.",
+        );
+      } catch (error: any) {
+        expect(error.message).toMatch(
+          /new row for relation \"manual_invoice\" violates check constraint \"chk_company_nor_user/,
+        );
+      }
     });
 
     // Add more test cases for `create`:

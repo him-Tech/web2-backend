@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS github_owner
     github_html_url   VARCHAR(510) NOT NULL,
     github_avatar_url VARCHAR(510),
 
-    "created_at"      TIMESTAMP    NOT NULL DEFAULT now(),
-    "updated_at"      TIMESTAMP    NOT NULL DEFAULT now()
+    created_at        TIMESTAMP    NOT NULL DEFAULT now(),
+    updated_at        TIMESTAMP    NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS github_repository
@@ -25,8 +25,8 @@ CREATE TABLE IF NOT EXISTS github_repository
     github_html_url    VARCHAR(510) NOT NULL,
     github_description VARCHAR(510),
 
-    "created_at"       TIMESTAMP    NOT NULL DEFAULT now(),
-    "updated_at"       TIMESTAMP    NOT NULL DEFAULT now(),
+    created_at         TIMESTAMP    NOT NULL DEFAULT now(),
+    updated_at         TIMESTAMP    NOT NULL DEFAULT now(),
 
     CONSTRAINT pk_github_repository PRIMARY KEY (github_owner_login, github_name),
 
@@ -59,8 +59,8 @@ CREATE TABLE IF NOT EXISTS github_issue
     github_created_at          VARCHAR(510),
     github_closed_at           VARCHAR(510),
 
-    "created_at"               TIMESTAMP     NOT NULL DEFAULT now(),
-    "updated_at"               TIMESTAMP     NOT NULL DEFAULT now(),
+    created_at                 TIMESTAMP     NOT NULL DEFAULT now(),
+    updated_at                 TIMESTAMP     NOT NULL DEFAULT now(),
 
     CONSTRAINT pk_github_issue_key PRIMARY KEY (github_owner_login, github_repository_name, github_number),
 
@@ -88,30 +88,32 @@ ALTER TABLE "user_session"
     ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
 CREATE INDEX "IDX_session_expire" ON "user_session" ("expire");
 
-CREATE TABLE IF NOT EXISTS "app_user"
+CREATE TABLE IF NOT EXISTS app_user
 (
-    "id"                UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
-    "provider"          VARCHAR(50),         -- Optional, used for third-party users
-    "third_party_id"    VARCHAR(100) UNIQUE, -- Optional, used for third-party users
-    "name"              VARCHAR(255),
-    "email"             VARCHAR(255) UNIQUE,
-    "is_email_verified" BOOLEAN          NOT NULL,
-    "hashed_password"   VARCHAR(255),        -- Optional, used for local users
-    "role"              VARCHAR(50)      NOT NULL DEFAULT 'ser',
-    github_owner_id     INTEGER,
+    id                 UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
+    provider           VARCHAR(50),         -- Optional, used for third-party users
+    third_party_id     VARCHAR(100) UNIQUE, -- Optional, used for third-party users
+    name               VARCHAR(255),
+    email              VARCHAR(255) UNIQUE,
+    is_email_verified  BOOLEAN          NOT NULL,
+    hashed_password    VARCHAR(255),        -- Optional, used for local users
+    role               VARCHAR(50)      NOT NULL,
+    github_owner_id    INTEGER,
+    github_owner_login VARCHAR(255),
 
-    "created_at"        TIMESTAMP        NOT NULL DEFAULT now(),
-    "updated_at"        TIMESTAMP        NOT NULL DEFAULT now(),
+    created_at         TIMESTAMP        NOT NULL DEFAULT now(),
+    updated_at         TIMESTAMP        NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_github_owner FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE SET NULL,
+    CONSTRAINT fk_github_owner_login FOREIGN KEY (github_owner_login) REFERENCES github_owner (github_login) ON DELETE RESTRICT,
 
     CONSTRAINT chk_provider CHECK (
             (provider IS NOT NULL AND third_party_id IS NOT NULL) OR
             (provider IS NULL AND third_party_id IS NULL)
         ),
     CONSTRAINT chk_github_provider_data CHECK (
-            (provider = 'github' AND github_owner_id IS NOT NULL) OR
-            (provider <> 'github' AND github_owner_id IS NULL)
+            (provider = 'github' AND github_owner_id IS NOT NULL AND github_owner_login IS NOT NULL) OR
+            (provider <> 'github' AND github_owner_id IS NULL AND github_owner_login IS NULL)
         )
 );
 
@@ -126,44 +128,67 @@ CREATE TABLE IF NOT EXISTS address
     postal_code  VARCHAR(20),
     country      VARCHAR(100),
 
-    "created_at" TIMESTAMP        NOT NULL DEFAULT now(),
-    "updated_at" TIMESTAMP        NOT NULL DEFAULT now()
+    created_at  TIMESTAMP        NOT NULL DEFAULT now(),
+    updated_at  TIMESTAMP        NOT NULL DEFAULT now()
 );
 
--- TODO: add VAT number
 CREATE TABLE IF NOT EXISTS company
 (
     id                UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     tax_id            VARCHAR(50) UNIQUE,
     name              VARCHAR(255),
-    contact_person_id UUID,
     address_id        UUID,
 
-    "created_at"      TIMESTAMP        NOT NULL DEFAULT now(),
-    "updated_at"      TIMESTAMP        NOT NULL DEFAULT now(),
+    created_at        TIMESTAMP        NOT NULL DEFAULT now(),
+    updated_at        TIMESTAMP        NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_address FOREIGN KEY (address_id) REFERENCES address (id) ON DELETE RESTRICT
     -- Foreign key constraints for contact persons will be added later
 );
 
--- Junction tables for many-to-many relationships
+------------------------------------------------------
+--- Junction tables for many-to-many relationships ---
+------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS user_company
 (
-    user_id      UUID,
-    company_id   UUID,
+    user_id    UUID,
+    company_id UUID,
+    role       VARCHAR(50) NOT NULL, -- The role of this user for this company: 'admin', 'suggest', 'read'
 
-    "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-    "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
+    created_at TIMESTAMP   NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP   NOT NULL DEFAULT now(),
 
     PRIMARY KEY (user_id, company_id),
 
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES "app_user" (id) ON DELETE CASCADE,
-    CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES "company" (id) ON DELETE CASCADE
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES app_user (id) ON DELETE CASCADE,
+    CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES company (id) ON DELETE CASCADE
 );
 
-ALTER TABLE company
-    ADD CONSTRAINT fk_contact_person_user FOREIGN KEY (contact_person_id, id) REFERENCES user_company (user_id, company_id) ON DELETE SET NULL;
+-- CREATE TABLE IF NOT EXISTS user_repository(
+--     user_id                UUID,
+--
+--     github_owner_id        INTEGER      NOT NULL,
+--     github_owner_login     VARCHAR(255) NOT NULL,
+--
+--     github_repository_id   INTEGER      NOT NULL,
+--     github_repository_name VARCHAR(255) NOT NULL,
+--
+--     role                   VARCHAR(50)  NOT NULL, -- The role of this user for this repository
+--
+--     created_at             TIMESTAMP    NOT NULL DEFAULT now(),
+--     updated_at             TIMESTAMP    NOT NULL DEFAULT now(),
+--
+--     PRIMARY KEY (user_id, github_owner_login, github_repository_name),
+--
+--     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES app_user (id) ON DELETE CASCADE,
+--
+--     CONSTRAINT fk_github_owner_id FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT,
+--     CONSTRAINT fk_github_owner_login FOREIGN KEY (github_owner_login) REFERENCES github_owner (github_login) ON DELETE RESTRICT,
+--
+--     CONSTRAINT fk_github_repository_id FOREIGN KEY (github_repository_id) REFERENCES github_repository (github_id) ON DELETE RESTRICT,
+--     CONSTRAINT fk_github_repository FOREIGN KEY (github_owner_login, github_repository_name) REFERENCES github_repository (github_owner_login, github_name) ON DELETE RESTRICT
+-- );
 
 ---------------------
 --- Stripe tables ---
@@ -171,27 +196,27 @@ ALTER TABLE company
 
 CREATE TABLE IF NOT EXISTS stripe_customer
 (
-    id           UUID        NOT NULL DEFAULT gen_random_uuid(),
-    stripe_id    VARCHAR(50) NOT NULL PRIMARY KEY,
-    user_id      UUID        NOT NULL,
+    id         UUID        NOT NULL DEFAULT gen_random_uuid(),
+    stripe_id  VARCHAR(50) NOT NULL PRIMARY KEY,
+    user_id    UUID        NOT NULL,
 
-    "created_at" TIMESTAMP   NOT NULL DEFAULT now(),
-    "updated_at" TIMESTAMP   NOT NULL DEFAULT now(),
+    created_at TIMESTAMP   NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP   NOT NULL DEFAULT now(),
 
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES "app_user" (id) ON DELETE CASCADE
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES app_user (id) ON DELETE CASCADE
 );
 
 -- example: represent the product 0.01 DoW
 CREATE TABLE IF NOT EXISTS stripe_product
 (
-    id           UUID        NOT NULL DEFAULT gen_random_uuid(),
-    stripe_id    VARCHAR(50) NOT NULL PRIMARY KEY,
-    unit         VARCHAR(50) NOT NULL, -- 'DoW'
-    unit_amount  INTEGER     NOT NULL,
-    recurring    BOOLEAN     NOT NULL,
+    id          UUID        NOT NULL DEFAULT gen_random_uuid(),
+    stripe_id   VARCHAR(50) NOT NULL PRIMARY KEY,
+    unit        VARCHAR(50) NOT NULL, -- 'DoW'
+    unit_amount INTEGER     NOT NULL,
+    recurring   BOOLEAN     NOT NULL,
 
-    "created_at" TIMESTAMP   NOT NULL DEFAULT now(),
-    "updated_at" TIMESTAMP   NOT NULL DEFAULT now(),
+    created_at  TIMESTAMP   NOT NULL DEFAULT now(),
+    updated_at  TIMESTAMP   NOT NULL DEFAULT now(),
 
     CONSTRAINT positive_quantity CHECK (unit_amount > 0)
 );
@@ -211,24 +236,24 @@ CREATE TABLE IF NOT EXISTS stripe_invoice
     hosted_invoice_url TEXT           NOT NULL,
     invoice_pdf        TEXT           NOT NULL,
 
-    "created_at"       TIMESTAMP      NOT NULL DEFAULT now(),
-    "updated_at"       TIMESTAMP      NOT NULL DEFAULT now(),
+    created_at         TIMESTAMP      NOT NULL DEFAULT now(),
+    updated_at         TIMESTAMP      NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_customer FOREIGN KEY (customer_id) REFERENCES stripe_customer (stripe_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS stripe_invoice_line
 (
-    id           UUID        NOT NULL DEFAULT gen_random_uuid(),
-    stripe_id    VARCHAR(50) NOT NULL PRIMARY KEY,
-    invoice_id   VARCHAR(50) NOT NULL,
-    customer_id  VARCHAR(50) NOT NULL,
-    product_id   VARCHAR(50) NOT NULL,
-    price_id     VARCHAR(50) NOT NULL,
-    quantity     INTEGER     NOT NULL, -- Quantity of the product
+    id          UUID        NOT NULL DEFAULT gen_random_uuid(),
+    stripe_id   VARCHAR(50) NOT NULL PRIMARY KEY,
+    invoice_id  VARCHAR(50) NOT NULL,
+    customer_id VARCHAR(50) NOT NULL,
+    product_id  VARCHAR(50) NOT NULL,
+    price_id    VARCHAR(50) NOT NULL,
+    quantity    INTEGER     NOT NULL, -- Quantity of the product
 
-    "created_at" TIMESTAMP   NOT NULL DEFAULT now(),
-    "updated_at" TIMESTAMP   NOT NULL DEFAULT now(),
+    created_at  TIMESTAMP   NOT NULL DEFAULT now(),
+    updated_at  TIMESTAMP   NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_invoice FOREIGN KEY (invoice_id) REFERENCES stripe_invoice (stripe_id) ON DELETE CASCADE,
     CONSTRAINT fk_customer FOREIGN KEY (customer_id) REFERENCES stripe_customer (stripe_id) ON DELETE CASCADE,
@@ -243,19 +268,23 @@ CREATE TABLE IF NOT EXISTS stripe_invoice_line
 
 CREATE TABLE IF NOT EXISTS manual_invoice
 (
-    id           UUID           NOT NULL DEFAULT gen_random_uuid(),
-    number       INTEGER        NOT NULL,
-    company_id   UUID,
-    user_id      UUID,
-    paid         BOOLEAN        NOT NULL DEFAULT true,
-    dow_amount   NUMERIC(10, 4) NOT NULL,
+    id         UUID           NOT NULL DEFAULT gen_random_uuid(),
+    number     INTEGER        NOT NULL,
+    company_id UUID,
+    user_id    UUID,
+    paid       BOOLEAN        NOT NULL DEFAULT true,
+    dow_amount NUMERIC(10, 4) NOT NULL,
 
-    "created_at" TIMESTAMP      NOT NULL DEFAULT now(),
-    "updated_at" TIMESTAMP      NOT NULL DEFAULT now(),
+    created_at TIMESTAMP      NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP      NOT NULL DEFAULT now(),
 
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES "app_user" (id) ON DELETE CASCADE,
-    CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES "company" (id) ON DELETE CASCADE,
-    CONSTRAINT chk_company_or_user CHECK (company_id IS NOT NULL OR user_id IS NOT NULL)
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES app_user (id) ON DELETE CASCADE,
+    CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES company (id) ON DELETE CASCADE,
+
+    CONSTRAINT chk_company_nor_user CHECK (
+            (company_id IS NOT NULL AND user_id IS NULL) OR
+            (company_id IS NULL AND user_id IS NOT NULL)
+        )
 );
 
 ----------------------------
@@ -281,8 +310,8 @@ CREATE TABLE IF NOT EXISTS managed_issue
     contributor_visibility VARCHAR(50)      NOT NULL, -- 'public' or 'private'
     state                  VARCHAR(50)      NOT NULL, -- 'open', 'rejected', 'solved'
 
-    "created_at"           TIMESTAMP        NOT NULL DEFAULT now(),
-    "updated_at"           TIMESTAMP        NOT NULL DEFAULT now(),
+    created_at             TIMESTAMP        NOT NULL DEFAULT now(),
+    updated_at             TIMESTAMP        NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_github_owner_id FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT,
     CONSTRAINT fk_github_repository_id FOREIGN KEY (github_repository_id) REFERENCES github_repository (github_id) ON DELETE RESTRICT,
@@ -292,7 +321,7 @@ CREATE TABLE IF NOT EXISTS managed_issue
     CONSTRAINT fk_github_repository FOREIGN KEY (github_owner_login, github_repository_name) REFERENCES github_repository (github_owner_login, github_name) ON DELETE RESTRICT,
     CONSTRAINT fk_github_issue FOREIGN KEY (github_owner_login, github_repository_name, github_issue_number) REFERENCES github_issue (github_owner_login, github_repository_name, github_number) ON DELETE RESTRICT,
 
-    CONSTRAINT fk_manager FOREIGN KEY (manager_id) REFERENCES "app_user" (id) ON DELETE CASCADE
+    CONSTRAINT fk_manager FOREIGN KEY (manager_id) REFERENCES app_user (id) ON DELETE CASCADE
 );
 
 -- this table is used as event source events
@@ -312,8 +341,8 @@ CREATE TABLE IF NOT EXISTS issue_funding
     user_id                UUID             NOT NULL,
     dow_amount             NUMERIC(10, 4)   NOT NULL,
 
-    "created_at"           TIMESTAMP        NOT NULL DEFAULT now(),
-    "updated_at"           TIMESTAMP        NOT NULL DEFAULT now(),
+    created_at             TIMESTAMP        NOT NULL DEFAULT now(),
+    updated_at             TIMESTAMP        NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_github_owner_id FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT,
     CONSTRAINT fk_github_repository_id FOREIGN KEY (github_repository_id) REFERENCES github_repository (github_id) ON DELETE RESTRICT,
@@ -323,8 +352,46 @@ CREATE TABLE IF NOT EXISTS issue_funding
     CONSTRAINT fk_github_repository FOREIGN KEY (github_owner_login, github_repository_name) REFERENCES github_repository (github_owner_login, github_name) ON DELETE RESTRICT,
     CONSTRAINT fk_github_issue FOREIGN KEY (github_owner_login, github_repository_name, github_issue_number) REFERENCES github_issue (github_owner_login, github_repository_name, github_number) ON DELETE RESTRICT,
 
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES "app_user" (id) ON DELETE CASCADE
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES app_user (id) ON DELETE CASCADE
 );
 
 
+-----------------------------------------
+--- Tables to invite user to register ---
+-----------------------------------------
 
+CREATE TABLE IF NOT EXISTS company_user_permission_token
+(
+    id                UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
+    user_email        VARCHAR(255)     NOT NULL UNIQUE,
+
+    token             TEXT             NOT NULL UNIQUE,
+
+    company_id        UUID             NOT NULL,
+    company_user_role VARCHAR(50)      NOT NULL, -- 'admin', 'suggest', 'read'
+
+    expires_at        TIMESTAMP        NOT NULL,
+    created_at        TIMESTAMP        NOT NULL DEFAULT now(),
+    updated_at        TIMESTAMP        NOT NULL DEFAULT now(),
+
+    CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES company (id) ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS repository_user_permission_token
+(
+    id                      UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
+    user_github_owner_login VARCHAR(255)     NOT NULL,
+
+    token                   TEXT             NOT NULL UNIQUE,
+
+    github_owner_login      VARCHAR(255)     NOT NULL,
+    github_repository_name  VARCHAR(255)     NOT NULL,
+
+    repository_user_role    VARCHAR(50)      NOT NULL, -- 'admin', 'read'
+
+    expires_at              TIMESTAMP        NOT NULL,
+    created_at              TIMESTAMP        NOT NULL DEFAULT now(),
+    updated_at              TIMESTAMP        NOT NULL DEFAULT now(),
+
+    CONSTRAINT fk_github_repository FOREIGN KEY (github_owner_login, github_repository_name) REFERENCES github_repository (github_owner_login, github_name) ON DELETE RESTRICT
+);

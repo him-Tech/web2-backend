@@ -1,10 +1,10 @@
 import { setupTestDB } from "../__helpers__/jest.setup";
-import { UserId, CompanyId } from "../../model";
+import { CompanyId, CompanyUserRole, UserId } from "../../model";
 import { Fixture } from "../__helpers__/Fixture";
 import {
-  getUserRepository,
   getCompanyRepository,
   getUserCompanyRepository,
+  getUserRepository,
 } from "../../db/";
 import { CreateCompanyDto } from "../../dtos";
 
@@ -32,6 +32,7 @@ describe("UserCompanyRepository", () => {
       const [insertedUserId, insertedCompanyId] = await userCompanyRepo.insert(
         validUserId,
         validCompanyId,
+        CompanyUserRole.ADMIN,
       );
 
       expect(insertedUserId).toEqual(validUserId);
@@ -42,7 +43,11 @@ describe("UserCompanyRepository", () => {
   describe("delete", () => {
     it("should delete an existing user-company relationship", async () => {
       // First, insert the user-company relationship
-      await userCompanyRepo.insert(validUserId, validCompanyId);
+      await userCompanyRepo.insert(
+        validUserId,
+        validCompanyId,
+        CompanyUserRole.ADMIN,
+      );
 
       // Now, delete the relationship
       await userCompanyRepo.delete(validUserId, validCompanyId);
@@ -56,10 +61,14 @@ describe("UserCompanyRepository", () => {
   describe("getByUserId", () => {
     it("should return an array of company IDs associated with the user", async () => {
       // Insert the user-company relationship
-      await userCompanyRepo.insert(validUserId, validCompanyId);
+      await userCompanyRepo.insert(
+        validUserId,
+        validCompanyId,
+        CompanyUserRole.ADMIN,
+      );
 
       const companies = await userCompanyRepo.getByUserId(validUserId);
-      expect(companies).toContainEqual(validCompanyId);
+      expect(companies).toContainEqual([validCompanyId, CompanyUserRole.ADMIN]);
     });
 
     it("should return an empty array if the user has no associated companies", async () => {
@@ -71,10 +80,14 @@ describe("UserCompanyRepository", () => {
   describe("getByCompanyId", () => {
     it("should return an array of user IDs associated with the company", async () => {
       // Insert the user-company relationship
-      await userCompanyRepo.insert(validUserId, validCompanyId);
+      await userCompanyRepo.insert(
+        validUserId,
+        validCompanyId,
+        CompanyUserRole.ADMIN,
+      );
 
       const users = await userCompanyRepo.getByCompanyId(validCompanyId);
-      expect(users).toContainEqual(validUserId);
+      expect(users).toContainEqual([validUserId, CompanyUserRole.ADMIN]);
     });
 
     it("should return an empty array if the company has no associated users", async () => {

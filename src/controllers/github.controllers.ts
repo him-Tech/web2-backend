@@ -4,10 +4,14 @@ import {
   FundIssueDto,
   FundIssueQueryParams,
   FundIssueResponse,
+  GetIssueDto,
+  GetIssueQueryParams,
+  GetIssueResponse,
+  GetIssuesDto,
+  GetIssuesQueryParams,
+  GetIssuesResponse,
   ResponseDto,
 } from "../dtos";
-import { GetIssuesDto, GetIssuesQueryParams, GetIssuesResponse } from "../dtos";
-import { GetIssueDto, GetIssueQueryParams, GetIssueResponse } from "../dtos";
 import {
   IssueId,
   ManagedIssueState,

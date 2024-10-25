@@ -1,5 +1,5 @@
 import { Pool } from "pg";
-import { UserId, CompanyId } from "../model";
+import { CompanyId, CompanyUserRole, UserId } from "../model";
 import { getPool } from "../dbPool";
 
 export function getUserCompanyRepository(): UserCompanyRepository {
@@ -7,10 +7,14 @@ export function getUserCompanyRepository(): UserCompanyRepository {
 }
 
 export interface UserCompanyRepository {
-  insert(userId: UserId, companyId: CompanyId): Promise<[UserId, CompanyId]>;
+  insert(
+    userId: UserId,
+    companyId: CompanyId,
+    role: CompanyUserRole,
+  ): Promise<[UserId, CompanyId, CompanyUserRole]>;
   delete(userId: UserId, companyId: CompanyId): Promise<void>;
-  getByUserId(userId: UserId): Promise<CompanyId[]>;
-  getByCompanyId(companyId: CompanyId): Promise<UserId[]>;
+  getByUserId(userId: UserId): Promise<[CompanyId, CompanyUserRole][]>;
+  getByCompanyId(companyId: CompanyId): Promise<[UserId, CompanyUserRole][]>;
 }
 
 class UserCompanyRepositoryImpl implements UserCompanyRepository {
@@ -23,22 +27,24 @@ class UserCompanyRepositoryImpl implements UserCompanyRepository {
   async insert(
     userId: UserId,
     companyId: CompanyId,
-  ): Promise<[UserId, CompanyId]> {
+    role: CompanyUserRole,
+  ): Promise<[UserId, CompanyId, CompanyUserRole]> {
     const client = await this.pool.connect();
 
     try {
       const result = await client.query(
         `
-                INSERT INTO user_company (user_id, company_id)
-                VALUES ($1, $2)
-                RETURNING user_id, company_id
+                INSERT INTO user_company (user_id, company_id, role)
+                VALUES ($1, $2, $3)
+                RETURNING *
                 `,
-        [userId.uuid, companyId.uuid],
+        [userId.toString(), companyId.toString(), role.toString()],
       );
 
       return [
         new UserId(result.rows[0].user_id),
         new CompanyId(result.rows[0].company_id),
+        role,
       ];
     } catch (error) {
       throw error; // You might want to handle specific errors here
@@ -56,7 +62,7 @@ class UserCompanyRepositoryImpl implements UserCompanyRepository {
                 DELETE FROM user_company
                 WHERE user_id = $1 AND company_id = $2
                 `,
-        [userId.uuid, companyId.uuid],
+        [userId.toString(), companyId.toString()],
       );
     } catch (error) {
       throw error; // Handle errors as needed
@@ -65,20 +71,23 @@ class UserCompanyRepositoryImpl implements UserCompanyRepository {
     }
   }
 
-  async getByUserId(userId: UserId): Promise<CompanyId[]> {
+  async getByUserId(userId: UserId): Promise<[CompanyId, CompanyUserRole][]> {
     const client = await this.pool.connect();
 
     try {
       const result = await client.query(
         `
-                SELECT company_id
+                SELECT *
                 FROM user_company
                 WHERE user_id = $1
                 `,
-        [userId.uuid],
+        [userId.toString()],
       );
 
-      return result.rows.map((row) => new CompanyId(row.company_id));
+      return result.rows.map((row) => [
+        new CompanyId(row.company_id),
+        row.role as CompanyUserRole,
+      ]);
     } catch (error) {
       throw error; // Handle errors as needed
     } finally {
@@ -86,20 +95,25 @@ class UserCompanyRepositoryImpl implements UserCompanyRepository {
     }
   }
 
-  async getByCompanyId(companyId: CompanyId): Promise<UserId[]> {
+  async getByCompanyId(
+    companyId: CompanyId,
+  ): Promise<[UserId, CompanyUserRole][]> {
     const client = await this.pool.connect();
 
     try {
       const result = await client.query(
         `
-                SELECT user_id
+                SELECT *
                 FROM user_company
                 WHERE company_id = $1
                 `,
-        [companyId.uuid],
+        [companyId.toString()],
       );
 
-      return result.rows.map((row) => new UserId(row.user_id));
+      return result.rows.map((row) => [
+        new UserId(row.user_id),
+        row.role as CompanyUserRole,
+      ]);
     } catch (error) {
       throw error; // Handle errors as needed
     } finally {

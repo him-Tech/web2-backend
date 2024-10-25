@@ -1,9 +1,11 @@
+import { StatusCodes } from "http-status-codes";
+
 export class ApiError extends Error {
   statusCode: number;
   isOperational: boolean;
 
   constructor(
-    statusCode: number,
+    statusCode: StatusCodes,
     message: string,
     isOperational = true,
     stack = "",

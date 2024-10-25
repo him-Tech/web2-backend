@@ -43,7 +43,7 @@ describe("UserRepository", () => {
         expect(created.data).toEqual(thirdPartyUser);
       }
 
-      expect(created.role).toBe(UserRole.user);
+      expect(created.role).toBe(UserRole.USER);
 
       const found = await repo.getById(created.id);
       expect(found).toEqual(created);
@@ -143,7 +143,7 @@ describe("UserRepository", () => {
         expect(created.data).toEqual(thirdPartyUser);
       }
 
-      expect(created.role).toBe(UserRole.user);
+      expect(created.role).toBe(UserRole.USER);
 
       const found = await repo.findOne(thirdPartyUser.email()!);
       expect(found).toEqual(created);
@@ -167,7 +167,7 @@ describe("UserRepository", () => {
         expect(created.data).toEqual(thirdPartyUser);
       }
 
-      expect(created.role).toBe(UserRole.user);
+      expect(created.role).toBe(UserRole.USER);
 
       const foundByThirdPartyId = await repo.findByThirdPartyId(
         thirdPartyUser.id,

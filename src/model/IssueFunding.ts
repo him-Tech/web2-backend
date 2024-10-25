@@ -10,7 +10,7 @@ export class IssueFundingId {
   }
 
   toString(): string {
-    return this.uuid.toString();
+    return this.uuid;
   }
 }
 

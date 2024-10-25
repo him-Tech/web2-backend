@@ -1,5 +1,8 @@
+import { UserRole } from "../../model";
+
 export interface CreateLocalUserDto {
-  name: string | null;
+  name?: string;
   email: string;
   password: string;
+  role: UserRole;
 }

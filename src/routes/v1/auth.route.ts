@@ -14,6 +14,13 @@ router.post(
 );
 
 router.post(
+  "/register-as-company",
+  AuthController.verifyCompanyToken,
+  passport.authenticate("local-register"),
+  AuthController.registerAsCompany,
+);
+
+router.post(
   "/login",
   passport.authenticate("local-login"),
   AuthController.login,

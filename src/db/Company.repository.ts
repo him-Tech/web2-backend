@@ -1,5 +1,5 @@
 import { Pool } from "pg";
-import { Company, CompanyId, UserId } from "../model";
+import { Company, CompanyId } from "../model";
 import { getPool } from "../dbPool";
 import { CreateCompanyDto } from "../dtos";
 
@@ -70,58 +70,27 @@ class CompanyRepositoryImpl implements CompanyRepository {
       FROM company
       WHERE id = $1
       `,
-      [id.uuid],
+      [id.toString()],
     );
 
     return this.getOptionalCompany(result.rows);
   }
 
-  // TODO: check if that is correct and optimal for the DB
   async insert(company: CreateCompanyDto): Promise<Company> {
     const client = await this.pool.connect();
 
     try {
-      await client.query("BEGIN");
-
-      // 1. Insert the company record, but initially set contact_person_id to NULL
       const result = await client.query(
         `
       INSERT INTO company (tax_id, name, address_id)
       VALUES ($1, $2, $3) 
-      RETURNING id
-      `,
-        [company.taxId, company.name, company.addressId?.uuid ?? null],
-      );
-
-      const insertedCompany: Company = this.getOneCompany(result.rows);
-
-      // 2. Insert into user_company
-      if (company.contactPersonId instanceof UserId) {
-        await client.query(
-          `
-              INSERT INTO user_company (user_id, company_id)
-              VALUES ($1, $2)
-            `,
-          [company.contactPersonId.uuid, insertedCompany.id.uuid],
-        );
-      }
-
-      // 3. Update the company record with the correct contact_person_id
-      const finalResult = await client.query(
-        `
-      UPDATE company
-      SET contact_person_id = $1
-      WHERE id = $2
       RETURNING *
       `,
-        [company.contactPersonId?.uuid ?? null, insertedCompany.id.uuid],
+        [company.taxId, company.name, company.addressId?.toString() ?? null],
       );
 
-      await client.query("COMMIT");
-
-      return this.getOneCompany(finalResult.rows);
+      return this.getOneCompany(result.rows);
     } catch (error) {
-      await client.query("ROLLBACK");
       throw error;
     } finally {
       client.release();
@@ -131,45 +100,25 @@ class CompanyRepositoryImpl implements CompanyRepository {
   async update(company: Company): Promise<Company> {
     const client = await this.pool.connect();
     try {
-      await client.query("BEGIN");
-
-      // Insert into user_company if a user is the contact person
-      if (company.contactPersonId instanceof UserId) {
-        await client.query(
-          `
-          INSERT INTO user_company (user_id, company_id)
-          VALUES ($1, $2)
-          ON CONFLICT (user_id, company_id) DO NOTHING
-          `,
-          [company.contactPersonId.uuid, company.id.uuid],
-        );
-      }
-
       const result = await client.query(
         `
         UPDATE company
         SET tax_id = $1,
             name = $2,
-            contact_person_id = $3,
-            address_id = $4
-        WHERE id = $5
-        RETURNING id, tax_id, name, contact_person_id, address_id
+            address_id = $3
+        WHERE id = $4
+        RETURNING *
         `,
         [
           company.taxId,
           company.name,
-          company.contactPersonId?.uuid ?? null,
-          company.addressId?.uuid ?? null,
-          company.id.uuid,
+          company.addressId?.toString() ?? null,
+          company.id.toString(),
         ],
       );
 
-      const updatedCompany = this.getOneCompany(result.rows);
-      await client.query("COMMIT");
-
-      return updatedCompany;
+      return this.getOneCompany(result.rows);
     } catch (error) {
-      await client.query("ROLLBACK");
       throw error;
     } finally {
       client.release();

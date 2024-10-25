@@ -1,12 +1,15 @@
 import passport from "passport";
 import { Strategy } from "passport-local";
 
-import { encrypt } from "./helpers";
+import { encrypt } from "../model/utils/";
 import { getUserRepository, UserRepository } from "../db/";
-import { LocalUser, User } from "../model";
+import { LocalUser, User, UserRole } from "../model";
 import { CreateLocalUserDto } from "../dtos";
 
 const repo: UserRepository = getUserRepository();
+
+// TODO: do something more secure
+const superAdminEmails = ["lauriane@open-source-economy.com"];
 
 passport.use(
   "local-login",
@@ -69,10 +72,14 @@ passport.use(
           }
         }
 
-        const savedUser = await repo.insertLocal({
+        const dto: CreateLocalUserDto = {
           email,
           password,
-        } as CreateLocalUserDto);
+          role: superAdminEmails.includes(email)
+            ? UserRole.SUPER_ADMIN
+            : UserRole.USER,
+        };
+        const savedUser = await repo.insertLocal(dto);
         return done(null, savedUser);
       } catch (err) {
         return done(err);

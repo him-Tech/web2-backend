@@ -67,7 +67,7 @@ class ManualInvoiceRepositoryImpl implements ManualInvoiceRepository {
         `
                     INSERT INTO manual_invoice (number, company_id, user_id, paid, dow_amount)
                     VALUES ($1, $2, $3, $4, $5)
-                    RETURNING id, number, company_id, user_id, paid, dow_amount
+                    RETURNING *
                 `,
         [
           manualInvoice.number,
