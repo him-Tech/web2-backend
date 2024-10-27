@@ -1,4 +1,4 @@
-import { ValidationError, Validator } from "./utils";
+import { ValidationError, Validator } from "./error";
 import { CompanyId, UserId } from "./index";
 
 export class ManualInvoiceId {

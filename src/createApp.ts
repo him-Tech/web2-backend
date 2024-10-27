@@ -10,7 +10,7 @@ import { StatusCodes } from "http-status-codes";
 import * as morgan from "./config";
 import { config, NodeEnv } from "./config";
 import { authLimiter } from "./middlewares/rateLimiter";
-import { ApiError } from "./model/utils/ApiError";
+import { ApiError } from "./model/error/ApiError";
 
 var cors = require("cors");
 

@@ -26,7 +26,7 @@ import {
   getIssueFundingRepository,
   getManagedIssueRepository,
 } from "../db";
-import { ApiError } from "../model/utils/ApiError";
+import { ApiError } from "../model/error/ApiError";
 
 const financialIssueRepository = getFinancialIssueRepository();
 const dowNumberRepository = getDowNumberRepository();

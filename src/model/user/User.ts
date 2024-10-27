@@ -1,7 +1,7 @@
 import { LocalUser } from "./LocalUser";
 import { GithubData, ThirdPartyUser } from "./ThirdPartyUser";
 import { Owner } from "../github";
-import { ValidationError, Validator } from "../utils";
+import { ValidationError, Validator } from "../error";
 
 export class UserId {
   uuid: string;

@@ -1,5 +1,5 @@
 import { AddressId } from "./Address";
-import { ValidationError, Validator } from "./utils";
+import { ValidationError, Validator } from "./error";
 
 export class CompanyId {
   uuid: string;

@@ -8,7 +8,7 @@ import {
 } from "../dtos";
 import { StatusCodes } from "http-status-codes";
 import { getCompanyUserPermissionTokenRepository } from "../db";
-import { secureToken } from "../model/utils";
+import { secureToken } from "../utils";
 import { MailService } from "../services";
 
 const companyUserPermissionTokenRepository =

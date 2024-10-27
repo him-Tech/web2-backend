@@ -1,6 +1,6 @@
-import { config } from "../../config";
+import { config } from "../config";
 import jwt from "jsonwebtoken";
-import { ApiError } from "./ApiError";
+import { ApiError } from "../model/error/ApiError";
 import { StatusCodes } from "http-status-codes";
 
 export interface TokenData {

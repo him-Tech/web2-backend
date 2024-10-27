@@ -1,4 +1,4 @@
-import { ValidationError, Validator } from "../utils";
+import { ValidationError, Validator } from "../error";
 import { UserId } from "../user";
 
 export class StripeCustomerId {

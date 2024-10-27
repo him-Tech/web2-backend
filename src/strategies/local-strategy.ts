@@ -1,7 +1,7 @@
 import passport from "passport";
 import { Strategy } from "passport-local";
 
-import { encrypt } from "../model/utils/";
+import { encrypt } from "../utils";
 import { getUserRepository, UserRepository } from "../db/";
 import { LocalUser, User, UserRole } from "../model";
 import { CreateLocalUserDto } from "../dtos";

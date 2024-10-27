@@ -1,5 +1,5 @@
-import {setupTestDB} from "../__helpers__/jest.setup";
-import {CompanyId, CompanyUserRole, IssueId, UserId} from "../../model";
+import { setupTestDB } from "../__helpers__/jest.setup";
+import { CompanyId, CompanyUserRole, IssueId, UserId } from "../../model";
 import {
   getCompanyRepository,
   getDowNumberRepository,
@@ -11,8 +11,8 @@ import {
   getUserCompanyRepository,
   getUserRepository,
 } from "../../db/";
-import {Fixture} from "../__helpers__/Fixture";
-import {CreateIssueFundingDto, CreateManualInvoiceDto} from "../../dtos";
+import { Fixture } from "../__helpers__/Fixture";
+import { CreateIssueFundingDto, CreateManualInvoiceDto } from "../../dtos";
 
 describe("DowNumberRepository", () => {
   const userRepo = getUserRepository();
@@ -43,11 +43,19 @@ describe("DowNumberRepository", () => {
 
     const companyUser1 = await userRepo.insertLocal(Fixture.createUserDto());
     companyUserId1 = companyUser1.id;
-    await userCompanyRepo.insert(companyUserId1, validCompanyId, CompanyUserRole.ADMIN);
+    await userCompanyRepo.insert(
+      companyUserId1,
+      validCompanyId,
+      CompanyUserRole.ADMIN,
+    );
 
     const companyUser2 = await userRepo.insertLocal(Fixture.createUserDto());
     companyUserId2 = companyUser2.id;
-    await userCompanyRepo.insert(companyUserId2, validCompanyId, CompanyUserRole.ADMIN);
+    await userCompanyRepo.insert(
+      companyUserId2,
+      validCompanyId,
+      CompanyUserRole.ADMIN,
+    );
 
     const ownerId = Fixture.ownerId();
     await ownerRepo.insertOrUpdate(Fixture.owner(ownerId));

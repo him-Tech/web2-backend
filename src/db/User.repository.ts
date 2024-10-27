@@ -10,7 +10,7 @@ import {
 } from "../model";
 import { getPool } from "../dbPool";
 import { CreateLocalUserDto } from "../dtos";
-import { encrypt } from "../model/utils";
+import { encrypt } from "../utils";
 
 export function getUserRepository(): UserRepository {
   return new UserRepositoryImpl(getPool());

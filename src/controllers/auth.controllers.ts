@@ -7,13 +7,13 @@ import {
   RegisterQueryParams,
   RegisterResponse,
 } from "../dtos/auth";
-import { secureToken, TokenData } from "../model/utils";
+import { secureToken, TokenData } from "../utils";
 import {
   getCompanyUserPermissionTokenRepository,
   getUserCompanyRepository,
   getUserRepository,
 } from "../db";
-import { ApiError } from "../model/utils/ApiError";
+import { ApiError } from "../model/error/ApiError";
 import {
   StatusDto,
   StatusQueryParams,

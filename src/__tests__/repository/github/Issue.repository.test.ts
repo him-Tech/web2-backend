@@ -1,5 +1,3 @@
-import { type Express } from "express";
-import { createApp } from "../../../createApp";
 import { setupTestDB } from "../../__helpers__/jest.setup";
 import { Fixture } from "../../__helpers__/Fixture";
 import {
@@ -10,8 +8,6 @@ import {
 import { IssueId, OwnerId, RepositoryId } from "../../../model";
 
 describe("IssueRepository", () => {
-  let app: Express = createApp();
-
   setupTestDB();
 
   const ownerRepo = getOwnerRepository();
