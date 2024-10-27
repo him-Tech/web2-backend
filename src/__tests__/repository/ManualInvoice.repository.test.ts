@@ -116,7 +116,7 @@ describe("ManualInvoiceRepository", () => {
       const manualInvoiceDto1: CreateManualInvoiceDto =
         Fixture.createManualInvoiceDto(companyId);
       const manualInvoiceDto2: CreateManualInvoiceDto =
-        Fixture.createManualInvoiceDto(userId);
+        Fixture.createManualInvoiceDto(undefined, userId);
 
       await manualInvoiceRepo.create(manualInvoiceDto1);
       await manualInvoiceRepo.create(manualInvoiceDto2);

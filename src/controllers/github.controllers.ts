@@ -43,7 +43,7 @@ export class GithubController {
     const response: GetIssuesResponse = {
       issues: issues,
     };
-    res.status(StatusCodes.OK).send({ data: response });
+    res.status(StatusCodes.OK).send({ success: response });
   }
 
   static async issue(
@@ -64,7 +64,7 @@ export class GithubController {
         issue: issue,
       };
 
-      res.status(StatusCodes.OK).send({ data: response });
+      res.status(StatusCodes.OK).send({ success: response });
     }
   }
 

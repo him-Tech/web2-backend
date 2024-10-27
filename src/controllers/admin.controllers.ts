@@ -51,6 +51,6 @@ export class AdminController {
     await mailService.sendCompanyAdminInvite(req.body.userEmail, token);
 
     const response: SendCompanyAdminInviteResponse = {};
-    res.status(StatusCodes.OK).send({ data: response });
+    res.status(StatusCodes.OK).send({ success: response });
   }
 }

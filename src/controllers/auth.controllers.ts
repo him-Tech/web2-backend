@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { User } from "../model";
+import { User, UserRole } from "../model";
 import { StatusCodes } from "http-status-codes";
 import { ResponseDto } from "../dtos";
 import {
@@ -14,6 +14,11 @@ import {
   getUserRepository,
 } from "../db";
 import { ApiError } from "../model/utils/ApiError";
+import {
+  StatusDto,
+  StatusQueryParams,
+  StatusResponse,
+} from "../dtos/auth/Status.dto";
 
 const companyUserPermissionTokenRepo =
   getCompanyUserPermissionTokenRepository();
@@ -21,11 +26,19 @@ const userRepo = getUserRepository();
 const userCompanyRepo = getUserCompanyRepository();
 
 export class AuthController {
-  static async status(request: Request, response: Response<User | null>) {
-    if (request.isAuthenticated()) {
-      return response.status(StatusCodes.OK).send(request.user! as User); // TODO: json instead of send ?
+  static async status(
+    req: Request<{}, {}, StatusDto, StatusQueryParams>,
+    res: Response<ResponseDto<StatusResponse>>,
+  ) {
+    if (req.isAuthenticated() && req.user) {
+      const response: StatusResponse = {
+        user: req.user as User,
+      };
+      return res.status(StatusCodes.OK).send({ success: response }); // TODO: json instead of send ?
     } else {
-      return response.status(StatusCodes.OK).send(null);
+      return res
+        .status(StatusCodes.UNAUTHORIZED)
+        .send({ error: "Unauthorized" });
     }
   }
 
@@ -97,15 +110,15 @@ export class AuthController {
     res.sendStatus(StatusCodes.CREATED);
   }
 
-  static async login(request: Request, response: Response) {
-    response.sendStatus(StatusCodes.OK);
+  static async login(req: Request, res: Response) {
+    res.sendStatus(StatusCodes.OK);
   }
 
-  static async logout(request: Request, response: Response) {
-    if (!request.user) return response.sendStatus(StatusCodes.OK);
-    request.logout((err) => {
-      if (err) return response.sendStatus(StatusCodes.BAD_REQUEST);
-      response.sendStatus(StatusCodes.OK);
+  static async logout(req: Request, res: Response) {
+    if (!req.user) return res.sendStatus(StatusCodes.OK);
+    req.logout((err) => {
+      if (err) return res.sendStatus(StatusCodes.BAD_REQUEST);
+      res.sendStatus(StatusCodes.OK);
     });
   }
 }

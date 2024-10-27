@@ -8,6 +8,37 @@ describe("/api/v1/auth", () => {
 
   setupTestDB();
 
+  it("Register", async () => {
+    const email = "lauriane@gmail.com";
+    const password = "password";
+
+    const registerResponse = await request(app)
+      .post("/api/v1/auth/register")
+      .send({
+        email: email,
+        password: password,
+      });
+
+    expect(registerResponse.status).toBe(201);
+
+    // should be logged in
+    const response = await request(app)
+      .get("/api/v1/auth/status")
+      .set("Cookie", registerResponse.headers["set-cookie"]);
+
+    // console.log("Response Body:", response.body);
+    // console.log("Response Status:", response.status);
+
+    expect(response.statusCode).toBe(200);
+
+    expect(response.body).toHaveProperty("success");
+    expect(response.body).toHaveProperty("success.user");
+    expect(response.body).toHaveProperty("success.user.id");
+    expect(response.body).toHaveProperty("success.user.data.name", null);
+    expect(response.body).toHaveProperty("success.user.data.email", email);
+    expect(response.body).toHaveProperty("success.user.role", "user");
+  });
+
   it("Login", async () => {
     const email = "lauriane@gmail.com";
     const password = "password";
@@ -38,10 +69,12 @@ describe("/api/v1/auth", () => {
 
     expect(response.statusCode).toBe(200);
 
-    expect(response.body).toHaveProperty("id");
-    expect(response.body).toHaveProperty("data.name", null);
-    expect(response.body).toHaveProperty("data.email", email);
-    expect(response.body).toHaveProperty("role", "user");
+    expect(response.body).toHaveProperty("success");
+    expect(response.body).toHaveProperty("success.user");
+    expect(response.body).toHaveProperty("success.user.id");
+    expect(response.body).toHaveProperty("success.user.data.name", null);
+    expect(response.body).toHaveProperty("success.user.data.email", email);
+    expect(response.body).toHaveProperty("success.user.role", "user");
   });
 
   describe("Logout", () => {
@@ -57,7 +90,6 @@ describe("/api/v1/auth", () => {
       });
 
       // login
-
       const loginResponse = await request(app).post("/api/v1/auth/login").send({
         email: email,
         password: password,
@@ -79,8 +111,8 @@ describe("/api/v1/auth", () => {
         .get("/api/v1/auth/status")
         .set("Cookie", loginResponse.headers["set-cookie"]);
 
-      expect(response.statusCode).toBe(200);
-      expect(response.body).toEqual({});
+      expect(response.statusCode).toBe(401);
+      expect(response.body).toHaveProperty("error");
     });
 
     it("can logout when not logged-in", async () => {

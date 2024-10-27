@@ -1,2 +1,2 @@
 export * from "./CreateLocalUser.dto";
-export * from "./RegisterDto";
+export * from "./Register.dto";

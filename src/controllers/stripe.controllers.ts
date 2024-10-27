@@ -95,7 +95,7 @@ export class StripeController {
       oneTimePrices: oneTimePrices,
     };
 
-    res.send({ data: response });
+    res.send({ success: response });
   }
 
   static async createCustomer(
