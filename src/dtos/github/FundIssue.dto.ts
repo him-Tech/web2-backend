@@ -1,6 +1,6 @@
 import { CompanyId } from "../../model";
 
-export interface FundIssueDto {
+export interface FundIssueBodyParams {
   companyId?: CompanyId;
   dowAmount: number;
 }

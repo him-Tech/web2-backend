@@ -5,7 +5,7 @@ import {
   getManualInvoiceRepository,
   getUserRepository,
 } from "../../db/";
-import { CreateManualInvoiceDto } from "../../dtos";
+import { CreateManualInvoiceBodyParams } from "../../dtos";
 import { Fixture } from "../__helpers__/Fixture";
 import { v4 as uuidv } from "uuid";
 
@@ -19,22 +19,27 @@ describe("ManualInvoiceRepository", () => {
   let companyId: CompanyId;
 
   beforeEach(async () => {
-    const companyUser = await userRepo.insertLocal(Fixture.createUserDto());
+    const companyUser = await userRepo.insertLocal(
+      Fixture.createUserBodyParams(),
+    );
     userId = companyUser.id;
 
-    const company = await companyRepo.insert(Fixture.createCompanyDto());
+    const company = await companyRepo.create(Fixture.createCompanyBodyParams());
     companyId = company.id;
   });
 
   describe("create", () => {
     it("should create a new manual invoice record", async () => {
-      const manualInvoiceDto: CreateManualInvoiceDto =
-        Fixture.createManualInvoiceDto(companyId);
+      const manualInvoiceBodyParams: CreateManualInvoiceBodyParams =
+        Fixture.createManualInvoiceBodyParams(companyId);
 
-      const created = await manualInvoiceRepo.create(manualInvoiceDto);
+      const created = await manualInvoiceRepo.create(manualInvoiceBodyParams);
 
       expect(created).toEqual(
-        Fixture.manualInvoiceFromDto(created.id, manualInvoiceDto),
+        Fixture.manualInvoiceFromBodyParams(
+          created.id,
+          manualInvoiceBodyParams,
+        ),
       );
 
       const found = await manualInvoiceRepo.getById(created.id);
@@ -43,11 +48,11 @@ describe("ManualInvoiceRepository", () => {
 
     it("can not have companyId and userId defined", async () => {
       // TODO: improve type to not have to make this test
-      const manualInvoiceDto: CreateManualInvoiceDto =
-        Fixture.createManualInvoiceDto(companyId, userId);
+      const manualInvoiceBodyParams: CreateManualInvoiceBodyParams =
+        Fixture.createManualInvoiceBodyParams(companyId, userId);
 
       try {
-        await manualInvoiceRepo.create(manualInvoiceDto);
+        await manualInvoiceRepo.create(manualInvoiceBodyParams);
         // If the insertion doesn't throw, fail the test
         fail(
           "Expected foreign key constraint violation, but no error was thrown.",
@@ -66,27 +71,36 @@ describe("ManualInvoiceRepository", () => {
 
   describe("update", () => {
     it("should update an existing manual invoice record", async () => {
-      const manualInvoiceDto: CreateManualInvoiceDto =
-        Fixture.createManualInvoiceDto(companyId);
+      const manualInvoiceBodyParams: CreateManualInvoiceBodyParams =
+        Fixture.createManualInvoiceBodyParams(companyId);
 
-      const created = await manualInvoiceRepo.create(manualInvoiceDto);
+      const created = await manualInvoiceRepo.create(manualInvoiceBodyParams);
 
       expect(created).toEqual(
-        Fixture.manualInvoiceFromDto(created.id, manualInvoiceDto),
+        Fixture.manualInvoiceFromBodyParams(
+          created.id,
+          manualInvoiceBodyParams,
+        ),
       );
 
-      const updatedManualInvoiceDto: CreateManualInvoiceDto = {
-        ...manualInvoiceDto,
+      const updatedManualInvoiceBodyParams: CreateManualInvoiceBodyParams = {
+        ...manualInvoiceBodyParams,
         paid: false, // Update the paid status
       };
 
       const updated = await manualInvoiceRepo.update(
-        Fixture.manualInvoiceFromDto(created.id, updatedManualInvoiceDto),
+        Fixture.manualInvoiceFromBodyParams(
+          created.id,
+          updatedManualInvoiceBodyParams,
+        ),
       );
 
       expect(created.id).toEqual(updated.id);
       expect(updated).toEqual(
-        Fixture.manualInvoiceFromDto(created.id, updatedManualInvoiceDto),
+        Fixture.manualInvoiceFromBodyParams(
+          created.id,
+          updatedManualInvoiceBodyParams,
+        ),
       );
 
       const found = await manualInvoiceRepo.getById(updated.id);
@@ -113,13 +127,13 @@ describe("ManualInvoiceRepository", () => {
 
   describe("getAll", () => {
     it("should return all manual invoices", async () => {
-      const manualInvoiceDto1: CreateManualInvoiceDto =
-        Fixture.createManualInvoiceDto(companyId);
-      const manualInvoiceDto2: CreateManualInvoiceDto =
-        Fixture.createManualInvoiceDto(undefined, userId);
+      const manualInvoiceBodyParams1: CreateManualInvoiceBodyParams =
+        Fixture.createManualInvoiceBodyParams(companyId);
+      const manualInvoiceBodyParams2: CreateManualInvoiceBodyParams =
+        Fixture.createManualInvoiceBodyParams(undefined, userId);
 
-      await manualInvoiceRepo.create(manualInvoiceDto1);
-      await manualInvoiceRepo.create(manualInvoiceDto2);
+      await manualInvoiceRepo.create(manualInvoiceBodyParams1);
+      await manualInvoiceRepo.create(manualInvoiceBodyParams2);
 
       const allInvoices = await manualInvoiceRepo.getAll();
 
@@ -132,17 +146,17 @@ describe("ManualInvoiceRepository", () => {
 
   describe("getAllInvoicePaidBy", () => {
     it("should return all paid invoices for a given company", async () => {
-      const paidInvoiceDto: CreateManualInvoiceDto = {
-        ...Fixture.createManualInvoiceDto(companyId),
+      const paidInvoiceBodyParams: CreateManualInvoiceBodyParams = {
+        ...Fixture.createManualInvoiceBodyParams(companyId),
         paid: true,
       };
-      const unpaidInvoiceDto: CreateManualInvoiceDto = {
-        ...Fixture.createManualInvoiceDto(companyId),
+      const unpaidInvoiceBodyParams: CreateManualInvoiceBodyParams = {
+        ...Fixture.createManualInvoiceBodyParams(companyId),
         paid: false,
       };
 
-      await manualInvoiceRepo.create(paidInvoiceDto);
-      await manualInvoiceRepo.create(unpaidInvoiceDto);
+      await manualInvoiceRepo.create(paidInvoiceBodyParams);
+      await manualInvoiceRepo.create(unpaidInvoiceBodyParams);
 
       const paidInvoices =
         await manualInvoiceRepo.getAllInvoicePaidBy(companyId);
@@ -153,17 +167,17 @@ describe("ManualInvoiceRepository", () => {
     });
 
     it("should return all paid invoices for a given user", async () => {
-      const paidInvoiceDto: CreateManualInvoiceDto = {
-        ...Fixture.createManualInvoiceDto(undefined, userId),
+      const paidInvoiceBodyParams: CreateManualInvoiceBodyParams = {
+        ...Fixture.createManualInvoiceBodyParams(undefined, userId),
         paid: true,
       };
-      const unpaidInvoiceDto: CreateManualInvoiceDto = {
-        ...Fixture.createManualInvoiceDto(undefined, userId),
+      const unpaidInvoiceBodyParams: CreateManualInvoiceBodyParams = {
+        ...Fixture.createManualInvoiceBodyParams(undefined, userId),
         paid: false,
       };
 
-      await manualInvoiceRepo.create(paidInvoiceDto);
-      await manualInvoiceRepo.create(unpaidInvoiceDto);
+      await manualInvoiceRepo.create(paidInvoiceBodyParams);
+      await manualInvoiceRepo.create(unpaidInvoiceBodyParams);
 
       const paidInvoices = await manualInvoiceRepo.getAllInvoicePaidBy(userId);
 

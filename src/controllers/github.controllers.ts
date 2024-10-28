@@ -1,16 +1,16 @@
 import { Request, Response } from "express";
 import {
-  CreateIssueFundingDto,
-  FundIssueDto,
+  CreateIssueFundingBodyParams,
+  FundIssueBodyParams,
   FundIssueQueryParams,
   FundIssueResponse,
-  GetIssueDto,
+  GetIssueBodyParams,
   GetIssueQueryParams,
   GetIssueResponse,
-  GetIssuesDto,
+  GetIssuesBodyParams,
   GetIssuesQueryParams,
   GetIssuesResponse,
-  ResponseDto,
+  ResponseBodyParams,
 } from "../dtos";
 import {
   IssueId,
@@ -35,8 +35,8 @@ const issueFundingRepo = getIssueFundingRepository();
 
 export class GithubController {
   static async issues(
-    req: Request<{}, {}, GetIssuesDto, GetIssuesQueryParams>,
-    res: Response<ResponseDto<GetIssuesResponse>>,
+    req: Request<{}, {}, GetIssuesBodyParams, GetIssuesQueryParams>,
+    res: Response<ResponseBodyParams<GetIssuesResponse>>,
   ) {
     const issues = await financialIssueRepository.getAll();
 
@@ -47,8 +47,8 @@ export class GithubController {
   }
 
   static async issue(
-    req: Request<{}, {}, GetIssueDto, GetIssueQueryParams>,
-    res: Response<ResponseDto<GetIssueResponse>>,
+    req: Request<{}, {}, GetIssueBodyParams, GetIssueQueryParams>,
+    res: Response<ResponseBodyParams<GetIssueResponse>>,
   ) {
     const { params }: GetIssueQueryParams = req;
     const ownerId = new OwnerId(params.owner);
@@ -70,8 +70,8 @@ export class GithubController {
 
   // TODO: security issue - this operation does not have an atomic check for the user's DoWs, user can spend DoWs that they don't have
   static async fundIssue(
-    req: Request<{}, {}, FundIssueDto, FundIssueQueryParams>,
-    res: Response<ResponseDto<FundIssueResponse>>,
+    req: Request<{}, {}, FundIssueBodyParams, FundIssueQueryParams>,
+    res: Response<ResponseBodyParams<FundIssueResponse>>,
   ) {
     const user = req.user! as User;
 
@@ -109,7 +109,7 @@ export class GithubController {
       issueId,
       userId: user.id,
       downAmount: req.body.dowAmount,
-    } as CreateIssueFundingDto);
+    } as CreateIssueFundingBodyParams);
 
     return res.sendStatus(StatusCodes.CREATED);
   }

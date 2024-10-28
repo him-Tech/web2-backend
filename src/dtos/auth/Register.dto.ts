@@ -1,4 +1,4 @@
-export interface RegisterDto {
+export interface RegisterBodyParams {
   email: string;
   password: string;
 }

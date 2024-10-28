@@ -7,7 +7,7 @@ import {
   getUserCompanyRepository,
   getUserRepository,
 } from "../../db/";
-import { CreateCompanyDto } from "../../dtos";
+import { CreateCompanyBodyParams } from "../../dtos";
 
 describe("CompanyRepository", () => {
   const addressRepo = getAddressRepository();
@@ -20,28 +20,32 @@ describe("CompanyRepository", () => {
   let validAddressId: AddressId;
 
   beforeEach(async () => {
-    const address = await addressRepo.create(Fixture.createAddressDto());
+    const address = await addressRepo.create(Fixture.createAddressBodyParams());
     validAddressId = address.id;
   });
 
   describe("insert", () => {
     it("when addressId is null", async () => {
-      const company = Fixture.createCompanyDto();
+      const company = Fixture.createCompanyBodyParams();
 
-      const created = await companyRepo.insert(company);
+      const created = await companyRepo.create(company);
 
-      expect(created).toEqual(Fixture.companyFromDto(created.id, company));
+      expect(created).toEqual(
+        Fixture.companyFromBodyParams(created.id, company),
+      );
 
       const found = await companyRepo.getById(created.id);
       expect(found).toEqual(created);
     });
 
     it("when addressId is NOT null", async () => {
-      const company = Fixture.createCompanyDto(validAddressId);
+      const company = Fixture.createCompanyBodyParams(validAddressId);
 
-      const created = await companyRepo.insert(company);
+      const created = await companyRepo.create(company);
 
-      expect(created).toEqual(Fixture.companyFromDto(created.id, company));
+      expect(created).toEqual(
+        Fixture.companyFromBodyParams(created.id, company),
+      );
 
       const found = await companyRepo.getById(created.id);
       expect(found).toEqual(created);
@@ -50,9 +54,9 @@ describe("CompanyRepository", () => {
 
   describe("update", () => {
     it("should handle updating with no data changes", async () => {
-      const initialCompany = Fixture.createCompanyDto(validAddressId);
+      const initialCompany = Fixture.createCompanyBodyParams(validAddressId);
 
-      const created = await companyRepo.insert(initialCompany);
+      const created = await companyRepo.create(initialCompany);
 
       const updated = await companyRepo.update(created);
 
@@ -62,9 +66,9 @@ describe("CompanyRepository", () => {
 
     it("should handle updating and address_id to NULL", async () => {
       // Insert a company with a non-null contact person ID
-      const initialCompany = Fixture.createCompanyDto(validAddressId);
+      const initialCompany = Fixture.createCompanyBodyParams(validAddressId);
 
-      const created = await companyRepo.insert(initialCompany);
+      const created = await companyRepo.create(initialCompany);
 
       const updatedCompany = new Company(
         created.id,
@@ -83,11 +87,11 @@ describe("CompanyRepository", () => {
 
     it("should update an existing company", async () => {
       // Insert a company first
-      const created = await companyRepo.insert({
+      const created = await companyRepo.create({
         taxId: "123456",
         name: "Company A",
         addressId: validAddressId,
-      } as CreateCompanyDto);
+      } as CreateCompanyBodyParams);
 
       const updatedCompany = new Company(
         created.id,
@@ -116,10 +120,10 @@ describe("CompanyRepository", () => {
 
   describe("getAll", () => {
     it("should return all companies", async () => {
-      const company = {} as CreateCompanyDto;
+      const company = {} as CreateCompanyBodyParams;
 
-      const company1 = await companyRepo.insert(company);
-      const company2 = await companyRepo.insert(company);
+      const company1 = await companyRepo.create(company);
+      const company2 = await companyRepo.create(company);
 
       const allCompanies = await companyRepo.getAll();
 

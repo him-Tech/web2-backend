@@ -1,14 +1,14 @@
 import { Pool } from "pg";
 import { CompanyId, ManualInvoice, ManualInvoiceId, UserId } from "../model";
 import { getPool } from "../dbPool";
-import { CreateManualInvoiceDto } from "../dtos";
+import { CreateManualInvoiceBodyParams } from "../dtos";
 
 export function getManualInvoiceRepository(): ManualInvoiceRepository {
   return new ManualInvoiceRepositoryImpl(getPool());
 }
 
 export interface ManualInvoiceRepository {
-  create(manualInvoice: CreateManualInvoiceDto): Promise<ManualInvoice>;
+  create(manualInvoice: CreateManualInvoiceBodyParams): Promise<ManualInvoice>;
 
   update(manualInvoice: ManualInvoice): Promise<ManualInvoice>;
 
@@ -59,7 +59,9 @@ class ManualInvoiceRepositoryImpl implements ManualInvoiceRepository {
     });
   }
 
-  async create(manualInvoice: CreateManualInvoiceDto): Promise<ManualInvoice> {
+  async create(
+    manualInvoice: CreateManualInvoiceBodyParams,
+  ): Promise<ManualInvoice> {
     const client = await this.pool.connect();
 
     try {

@@ -6,7 +6,7 @@ import {
   getUserCompanyRepository,
   getUserRepository,
 } from "../../db/";
-import { CreateCompanyDto } from "../../dtos";
+import { CreateCompanyBodyParams } from "../../dtos";
 
 describe("UserCompanyRepository", () => {
   const userRepo = getUserRepository();
@@ -19,11 +19,14 @@ describe("UserCompanyRepository", () => {
   let validCompanyId: CompanyId;
 
   beforeEach(async () => {
-    const validUser = await userRepo.insertLocal(Fixture.createUserDto());
+    const validUser = await userRepo.insertLocal(
+      Fixture.createUserBodyParams(),
+    );
     validUserId = validUser.id;
 
-    const companyDto: CreateCompanyDto = Fixture.createCompanyDto();
-    const createdCompany = await companyRepo.insert(companyDto);
+    const companyBodyParams: CreateCompanyBodyParams =
+      Fixture.createCompanyBodyParams();
+    const createdCompany = await companyRepo.create(companyBodyParams);
     validCompanyId = createdCompany.id;
   });
 
@@ -91,12 +94,12 @@ describe("UserCompanyRepository", () => {
     });
 
     it("should return an empty array if the company has no associated users", async () => {
-      const newCompany = await companyRepo.insert({
+      const newCompany = await companyRepo.create({
         taxId: "987654321",
         name: "Another Company",
         addressId: null, // Add addressId if needed
         contactPersonId: null,
-      } as CreateCompanyDto);
+      } as CreateCompanyBodyParams);
 
       const users = await userCompanyRepo.getByCompanyId(newCompany.id);
       expect(users).toEqual([]); // Expect an empty array

@@ -5,7 +5,7 @@ import {
   UserId,
 } from "../model/";
 
-export interface CreateManagedIssueDto {
+export interface CreateManagedIssueBodyParams {
   githubIssueId: IssueId;
   requestedDowAmount: number;
   managerId: UserId;

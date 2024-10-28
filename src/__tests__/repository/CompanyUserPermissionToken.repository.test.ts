@@ -4,7 +4,7 @@ import {
   getCompanyRepository,
   getCompanyUserPermissionTokenRepository,
 } from "../../db";
-import { CreateCompanyUserPermissionTokenDto } from "../../dtos";
+import { CreateCompanyUserPermissionTokenBodyParams } from "../../dtos";
 import { Fixture } from "../__helpers__/Fixture";
 
 describe("CompanyUserPermissionTokenRepository", () => {
@@ -15,21 +15,25 @@ describe("CompanyUserPermissionTokenRepository", () => {
   let companyId: CompanyId;
 
   beforeEach(async () => {
-    const company = await companyRepo.insert(Fixture.createCompanyDto());
+    const company = await companyRepo.create(Fixture.createCompanyBodyParams());
     companyId = company.id;
   });
 
   describe("create", () => {
     it("should create a new token record", async () => {
-      const tokenDto = Fixture.createUserCompanyPermissionTokenDto(
-        "test@example.com",
-        companyId,
-      );
+      const tokenBodyParams =
+        Fixture.createUserCompanyPermissionTokenBodyParams(
+          "test@example.com",
+          companyId,
+        );
 
-      const created = await tokenRepo.create(tokenDto);
+      const created = await tokenRepo.create(tokenBodyParams);
 
       expect(created).toEqual(
-        Fixture.userCompanyPermissionTokenFromDto(created.id, tokenDto),
+        Fixture.userCompanyPermissionTokenFromBodyParams(
+          created.id,
+          tokenBodyParams,
+        ),
       );
 
       const found = await tokenRepo.getById(created.id);
@@ -41,23 +45,31 @@ describe("CompanyUserPermissionTokenRepository", () => {
 
   describe("update", () => {
     it("should update an existing token record", async () => {
-      const tokenDto = Fixture.createUserCompanyPermissionTokenDto(
-        "test@example.com",
-        companyId,
-      );
+      const tokenBodyParams =
+        Fixture.createUserCompanyPermissionTokenBodyParams(
+          "test@example.com",
+          companyId,
+        );
 
-      const created = await tokenRepo.create(tokenDto);
+      const created = await tokenRepo.create(tokenBodyParams);
       expect(created).toEqual(
-        Fixture.userCompanyPermissionTokenFromDto(created.id, tokenDto),
+        Fixture.userCompanyPermissionTokenFromBodyParams(
+          created.id,
+          tokenBodyParams,
+        ),
       );
 
-      const updatedTokenDto: CreateCompanyUserPermissionTokenDto = {
-        ...tokenDto,
-        userEmail: "updated@example.com",
-      };
+      const updatedTokenBodyParams: CreateCompanyUserPermissionTokenBodyParams =
+        {
+          ...tokenBodyParams,
+          userEmail: "updated@example.com",
+        };
 
       const updated = await tokenRepo.update(
-        Fixture.userCompanyPermissionTokenFromDto(created.id, updatedTokenDto),
+        Fixture.userCompanyPermissionTokenFromBodyParams(
+          created.id,
+          updatedTokenBodyParams,
+        ),
       );
 
       expect(created.id).toEqual(updated.id);
@@ -82,12 +94,13 @@ describe("CompanyUserPermissionTokenRepository", () => {
 
   describe("getByUserEmail", () => {
     it("should return tokens for a specific user email", async () => {
-      const tokenDto = Fixture.createUserCompanyPermissionTokenDto(
-        "test@example.com",
-        companyId,
-      );
+      const tokenBodyParams =
+        Fixture.createUserCompanyPermissionTokenBodyParams(
+          "test@example.com",
+          companyId,
+        );
 
-      await tokenRepo.create(tokenDto);
+      await tokenRepo.create(tokenBodyParams);
 
       const found = await tokenRepo.getByUserEmail(
         "test@example.com",
@@ -102,12 +115,13 @@ describe("CompanyUserPermissionTokenRepository", () => {
 
   describe("getByToken", () => {
     it("should return token", async () => {
-      const tokenDto = Fixture.createUserCompanyPermissionTokenDto(
-        "test@example.com",
-        companyId,
-      );
+      const tokenBodyParams =
+        Fixture.createUserCompanyPermissionTokenBodyParams(
+          "test@example.com",
+          companyId,
+        );
 
-      const created = await tokenRepo.create(tokenDto);
+      const created = await tokenRepo.create(tokenBodyParams);
 
       const found = await tokenRepo.getByToken(created.token);
       expect(found).toEqual(created);
@@ -118,12 +132,13 @@ describe("CompanyUserPermissionTokenRepository", () => {
 
   describe("delete", () => {
     it("should should", async () => {
-      const tokenDto = Fixture.createUserCompanyPermissionTokenDto(
-        "test@example.com",
-        companyId,
-      );
+      const tokenBodyParams =
+        Fixture.createUserCompanyPermissionTokenBodyParams(
+          "test@example.com",
+          companyId,
+        );
 
-      const created = await tokenRepo.create(tokenDto);
+      const created = await tokenRepo.create(tokenBodyParams);
 
       const found = await tokenRepo.getByToken(created.token);
       expect(found).toEqual(created);

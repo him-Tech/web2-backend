@@ -9,13 +9,13 @@ import {
 import { StatusCodes } from "http-status-codes";
 import Stripe from "stripe";
 import {
-  CreateCustomerDto,
-  CreatePaymentIntentDto,
-  CreateSubscriptionDto,
+  CreateCustomerBodyParams,
+  CreatePaymentIntentBodyParams,
+  CreateSubscriptionBodyParams,
 } from "../dtos/stripe";
 import { StripeCustomer, StripeCustomerId, StripeInvoice } from "../model";
 import { ValidationError } from "express-validator";
-import { GetDowPricesResponse, ResponseDto } from "../dtos";
+import { GetDowPricesResponse, ResponseBodyParams } from "../dtos";
 import { config, logger } from "../config";
 
 // https://github.com/stripe-samples/subscriptions-with-card-and-direct-debit/blob/main/server/node/server.js
@@ -58,7 +58,7 @@ export class StripeController {
 
   static async getDowPrices(
     req: Request,
-    res: Response<ResponseDto<GetDowPricesResponse>>,
+    res: Response<ResponseBodyParams<GetDowPricesResponse>>,
   ) {
     const products = await stripeProductRepo.getAll();
 
@@ -99,7 +99,7 @@ export class StripeController {
   }
 
   static async createCustomer(
-    req: Request<{}, {}, CreateCustomerDto, {}>,
+    req: Request<{}, {}, CreateCustomerBodyParams, {}>,
     res: Response<StripeCustomer | ValidationError[]>,
   ) {
     if (!req.user) {
@@ -149,7 +149,7 @@ export class StripeController {
   }
 
   static async createSubscription(
-    req: Request<{}, {}, CreateSubscriptionDto, {}>,
+    req: Request<{}, {}, CreateSubscriptionBodyParams, {}>,
     res: Response<Stripe.Subscription | ValidationError[]>,
   ) {
     const items = [];
@@ -172,7 +172,7 @@ export class StripeController {
   }
 
   static async createPaymentIntent(
-    req: Request<{}, {}, CreatePaymentIntentDto, {}>,
+    req: Request<{}, {}, CreatePaymentIntentBodyParams, {}>,
     res: Response<Stripe.PaymentIntent | ValidationError[]>,
   ) {
     // Step 1: Create an invoice

@@ -1,6 +1,6 @@
 import { IssueId, UserId } from "../model";
 
-export interface CreateIssueFundingDto {
+export interface CreateIssueFundingBodyParams {
   githubIssueId: IssueId;
   userId: UserId;
   downAmount: number;

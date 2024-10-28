@@ -1,6 +1,6 @@
 import { User } from "../../model";
 
-export interface StatusDto {}
+export interface StatusBodyParams {}
 
 export interface StatusQueryParams {}
 

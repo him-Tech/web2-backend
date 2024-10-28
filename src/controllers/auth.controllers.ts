@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { User } from "../model";
 import { StatusCodes } from "http-status-codes";
-import { ResponseDto } from "../dtos";
+import { ResponseBodyParams } from "../dtos";
 import {
-  RegisterDto,
+  RegisterBodyParams,
   RegisterQueryParams,
   RegisterResponse,
 } from "../dtos/auth";
@@ -15,7 +15,7 @@ import {
 } from "../db";
 import { ApiError } from "../model/error/ApiError";
 import {
-  StatusDto,
+  StatusBodyParams,
   StatusQueryParams,
   StatusResponse,
 } from "../dtos/auth/Status.dto";
@@ -27,8 +27,8 @@ const userCompanyRepo = getUserCompanyRepository();
 
 export class AuthController {
   static async status(
-    req: Request<{}, {}, StatusDto, StatusQueryParams>,
-    res: Response<ResponseDto<StatusResponse>>,
+    req: Request<{}, {}, StatusBodyParams, StatusQueryParams>,
+    res: Response<ResponseBodyParams<StatusResponse>>,
   ) {
     if (req.isAuthenticated() && req.user) {
       const response: StatusResponse = {
@@ -43,8 +43,8 @@ export class AuthController {
   }
 
   static async verifyCompanyToken(
-    req: Request<{}, {}, RegisterDto, RegisterQueryParams>,
-    res: Response<ResponseDto<RegisterResponse>>,
+    req: Request<{}, {}, RegisterBodyParams, RegisterQueryParams>,
+    res: Response<ResponseBodyParams<RegisterResponse>>,
     next: NextFunction,
   ) {
     // @ts-ignore TODO: why is this not working?
@@ -82,8 +82,8 @@ export class AuthController {
   }
 
   static async registerAsCompany(
-    req: Request<{}, {}, RegisterDto, RegisterQueryParams>,
-    res: Response<ResponseDto<RegisterResponse>>,
+    req: Request<{}, {}, RegisterBodyParams, RegisterQueryParams>,
+    res: Response<ResponseBodyParams<RegisterResponse>>,
   ) {
     // @ts-ignore TODO: why is this not working?
     const companyUserPermissionToken = req.companyUserPermissionToken!; // TODO: improve
@@ -104,8 +104,8 @@ export class AuthController {
   }
 
   static async register(
-    req: Request<{}, {}, RegisterDto, {}>,
-    res: Response<ResponseDto<RegisterResponse>>,
+    req: Request<{}, {}, RegisterBodyParams, {}>,
+    res: Response<ResponseBodyParams<RegisterResponse>>,
   ) {
     res.sendStatus(StatusCodes.CREATED);
   }

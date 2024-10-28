@@ -1,14 +1,14 @@
 import { Pool } from "pg";
 import { IssueId, ManagedIssue, ManagedIssueId } from "../model";
 import { getPool } from "../dbPool";
-import { CreateManagedIssueDto } from "../dtos";
+import { CreateManagedIssueBodyParams } from "../dtos";
 
 export function getManagedIssueRepository(): ManagedIssueRepository {
   return new ManagedIssueRepositoryImpl(getPool());
 }
 
 export interface ManagedIssueRepository {
-  create(managedIssue: CreateManagedIssueDto): Promise<ManagedIssue>;
+  create(managedIssue: CreateManagedIssueBodyParams): Promise<ManagedIssue>;
   update(managedIssue: ManagedIssue): Promise<ManagedIssue>;
   getById(id: ManagedIssueId): Promise<ManagedIssue | null>;
   getByIssueId(issueId: IssueId): Promise<ManagedIssue | null>;
@@ -55,7 +55,9 @@ class ManagedIssueRepositoryImpl implements ManagedIssueRepository {
     });
   }
 
-  async create(managedIssue: CreateManagedIssueDto): Promise<ManagedIssue> {
+  async create(
+    managedIssue: CreateManagedIssueBodyParams,
+  ): Promise<ManagedIssue> {
     const client = await this.pool.connect();
 
     try {

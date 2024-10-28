@@ -1,14 +1,14 @@
 import { Pool } from "pg";
 import { Company, CompanyId } from "../model";
 import { getPool } from "../dbPool";
-import { CreateCompanyDto } from "../dtos";
+import { CreateCompanyBodyParams } from "../dtos";
 
 export function getCompanyRepository(): CompanyRepository {
   return new CompanyRepositoryImpl(getPool());
 }
 
 export interface CompanyRepository {
-  insert(company: CreateCompanyDto): Promise<Company>;
+  create(company: CreateCompanyBodyParams): Promise<Company>;
   update(company: Company): Promise<Company>;
   getById(id: CompanyId): Promise<Company | null>;
   getAll(): Promise<Company[]>;
@@ -76,7 +76,7 @@ class CompanyRepositoryImpl implements CompanyRepository {
     return this.getOptionalCompany(result.rows);
   }
 
-  async insert(company: CreateCompanyDto): Promise<Company> {
+  async create(company: CreateCompanyBodyParams): Promise<Company> {
     const client = await this.pool.connect();
 
     try {

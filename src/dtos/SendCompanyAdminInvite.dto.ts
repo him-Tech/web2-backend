@@ -1,6 +1,6 @@
 import { CompanyId, CompanyUserRole } from "../model";
 
-export interface SendCompanyAdminInviteDto {
+export interface SendCompanyAdminInviteBodyParams {
   userEmail: string;
   companyId: CompanyId;
   companyUserRole: CompanyUserRole;

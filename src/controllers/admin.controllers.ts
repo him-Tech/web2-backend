@@ -1,40 +1,75 @@
 import { Request, Response } from "express";
 import {
-  CreateCompanyUserPermissionTokenDto,
-  ResponseDto,
-  SendCompanyAdminInviteDto,
+  CreateAddressBodyParams,
+  CreateAddressQueryParams,
+  CreateAddressResponse,
+  CreateCompanyBodyParams,
+  CreateCompanyQueryParams,
+  CreateCompanyResponse,
+  CreateCompanyUserPermissionTokenBodyParams,
+  ResponseBodyParams,
+  SendCompanyAdminInviteBodyParams,
   SendCompanyAdminInviteQueryParams,
   SendCompanyAdminInviteResponse,
 } from "../dtos";
 import { StatusCodes } from "http-status-codes";
-import { getCompanyUserPermissionTokenRepository } from "../db";
+import {
+  getAddressRepository,
+  getCompanyRepository,
+  getCompanyUserPermissionTokenRepository,
+} from "../db";
 import { secureToken } from "../utils";
 import { MailService } from "../services";
 
+const addressRepository = getAddressRepository();
+const companyRepository = getCompanyRepository();
 const companyUserPermissionTokenRepository =
   getCompanyUserPermissionTokenRepository();
 const mailService = new MailService();
 
 export class AdminController {
+  static async createAddress(
+    req: Request<{}, {}, CreateAddressBodyParams, CreateAddressQueryParams>,
+    res: Response<ResponseBodyParams<CreateAddressResponse>>,
+  ) {
+    const created = await addressRepository.create(req.body);
+
+    const response: CreateAddressResponse = {
+      createdAddressId: created.id,
+    };
+    res.status(StatusCodes.CREATED).send({ success: response });
+  }
+
+  static async createCompany(
+    req: Request<{}, {}, CreateCompanyBodyParams, CreateCompanyQueryParams>,
+    res: Response<ResponseBodyParams<CreateCompanyResponse>>,
+  ) {
+    const created = await companyRepository.create(req.body);
+    const response: CreateCompanyResponse = {
+      createdCompanyId: created.id,
+    };
+    res.status(StatusCodes.CREATED).send({ success: response });
+  }
+
   static async sendCompanyAdminInvite(
     req: Request<
       {},
       {},
-      SendCompanyAdminInviteDto,
+      SendCompanyAdminInviteBodyParams,
       SendCompanyAdminInviteQueryParams
     >,
-    res: Response<ResponseDto<SendCompanyAdminInviteResponse>>,
+    res: Response<ResponseBodyParams<SendCompanyAdminInviteResponse>>,
   ) {
     const [token, expiresAt] = secureToken.generate({
       email: req.body.userEmail,
     });
-    const createCompanyUserPermissionTokenDto = {
+    const createCompanyUserPermissionTokenBodyParams = {
       userEmail: req.body.userEmail,
       token: token,
       companyId: req.body.companyId,
       companyUserRole: req.body.companyUserRole,
       expiresAt: expiresAt,
-    } as CreateCompanyUserPermissionTokenDto;
+    } as CreateCompanyUserPermissionTokenBodyParams;
 
     const existing = await companyUserPermissionTokenRepository.getByUserEmail(
       req.body.userEmail,
@@ -45,7 +80,7 @@ export class AdminController {
     });
 
     await companyUserPermissionTokenRepository.create(
-      createCompanyUserPermissionTokenDto,
+      createCompanyUserPermissionTokenBodyParams,
     );
 
     await mailService.sendCompanyAdminInvite(req.body.userEmail, token);

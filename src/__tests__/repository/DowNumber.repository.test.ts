@@ -12,7 +12,10 @@ import {
   getUserRepository,
 } from "../../db/";
 import { Fixture } from "../__helpers__/Fixture";
-import { CreateIssueFundingDto, CreateManualInvoiceDto } from "../../dtos";
+import {
+  CreateIssueFundingBodyParams,
+  CreateManualInvoiceBodyParams,
+} from "../../dtos";
 
 describe("DowNumberRepository", () => {
   const userRepo = getUserRepository();
@@ -35,13 +38,19 @@ describe("DowNumberRepository", () => {
   let validIssueId: IssueId;
 
   beforeEach(async () => {
-    const lonelyUser = await userRepo.insertLocal(Fixture.createUserDto());
+    const lonelyUser = await userRepo.insertLocal(
+      Fixture.createUserBodyParams(),
+    );
     lonelyUserId = lonelyUser.id;
 
-    const validCompany = await companyRepo.insert(Fixture.createCompanyDto());
+    const validCompany = await companyRepo.create(
+      Fixture.createCompanyBodyParams(),
+    );
     validCompanyId = validCompany.id;
 
-    const companyUser1 = await userRepo.insertLocal(Fixture.createUserDto());
+    const companyUser1 = await userRepo.insertLocal(
+      Fixture.createUserBodyParams(),
+    );
     companyUserId1 = companyUser1.id;
     await userCompanyRepo.insert(
       companyUserId1,
@@ -49,7 +58,9 @@ describe("DowNumberRepository", () => {
       CompanyUserRole.ADMIN,
     );
 
-    const companyUser2 = await userRepo.insertLocal(Fixture.createUserDto());
+    const companyUser2 = await userRepo.insertLocal(
+      Fixture.createUserBodyParams(),
+    );
     companyUserId2 = companyUser2.id;
     await userCompanyRepo.insert(
       companyUserId2,
@@ -86,21 +97,21 @@ describe("DowNumberRepository", () => {
 
     describe("should return the amount manually added", () => {
       it("for a user", async () => {
-        const manualInvoiceDto: CreateManualInvoiceDto = {
-          ...Fixture.createManualInvoiceDto(undefined, lonelyUserId),
+        const manualInvoiceBodyParams: CreateManualInvoiceBodyParams = {
+          ...Fixture.createManualInvoiceBodyParams(undefined, lonelyUserId),
           dowAmount: 200,
         };
-        await manualInvoiceRepo.create(manualInvoiceDto);
+        await manualInvoiceRepo.create(manualInvoiceBodyParams);
         const totalDoWs = await dowNumberRepo.getAvailableDoWs(lonelyUserId);
         expect(totalDoWs).toBe(200);
       });
 
       it("for a company", async () => {
-        const manualInvoiceDto: CreateManualInvoiceDto = {
-          ...Fixture.createManualInvoiceDto(validCompanyId),
+        const manualInvoiceBodyParams: CreateManualInvoiceBodyParams = {
+          ...Fixture.createManualInvoiceBodyParams(validCompanyId),
           dowAmount: 200,
         };
-        await manualInvoiceRepo.create(manualInvoiceDto);
+        await manualInvoiceRepo.create(manualInvoiceBodyParams);
         const totalDoWs = await dowNumberRepo.getAvailableDoWs(
           companyUserId1,
           validCompanyId,
@@ -131,46 +142,46 @@ describe("DowNumberRepository", () => {
 
     describe("should deduct a funding issue", () => {
       it("for a user", async () => {
-        const manualInvoiceDto: CreateManualInvoiceDto = {
-          ...Fixture.createManualInvoiceDto(undefined, lonelyUserId),
+        const manualInvoiceBodyParams: CreateManualInvoiceBodyParams = {
+          ...Fixture.createManualInvoiceBodyParams(undefined, lonelyUserId),
           dowAmount: 200,
         };
-        await manualInvoiceRepo.create(manualInvoiceDto);
+        await manualInvoiceRepo.create(manualInvoiceBodyParams);
 
-        const issueFundingDto1: CreateIssueFundingDto = {
+        const issueFundingBodyParams1: CreateIssueFundingBodyParams = {
           githubIssueId: validIssueId,
           userId: lonelyUserId,
           downAmount: 50,
         };
-        const issueFundingDto2: CreateIssueFundingDto = {
-          ...issueFundingDto1,
+        const issueFundingBodyParams2: CreateIssueFundingBodyParams = {
+          ...issueFundingBodyParams1,
           downAmount: 20,
         };
-        await issueFundingRepo.create(issueFundingDto1);
-        await issueFundingRepo.create(issueFundingDto2);
+        await issueFundingRepo.create(issueFundingBodyParams1);
+        await issueFundingRepo.create(issueFundingBodyParams2);
 
         const totalDoWs = await dowNumberRepo.getAvailableDoWs(lonelyUserId);
         expect(totalDoWs).toBe(200 - 50 - 20);
       });
 
       it("for a company", async () => {
-        const manualInvoiceDto: CreateManualInvoiceDto = {
-          ...Fixture.createManualInvoiceDto(validCompanyId),
+        const manualInvoiceBodyParams: CreateManualInvoiceBodyParams = {
+          ...Fixture.createManualInvoiceBodyParams(validCompanyId),
           dowAmount: 200,
         };
-        await manualInvoiceRepo.create(manualInvoiceDto);
+        await manualInvoiceRepo.create(manualInvoiceBodyParams);
 
-        const issueFundingDto1: CreateIssueFundingDto = {
+        const issueFundingBodyParams1: CreateIssueFundingBodyParams = {
           githubIssueId: validIssueId,
           userId: companyUserId2,
           downAmount: 50,
         };
-        const issueFundingDto2: CreateIssueFundingDto = {
-          ...issueFundingDto1,
+        const issueFundingBodyParams2: CreateIssueFundingBodyParams = {
+          ...issueFundingBodyParams1,
           downAmount: 20,
         };
-        await issueFundingRepo.create(issueFundingDto1);
-        await issueFundingRepo.create(issueFundingDto2);
+        await issueFundingRepo.create(issueFundingBodyParams1);
+        await issueFundingRepo.create(issueFundingBodyParams2);
 
         const expected = 200 - 50 - 20;
         const totalDoWs1 = await dowNumberRepo.getAvailableDoWs(

@@ -1,4 +1,4 @@
-export interface GetIssuesDto {}
+export interface GetIssuesBodyParams {}
 
 export interface GetIssuesQueryParams {}
 

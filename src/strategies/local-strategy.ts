@@ -4,7 +4,7 @@ import { Strategy } from "passport-local";
 import { encrypt } from "../utils";
 import { getUserRepository, UserRepository } from "../db/";
 import { LocalUser, User, UserRole } from "../model";
-import { CreateLocalUserDto } from "../dtos";
+import { CreateLocalUserBodyParams } from "../dtos";
 
 const repo: UserRepository = getUserRepository();
 
@@ -72,7 +72,7 @@ passport.use(
           }
         }
 
-        const dto: CreateLocalUserDto = {
+        const dto: CreateLocalUserBodyParams = {
           email,
           password,
           role: superAdminEmails.includes(email)

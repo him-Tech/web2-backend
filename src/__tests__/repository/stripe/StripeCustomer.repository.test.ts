@@ -9,7 +9,9 @@ describe("StripeCustomerRepository", () => {
   let validUserId: UserId;
 
   beforeEach(async () => {
-    const validUser = await userRepo.insertLocal(Fixture.createUserDto());
+    const validUser = await userRepo.insertLocal(
+      Fixture.createUserBodyParams(),
+    );
     validUserId = validUser.id;
   });
 
@@ -21,7 +23,7 @@ describe("StripeCustomerRepository", () => {
       const customerId = Fixture.stripeCustomerId();
 
       // Insert user before inserting the customer
-      await userRepo.insertLocal(Fixture.createUserDto());
+      await userRepo.insertLocal(Fixture.createUserBodyParams());
 
       const customer = new StripeCustomer(customerId, validUserId);
       const created = await customerRepo.insert(customer);
@@ -62,7 +64,7 @@ describe("StripeCustomerRepository", () => {
   describe("getAll", () => {
     it("should return all customers", async () => {
       // Insert user before inserting the customer
-      await userRepo.insertLocal(Fixture.createUserDto());
+      await userRepo.insertLocal(Fixture.createUserBodyParams());
 
       const customerId1 = new StripeCustomerId("123");
       const customerId2 = new StripeCustomerId("abc");
