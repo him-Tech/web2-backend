@@ -7,6 +7,7 @@ import {
   ManagedIssue,
   Owner,
   Repository,
+  User,
 } from "../model";
 import { getPool } from "../dbPool";
 import {
@@ -18,6 +19,7 @@ import { getManagedIssueRepository } from "./ManagedIssue.repository";
 import { getIssueFundingRepository } from "./IssueFunding.repository";
 import { getGitHubAPI, GitHubApi } from "../services/github.service";
 import { logger } from "../config";
+import { getUserRepository } from "./User.repository";
 
 export function getFinancialIssueRepository(
   gitHubApi: GitHubApi = getGitHubAPI(),
@@ -28,6 +30,7 @@ export function getFinancialIssueRepository(
 // TODO: optimize this implementation
 export interface FinancialIssueRepository {
   get(issueId: IssueId): Promise<FinancialIssue | null>;
+
   getAll(): Promise<FinancialIssue[]>;
 }
 
@@ -38,6 +41,7 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
   ownerRepo = getOwnerRepository();
   repoRepo = getRepositoryRepository();
   issueRepo = getIssueRepository();
+  userRepo = getUserRepository();
   managedIssueRepo = getManagedIssueRepository();
   issueFundingRepo = getIssueFundingRepository();
 
@@ -103,21 +107,28 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
         return issue;
       });
 
-    let managedIssue = this.managedIssueRepo.getByIssueId(issueId);
-    let issueFundings = this.issueFundingRepo.getAll(issueId);
-
+    const managedIssue = this.managedIssueRepo.getByIssueId(issueId);
+    const issueManager = managedIssue.then((managedIssue) => {
+      if (!managedIssue) {
+        return null;
+      } else {
+        return this.userRepo.getById(managedIssue.managerId);
+      }
+    });
+    const issueFundings = this.issueFundingRepo.getAll(issueId);
     return new FinancialIssue(
       await owner,
       await repo,
       await issue,
-      (await managedIssue) ?? undefined,
+      await issueManager,
+      await managedIssue,
       await issueFundings,
     );
   }
 
   async getAll(): Promise<FinancialIssue[]> {
     const allManagedIssues = await this.managedIssueRepo.getAll();
-    let managedIssues: Map<number | undefined, ManagedIssue> = new Map(
+    const managedIssues: Map<number | undefined, ManagedIssue> = new Map(
       allManagedIssues.map((m) => {
         if (!m.githubIssueId || !m.githubIssueId.githubId) {
           logger.error(
@@ -128,7 +139,7 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
       }),
     );
 
-    let issueFundings: Map<number, IssueFunding[]> = new Map();
+    const issueFundings: Map<number, IssueFunding[]> = new Map();
     const allIssueFundings = await this.issueFundingRepo.getAll();
     allIssueFundings.forEach((i) => {
       const githubId = i.githubIssueId?.githubId;
@@ -179,7 +190,11 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
         continue; // Skip if githubId is undefined
       }
 
-      const managedIssue = managedIssues.get(githubId);
+      const managedIssue = managedIssues.get(githubId) ?? null;
+      let issueManager: User | null = null;
+      if (managedIssue !== null) {
+        issueManager = await this.userRepo.getById(managedIssue.managerId);
+      }
       const fundings = issueFundings.get(githubId) ?? [];
 
       const owner = await this.ownerRepo.getById(issueId.repositoryId.ownerId);
@@ -194,7 +209,14 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
       }
 
       financialIssues.push(
-        new FinancialIssue(owner, repo, issue, managedIssue, fundings),
+        new FinancialIssue(
+          owner,
+          repo,
+          issue,
+          issueManager,
+          managedIssue,
+          fundings,
+        ),
       );
     }
     return financialIssues;

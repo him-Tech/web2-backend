@@ -7,6 +7,7 @@ import {
   OwnerId,
   Repository,
   RepositoryId,
+  User,
   UserId,
 } from "../../model";
 
@@ -21,7 +22,7 @@ import {
 import { CreateIssueFundingDto } from "../../dtos";
 import { Fixture } from "../__helpers__/Fixture";
 import { getFinancialIssueRepository } from "../../db/FinancialIssue.repository";
-import { GitHubApi } from "../../services/github.service";
+import { GitHubApi } from "../../services";
 
 describe("FinancialIssueRepository", () => {
   setupTestDB();
@@ -54,6 +55,7 @@ describe("FinancialIssueRepository", () => {
     }
   }
 
+  let user: User;
   let userId: UserId;
 
   const ownerId1: OwnerId = Fixture.ownerId();
@@ -71,8 +73,8 @@ describe("FinancialIssueRepository", () => {
   const issue2: Issue = Fixture.issue(issueId2, ownerId2);
 
   beforeEach(async () => {
-    const validUser = await userRepo.insertLocal(Fixture.createUserDto());
-    userId = validUser.id;
+    user = await userRepo.insertLocal(Fixture.createUserDto());
+    userId = user.id;
   });
 
   describe("get", () => {
@@ -87,7 +89,8 @@ describe("FinancialIssueRepository", () => {
         owner1,
         repository1,
         issue1,
-        undefined,
+        null,
+        null,
         [],
       );
       expect(financialIssue).toEqual(expected);
@@ -143,6 +146,7 @@ describe("FinancialIssueRepository", () => {
         owner1,
         repository1,
         issue1,
+        user,
         managedIssue,
         [issueFunding1, issueFunding2],
       );
@@ -190,13 +194,15 @@ describe("FinancialIssueRepository", () => {
         owner1,
         repository1,
         issue1,
-        undefined,
+        null,
+        null,
         [issueFunding1, issueFunding2],
       );
       const expected2 = new FinancialIssue(
         owner2,
         repository2,
         issue2,
+        user,
         managedIssue,
         [],
       );

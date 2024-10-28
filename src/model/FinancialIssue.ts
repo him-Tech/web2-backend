@@ -4,19 +4,22 @@ export class FinancialIssue {
   public owner: model.Owner;
   public repository: model.Repository;
   public issue: model.Issue;
-  public managedIssue?: model.ManagedIssue;
-  public issueFundings?: model.IssueFunding[];
+  public issueManager: model.User | null;
+  public managedIssue: model.ManagedIssue | null;
+  public issueFundings: model.IssueFunding[];
 
   constructor(
     owner: model.Owner,
     repository: model.Repository,
     issue: model.Issue,
-    managedIssue?: model.ManagedIssue,
-    issueFundings?: model.IssueFunding[],
+    issueManager: model.User | null,
+    managedIssue: model.ManagedIssue | null,
+    issueFundings: model.IssueFunding[],
   ) {
     this.owner = owner;
     this.repository = repository;
     this.issue = issue;
+    this.issueManager = issueManager;
     this.managedIssue = managedIssue;
     this.issueFundings = issueFundings;
   }

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { User, UserRole } from "../model";
+import { User } from "../model";
 import { StatusCodes } from "http-status-codes";
 import { ResponseDto } from "../dtos";
 import {
