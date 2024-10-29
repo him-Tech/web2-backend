@@ -7,7 +7,7 @@ import {
   getUserCompanyRepository,
   getUserRepository,
 } from "../../db/";
-import { CreateAddressBodyParams, CreateCompanyBodyParams } from "../../dtos";
+import { CreateAddressBodyParams } from "../../dtos";
 
 describe("AddressRepository", () => {
   const userRepo = getUserRepository();
@@ -93,7 +93,7 @@ describe("AddressRepository", () => {
         name: "Test Company",
         taxId: "1234",
         addressId: created.id,
-      } as CreateCompanyBodyParams;
+      };
 
       const company = await companyRepo.create(companyBodyParams);
 
@@ -105,10 +105,7 @@ describe("AddressRepository", () => {
 
     it("should return null if the company has no associated address", async () => {
       // Create a company without an associated address
-      const companyBodyParams = {
-        name: "Test Company",
-        taxId: "1234",
-      } as CreateCompanyBodyParams;
+      const companyBodyParams = Fixture.createCompanyBodyParams();
 
       const company = await companyRepo.create(companyBodyParams);
 
@@ -133,7 +130,7 @@ describe("AddressRepository", () => {
         taxId: "12345",
         contactPersonId: validUserId,
         addressId: created.id,
-      } as CreateCompanyBodyParams;
+      };
 
       const company = await companyRepo.create(companyBodyParams);
       await userCompanyRepo.insert(

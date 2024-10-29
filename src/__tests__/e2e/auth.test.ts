@@ -111,8 +111,8 @@ describe("/api/v1/auth", () => {
         .get("/api/v1/auth/status")
         .set("Cookie", loginResponse.headers["set-cookie"]);
 
-      expect(response.statusCode).toBe(401);
-      expect(response.body).toHaveProperty("error");
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toHaveProperty("success.user", null);
     });
 
     it("can logout when not logged-in", async () => {

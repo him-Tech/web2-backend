@@ -5,5 +5,5 @@ export function isWebsiteAdmin(req: any, res: any, next: any): void {
   if (req.isAuthenticated() && req.user!.role === UserRole.SUPER_ADMIN) {
     return next();
   }
-  res.sendStatus(StatusCodes.UNAUTHORIZED);
+  res.sendStatus(StatusCodes.FORBIDDEN);
 }

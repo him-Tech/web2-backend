@@ -78,7 +78,7 @@ class UserRepositoryImpl implements UserRepository {
                 UPDATE app_user
                 SET is_email_verified = TRUE
                 WHERE email = $1
-                RETURNING id, name, email, is_email_verified, hashed_password, role
+                RETURNING *
             `,
       [email],
     );
@@ -121,33 +121,6 @@ class UserRepositoryImpl implements UserRepository {
     return this.getOptionalUser(result.rows);
   }
 
-  // async insertLocal(user: CreateLocalUserBodyParams): Promise<User> {
-  //     const client = await this.pool.connect();
-  //
-  //     const hashedPassword = await encrypt.hashPassword(user.password);
-  //
-  //     try {
-  //         const result = await client.query(
-  //             `
-  //                 INSERT INTO app_user (name, email, is_email_verified, hashed_password, role)
-  //                 VALUES ($1, $2, $3, $4, $5)
-  //                 RETURNING id, name, email, is_email_verified, hashed_password, role
-  //             `,
-  //             [user.name, user.email, false, hashedPassword, user.role.toString()],
-  //         );
-  //
-  //         return await this.getOneUser(result.rows);
-  //     } catch (error: unknown) {
-  //         // TODO: Type guard to check if error has `code` property
-  //         if (error instanceof Error && (error as any).code === '23505') { // TODO: PostgreSQL error code for unique_violation
-  //             throw new Error('User with this email already exists');
-  //         }
-  //         throw error;
-  //     } finally {
-  //         client.release();
-  //     }
-  // }
-
   async insertLocal(user: CreateLocalUserBodyParams): Promise<User> {
     const client = await this.pool.connect();
 
@@ -157,9 +130,9 @@ class UserRepositoryImpl implements UserRepository {
       const result = await client.query(
         `
                 INSERT INTO app_user (name, email, is_email_verified, hashed_password, role)
-                VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, is_email_verified, hashed_password, role
+                VALUES ($1, $2, $3, $4, $5) RETURNING *
             `,
-        [user.name, user.email, false, hashedPassword, "user"], // TODO: set the role
+        [user.name, user.email, false, hashedPassword, user.role],
       );
 
       return this.getOneUser(result.rows);
@@ -189,7 +162,7 @@ class UserRepositoryImpl implements UserRepository {
                             github_login      = EXCLUDED.github_login,
                             github_html_url   = EXCLUDED.github_html_url,
                             github_avatar_url = EXCLUDED.github_avatar_url
-                    RETURNING github_id, github_type, github_login, github_html_url, github_avatar_url
+                    RETURNING *
                 `,
         [
           owner.id.githubId,

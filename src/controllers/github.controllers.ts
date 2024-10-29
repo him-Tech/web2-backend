@@ -10,7 +10,7 @@ import {
   GetIssuesBodyParams,
   GetIssuesQueryParams,
   GetIssuesResponse,
-  ResponseBodyParams,
+  ResponseBody,
 } from "../dtos";
 import {
   IssueId,
@@ -36,7 +36,7 @@ const issueFundingRepo = getIssueFundingRepository();
 export class GithubController {
   static async issues(
     req: Request<{}, {}, GetIssuesBodyParams, GetIssuesQueryParams>,
-    res: Response<ResponseBodyParams<GetIssuesResponse>>,
+    res: Response<ResponseBody<GetIssuesResponse>>,
   ) {
     const issues = await financialIssueRepository.getAll();
 
@@ -48,7 +48,7 @@ export class GithubController {
 
   static async issue(
     req: Request<{}, {}, GetIssueBodyParams, GetIssueQueryParams>,
-    res: Response<ResponseBodyParams<GetIssueResponse>>,
+    res: Response<ResponseBody<GetIssueResponse>>,
   ) {
     const { params }: GetIssueQueryParams = req;
     const ownerId = new OwnerId(params.owner);
@@ -71,7 +71,7 @@ export class GithubController {
   // TODO: security issue - this operation does not have an atomic check for the user's DoWs, user can spend DoWs that they don't have
   static async fundIssue(
     req: Request<{}, {}, FundIssueBodyParams, FundIssueQueryParams>,
-    res: Response<ResponseBodyParams<FundIssueResponse>>,
+    res: Response<ResponseBody<FundIssueResponse>>,
   ) {
     const user = req.user! as User;
 

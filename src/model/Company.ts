@@ -16,13 +16,13 @@ export class CompanyId {
 export class Company {
   id: CompanyId;
   taxId: string | null;
-  name: string | null;
+  name: string;
   addressId: AddressId | null;
 
   constructor(
     id: CompanyId,
     taxId: string | null,
-    name: string | null,
+    name: string,
     addressId: AddressId | null = null,
   ) {
     this.id = id;
@@ -33,10 +33,10 @@ export class Company {
 
   static fromBackend(row: any): Company | ValidationError {
     const validator = new Validator(row);
-    validator.requiredString("id");
-    validator.optionalString("tax_id");
-    validator.optionalString("name");
-    validator.optionalNumber("address_id");
+    const id = validator.requiredString("id");
+    const taxId = validator.optionalString("tax_id");
+    const name = validator.requiredString("name");
+    const addressId = validator.optionalString("address_id");
 
     const error = validator.getFirstError();
     if (error) {
@@ -44,10 +44,10 @@ export class Company {
     }
 
     return new Company(
-      new CompanyId(row.id),
-      row.tax_id,
-      row.name,
-      row.address_id ? new AddressId(row.address_id) : null,
+      new CompanyId(id),
+      taxId ?? null,
+      name,
+      addressId ? new AddressId(addressId) : null,
     );
   }
 }

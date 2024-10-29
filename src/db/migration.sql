@@ -136,14 +136,13 @@ CREATE TABLE IF NOT EXISTS company
 (
     id                UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     tax_id            VARCHAR(50) UNIQUE,
-    name              VARCHAR(255),
+    name              VARCHAR(255) NOT NULL,
     address_id        UUID,
 
     created_at        TIMESTAMP        NOT NULL DEFAULT now(),
     updated_at        TIMESTAMP        NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_address FOREIGN KEY (address_id) REFERENCES address (id) ON DELETE RESTRICT
-    -- Foreign key constraints for contact persons will be added later
 );
 
 ------------------------------------------------------

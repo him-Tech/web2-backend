@@ -15,7 +15,7 @@ import {
 } from "../dtos/stripe";
 import { StripeCustomer, StripeCustomerId, StripeInvoice } from "../model";
 import { ValidationError } from "express-validator";
-import { GetDowPricesResponse, ResponseBodyParams } from "../dtos";
+import { GetDowPricesResponse, ResponseBody } from "../dtos";
 import { config, logger } from "../config";
 
 // https://github.com/stripe-samples/subscriptions-with-card-and-direct-debit/blob/main/server/node/server.js
@@ -58,7 +58,7 @@ export class StripeController {
 
   static async getDowPrices(
     req: Request,
-    res: Response<ResponseBodyParams<GetDowPricesResponse>>,
+    res: Response<ResponseBody<GetDowPricesResponse>>,
   ) {
     const products = await stripeProductRepo.getAll();
 

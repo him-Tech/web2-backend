@@ -34,6 +34,7 @@ import {
   ThirdPartyUser,
   ThirdPartyUserId,
   UserId,
+  UserRole,
 } from "../../model";
 import {
   CreateAddressBodyParams,
@@ -76,7 +77,8 @@ export const Fixture = {
     return {
       email: "d@gmail.com" + this.uuid(),
       password: "password",
-    } as CreateLocalUserBodyParams;
+      role: UserRole.USER,
+    };
   },
 
   ownerId(): OwnerId {
@@ -157,15 +159,15 @@ export const Fixture = {
   createCompanyBodyParams(addressId?: AddressId): CreateCompanyBodyParams {
     return {
       name: "company",
-      taxId: "taxId",
+      taxId: "taxId" + this.uuid(),
       addressId: addressId ?? null,
-    } as CreateCompanyBodyParams;
+    };
   },
   company(companyId: CompanyId, addressId: AddressId | null = null): Company {
     return new Company(
       companyId,
       null,
-      null,
+      "Company",
       addressId !== null ? addressId : null,
     );
   },

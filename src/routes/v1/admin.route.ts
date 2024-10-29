@@ -6,6 +6,10 @@ const router = Router();
 
 router.post("/address", isWebsiteAdmin, AdminController.createAddress);
 router.post("/company", isWebsiteAdmin, AdminController.createCompany);
-router.post("/issues", isWebsiteAdmin, AdminController.sendCompanyAdminInvite);
+router.post(
+  "/company/admin-invite",
+  isWebsiteAdmin,
+  AdminController.sendCompanyAdminInvite,
+);
 
 export default router;

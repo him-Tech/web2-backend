@@ -119,13 +119,13 @@ class AddressRepositoryImpl implements AddressRepository {
                     RETURNING id, name, line_1, line_2, city, state, postal_code, country
                 `,
         [
-          address.name,
-          address.line1,
-          address.line2,
-          address.city,
-          address.state,
-          address.postalCode,
-          address.country,
+          address.name ?? null,
+          address.line1 ?? null,
+          address.line2 ?? null,
+          address.city ?? null,
+          address.state ?? null,
+          address.postalCode ?? null,
+          address.country ?? null,
         ],
       );
 

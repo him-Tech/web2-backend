@@ -76,6 +76,7 @@ class CompanyRepositoryImpl implements CompanyRepository {
     return this.getOptionalCompany(result.rows);
   }
 
+  // TODO: ensure taxId is not "" or variation of empty string
   async create(company: CreateCompanyBodyParams): Promise<Company> {
     const client = await this.pool.connect();
 
@@ -86,7 +87,11 @@ class CompanyRepositoryImpl implements CompanyRepository {
       VALUES ($1, $2, $3) 
       RETURNING *
       `,
-        [company.taxId, company.name, company.addressId?.toString() ?? null],
+        [
+          company.taxId,
+          company.name,
+          company.addressId?.uuid.toString() ?? null,
+        ],
       );
 
       return this.getOneCompany(result.rows);

@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { config, logger, NodeEnv } from "../config";
 import { StatusCodes } from "http-status-codes";
 import { ApiError } from "../model/error/ApiError";
+import { ErrorResponse } from "../dtos";
 
 export function errorConverter(
   err: Error,
@@ -32,7 +33,7 @@ export function errorHandler(
 
   res.locals.errorMessage = err.message;
 
-  const response = {
+  const response: ErrorResponse = {
     code: statusCode,
     message,
     ...(config.env !== NodeEnv.Production && { stack: err.stack }),

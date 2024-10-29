@@ -1,5 +1,6 @@
 import { CompanyId, CompanyUserRole } from "../model";
 
+// TODO: to put in an other place?
 export interface CreateCompanyUserPermissionTokenBodyParams {
   userEmail: string;
   token: string;

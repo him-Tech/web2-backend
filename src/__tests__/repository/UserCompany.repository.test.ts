@@ -98,8 +98,7 @@ describe("UserCompanyRepository", () => {
         taxId: "987654321",
         name: "Another Company",
         addressId: null, // Add addressId if needed
-        contactPersonId: null,
-      } as CreateCompanyBodyParams);
+      });
 
       const users = await userCompanyRepo.getByCompanyId(newCompany.id);
       expect(users).toEqual([]); // Expect an empty array

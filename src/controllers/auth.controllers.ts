@@ -1,11 +1,17 @@
 import { NextFunction, Request, Response } from "express";
 import { User } from "../model";
 import { StatusCodes } from "http-status-codes";
-import { ResponseBodyParams } from "../dtos";
+import { ResponseBody } from "../dtos";
 import {
+  LoginBodyParams,
+  LoginQueryParams,
+  LoginResponse,
   RegisterBodyParams,
   RegisterQueryParams,
   RegisterResponse,
+  StatusBodyParams,
+  StatusQueryParams,
+  StatusResponse,
 } from "../dtos/auth";
 import { secureToken, TokenData } from "../utils";
 import {
@@ -14,11 +20,6 @@ import {
   getUserRepository,
 } from "../db";
 import { ApiError } from "../model/error/ApiError";
-import {
-  StatusBodyParams,
-  StatusQueryParams,
-  StatusResponse,
-} from "../dtos/auth/Status.dto";
 
 const companyUserPermissionTokenRepo =
   getCompanyUserPermissionTokenRepository();
@@ -28,7 +29,7 @@ const userCompanyRepo = getUserCompanyRepository();
 export class AuthController {
   static async status(
     req: Request<{}, {}, StatusBodyParams, StatusQueryParams>,
-    res: Response<ResponseBodyParams<StatusResponse>>,
+    res: Response<ResponseBody<StatusResponse>>,
   ) {
     if (req.isAuthenticated() && req.user) {
       const response: StatusResponse = {
@@ -36,15 +37,16 @@ export class AuthController {
       };
       return res.status(StatusCodes.OK).send({ success: response }); // TODO: json instead of send ?
     } else {
-      return res
-        .status(StatusCodes.UNAUTHORIZED)
-        .send({ error: "Unauthorized" });
+      const response: StatusResponse = {
+        user: null,
+      };
+      return res.status(StatusCodes.OK).send({ success: response });
     }
   }
 
   static async verifyCompanyToken(
     req: Request<{}, {}, RegisterBodyParams, RegisterQueryParams>,
-    res: Response<ResponseBodyParams<RegisterResponse>>,
+    res: Response<ResponseBody<RegisterResponse>>,
     next: NextFunction,
   ) {
     // @ts-ignore TODO: why is this not working?
@@ -83,7 +85,7 @@ export class AuthController {
 
   static async registerAsCompany(
     req: Request<{}, {}, RegisterBodyParams, RegisterQueryParams>,
-    res: Response<ResponseBodyParams<RegisterResponse>>,
+    res: Response<ResponseBody<RegisterResponse>>,
   ) {
     // @ts-ignore TODO: why is this not working?
     const companyUserPermissionToken = req.companyUserPermissionToken!; // TODO: improve
@@ -104,14 +106,23 @@ export class AuthController {
   }
 
   static async register(
-    req: Request<{}, {}, RegisterBodyParams, {}>,
-    res: Response<ResponseBodyParams<RegisterResponse>>,
+    req: Request<{}, {}, RegisterBodyParams, RegisterQueryParams>,
+    res: Response<ResponseBody<RegisterResponse>>,
   ) {
-    res.sendStatus(StatusCodes.CREATED);
+    const response: RegisterResponse = {
+      user: req.user as User,
+    };
+    return res.status(StatusCodes.CREATED).send({ success: response });
   }
 
-  static async login(req: Request, res: Response) {
-    res.sendStatus(StatusCodes.OK);
+  static async login(
+    req: Request<{}, {}, LoginBodyParams, LoginQueryParams>,
+    res: Response<ResponseBody<LoginResponse>>,
+  ) {
+    const response: LoginResponse = {
+      user: req.user as User,
+    };
+    return res.status(StatusCodes.OK).send({ success: response });
   }
 
   static async logout(req: Request, res: Response) {

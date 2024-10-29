@@ -80,7 +80,8 @@ export function createApp() {
 
   // send back a 404 error for any unknown api request
   app.use((req, res, next) => {
-    next(new ApiError(StatusCodes.NOT_FOUND, "Not found"));
+    const errorMessage = `Not found: ${req.originalUrl}`;
+    next(new ApiError(StatusCodes.NOT_FOUND, errorMessage));
   });
 
   // convert error to ApiError, if needed

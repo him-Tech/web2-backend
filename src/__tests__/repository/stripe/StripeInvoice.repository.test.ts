@@ -8,7 +8,6 @@ import {
   getStripeProductRepository,
   getUserRepository,
 } from "../../../db";
-import { CreateCompanyBodyParams } from "../../../dtos";
 import { StripePriceId } from "../../../model/stripe/StripePrice";
 
 describe("StripeInvoiceRepository", () => {
@@ -40,7 +39,7 @@ describe("StripeInvoiceRepository", () => {
 
       // Insert user, company and customer before inserting the customer
       await userRepo.insertLocal(Fixture.createUserBodyParams());
-      await companyRepo.create({} as CreateCompanyBodyParams);
+      await companyRepo.create(Fixture.createCompanyBodyParams());
       const customer = new StripeCustomer(customerId, validUserId);
       await customerRepo.insert(customer);
       await productRepo.insert(Fixture.stripeProduct(productId));
@@ -68,7 +67,7 @@ describe("StripeInvoiceRepository", () => {
 
       // Insert user, company and customer before inserting the customer
       await userRepo.insertLocal(Fixture.createUserBodyParams());
-      await companyRepo.create({} as CreateCompanyBodyParams);
+      await companyRepo.create(Fixture.createCompanyBodyParams());
       const customer = new StripeCustomer(customerId, validUserId);
       await customerRepo.insert(customer);
       await productRepo.insert(Fixture.stripeProduct(productId));

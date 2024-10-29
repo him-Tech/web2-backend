@@ -7,7 +7,6 @@ import {
   getUserCompanyRepository,
   getUserRepository,
 } from "../../db/";
-import { CreateCompanyBodyParams } from "../../dtos";
 
 describe("CompanyRepository", () => {
   const addressRepo = getAddressRepository();
@@ -91,7 +90,7 @@ describe("CompanyRepository", () => {
         taxId: "123456",
         name: "Company A",
         addressId: validAddressId,
-      } as CreateCompanyBodyParams);
+      });
 
       const updatedCompany = new Company(
         created.id,
@@ -120,16 +119,18 @@ describe("CompanyRepository", () => {
 
   describe("getAll", () => {
     it("should return all companies", async () => {
-      const company = {} as CreateCompanyBodyParams;
-
-      const company1 = await companyRepo.create(company);
-      const company2 = await companyRepo.create(company);
+      const company1 = await companyRepo.create(
+        Fixture.createCompanyBodyParams(),
+      );
+      const company2 = await companyRepo.create(
+        Fixture.createCompanyBodyParams(),
+      );
 
       const allCompanies = await companyRepo.getAll();
 
       expect(allCompanies).toHaveLength(2);
-      expect(allCompanies).toContainEqual(Fixture.company(company1.id));
-      expect(allCompanies).toContainEqual(Fixture.company(company2.id));
+      expect(allCompanies).toContainEqual(company1);
+      expect(allCompanies).toContainEqual(company2);
     });
 
     it("should return an empty array if no companies exist", async () => {

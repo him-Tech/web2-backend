@@ -75,7 +75,7 @@ passport.use(
         const dto: CreateLocalUserBodyParams = {
           email,
           password,
-          role: superAdminEmails.includes(email)
+          role: superAdminEmails.includes(email.trim())
             ? UserRole.SUPER_ADMIN
             : UserRole.USER,
         };

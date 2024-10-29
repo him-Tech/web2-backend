@@ -88,7 +88,7 @@ class CompanyUserPermissionTokenRepositoryImpl
         `
                     INSERT INTO company_user_permission_token (user_email, token, company_id, company_user_role, expires_at)
                     VALUES ($1, $2, $3, $4, $5)
-                    RETURNING id, user_email, token, company_id, company_user_role, expires_at
+                    RETURNING *
                 `,
         [
           token.userEmail,

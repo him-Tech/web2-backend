@@ -7,7 +7,7 @@ import {
   CreateCompanyQueryParams,
   CreateCompanyResponse,
   CreateCompanyUserPermissionTokenBodyParams,
-  ResponseBodyParams,
+  ResponseBody,
   SendCompanyAdminInviteBodyParams,
   SendCompanyAdminInviteQueryParams,
   SendCompanyAdminInviteResponse,
@@ -30,7 +30,7 @@ const mailService = new MailService();
 export class AdminController {
   static async createAddress(
     req: Request<{}, {}, CreateAddressBodyParams, CreateAddressQueryParams>,
-    res: Response<ResponseBodyParams<CreateAddressResponse>>,
+    res: Response<ResponseBody<CreateAddressResponse>>,
   ) {
     const created = await addressRepository.create(req.body);
 
@@ -42,7 +42,7 @@ export class AdminController {
 
   static async createCompany(
     req: Request<{}, {}, CreateCompanyBodyParams, CreateCompanyQueryParams>,
-    res: Response<ResponseBodyParams<CreateCompanyResponse>>,
+    res: Response<ResponseBody<CreateCompanyResponse>>,
   ) {
     const created = await companyRepository.create(req.body);
     const response: CreateCompanyResponse = {
@@ -58,7 +58,7 @@ export class AdminController {
       SendCompanyAdminInviteBodyParams,
       SendCompanyAdminInviteQueryParams
     >,
-    res: Response<ResponseBodyParams<SendCompanyAdminInviteResponse>>,
+    res: Response<ResponseBody<SendCompanyAdminInviteResponse>>,
   ) {
     const [token, expiresAt] = secureToken.generate({
       email: req.body.userEmail,
@@ -71,14 +71,17 @@ export class AdminController {
       expiresAt: expiresAt,
     } as CreateCompanyUserPermissionTokenBodyParams;
 
+    console.log("createCompanyUserPermissionTokenBodyParams");
     const existing = await companyUserPermissionTokenRepository.getByUserEmail(
       req.body.userEmail,
       req.body.companyId,
     );
+    console.log("delete");
     existing.forEach((permission) => {
       companyUserPermissionTokenRepository.delete(permission.token);
     });
 
+    console.log("companyUserPermissionTokenRepository");
     await companyUserPermissionTokenRepository.create(
       createCompanyUserPermissionTokenBodyParams,
     );
