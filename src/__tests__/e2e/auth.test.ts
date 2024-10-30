@@ -15,6 +15,7 @@ describe("/api/v1/auth", () => {
     const registerResponse = await request(app)
       .post("/api/v1/auth/register")
       .send({
+        name: "Lauriane",
         email: email,
         password: password,
       });
@@ -34,7 +35,7 @@ describe("/api/v1/auth", () => {
     expect(response.body).toHaveProperty("success");
     expect(response.body).toHaveProperty("success.user");
     expect(response.body).toHaveProperty("success.user.id");
-    expect(response.body).toHaveProperty("success.user.data.name", null);
+    expect(response.body).toHaveProperty("success.user.data.name", "Lauriane");
     expect(response.body).toHaveProperty("success.user.data.email", email);
     expect(response.body).toHaveProperty("success.user.role", "user");
   });

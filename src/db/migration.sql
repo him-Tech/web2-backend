@@ -119,14 +119,14 @@ CREATE TABLE IF NOT EXISTS app_user
 
 CREATE TABLE IF NOT EXISTS address
 (
-    id           UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
-    name         VARCHAR(255),
-    line_1       VARCHAR(255),
-    line_2       VARCHAR(255),
-    city         VARCHAR(100),
-    state        VARCHAR(100),
-    postal_code  VARCHAR(20),
-    country      VARCHAR(100),
+    id          UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
+    name        VARCHAR(255),
+    line_1      VARCHAR(255),
+    line_2      VARCHAR(255),
+    city        VARCHAR(100),
+    state       VARCHAR(100),
+    postal_code VARCHAR(20),
+    country     VARCHAR(100),
 
     created_at  TIMESTAMP        NOT NULL DEFAULT now(),
     updated_at  TIMESTAMP        NOT NULL DEFAULT now()
@@ -134,13 +134,13 @@ CREATE TABLE IF NOT EXISTS address
 
 CREATE TABLE IF NOT EXISTS company
 (
-    id                UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
-    tax_id            VARCHAR(50) UNIQUE,
-    name              VARCHAR(255) NOT NULL,
-    address_id        UUID,
+    id         UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
+    tax_id     VARCHAR(50) UNIQUE,
+    name       VARCHAR(255)     NOT NULL,
+    address_id UUID,
 
-    created_at        TIMESTAMP        NOT NULL DEFAULT now(),
-    updated_at        TIMESTAMP        NOT NULL DEFAULT now(),
+    created_at TIMESTAMP        NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP        NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_address FOREIGN KEY (address_id) REFERENCES address (id) ON DELETE RESTRICT
 );
@@ -362,6 +362,7 @@ CREATE TABLE IF NOT EXISTS issue_funding
 CREATE TABLE IF NOT EXISTS company_user_permission_token
 (
     id                UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
+    user_name         VARCHAR(255),
     user_email        VARCHAR(255)     NOT NULL UNIQUE,
 
     token             TEXT             NOT NULL UNIQUE,

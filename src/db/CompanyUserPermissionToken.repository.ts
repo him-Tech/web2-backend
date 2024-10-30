@@ -86,11 +86,12 @@ class CompanyUserPermissionTokenRepositoryImpl
     try {
       const result = await client.query(
         `
-                    INSERT INTO company_user_permission_token (user_email, token, company_id, company_user_role, expires_at)
-                    VALUES ($1, $2, $3, $4, $5)
+                    INSERT INTO company_user_permission_token (user_name, user_email, token, company_id, company_user_role, expires_at)
+                    VALUES ($1, $2, $3, $4, $5, $6)
                     RETURNING *
                 `,
         [
+          token.userName,
           token.userEmail,
           token.token,
           token.companyId.uuid.toString(),
@@ -114,15 +115,17 @@ class CompanyUserPermissionTokenRepositoryImpl
       const result = await client.query(
         `
                     UPDATE company_user_permission_token
-                    SET user_email        = $1,
-                        token             = $2,
-                        company_id        = $3,
-                        company_user_role = $4,
-                        expires_at        = $5
-                    WHERE id = $6
-                    RETURNING id, user_email, token, company_id, company_user_role, expires_at
+                    SET user_name        = $1,
+                        user_email        = $2,
+                        token             = $3,
+                        company_id        = $4,
+                        company_user_role = $5,
+                        expires_at        = $6
+                    WHERE id = $7
+                    RETURNING *
                 `,
         [
+          token.userName,
           token.userEmail,
           token.token,
           token.companyId.toString(),

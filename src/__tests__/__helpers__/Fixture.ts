@@ -333,6 +333,7 @@ export const Fixture = {
     expiresAt: Date = new Date(Date.now() + 1000 * 60 * 60 * 24), // Default to 1 day in the future
   ): CreateCompanyUserPermissionTokenBodyParams {
     return {
+      userName: "lauriane",
       userEmail,
       token: `token-${Math.floor(Math.random() * 1000000)}`,
       companyId,
@@ -347,6 +348,7 @@ export const Fixture = {
   ): CompanyUserPermissionToken {
     return new CompanyUserPermissionToken(
       tokenId,
+      dto.userName,
       dto.userEmail,
       dto.token,
       dto.companyId,

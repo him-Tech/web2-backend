@@ -52,8 +52,9 @@ passport.use(
     {
       usernameField: "email",
       passwordField: "password",
+      passReqToCallback: true,
     },
-    async (email, password, done) => {
+    async (req, email, password, done) => {
       try {
         const user: User | null = await repo.findOne(email);
         if (user) {
@@ -72,7 +73,11 @@ passport.use(
           }
         }
 
+        // @ts-ignore TODO: improve
+        const name: string | null = req.body.name;
+
         const dto: CreateLocalUserBodyParams = {
+          name: name ?? undefined,
           email,
           password,
           role: superAdminEmails.includes(email.trim())

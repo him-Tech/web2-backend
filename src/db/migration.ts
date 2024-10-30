@@ -33,6 +33,7 @@ export class Migration {
         DROP TABLE IF EXISTS issue_funding CASCADE;
         DROP TABLE IF EXISTS managed_issue CASCADE;
         DROP TABLE IF EXISTS repository_user_permission_token CASCADE;
+        DROP TABLE IF EXISTS company_user_permission_token CASCADE;
         DROP TABLE IF EXISTS manual_invoice CASCADE;
     `);
   }
