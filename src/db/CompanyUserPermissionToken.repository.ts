@@ -93,7 +93,7 @@ class CompanyUserPermissionTokenRepositoryImpl
         [
           token.userEmail,
           token.token,
-          token.companyId.toString(),
+          token.companyId.uuid.toString(),
           token.companyUserRole,
           token.expiresAt,
         ],
@@ -164,7 +164,7 @@ class CompanyUserPermissionTokenRepositoryImpl
                 WHERE user_email = $1
                   AND company_id = $2
             `,
-      [userEmail, companyId.toString()],
+      [userEmail, companyId.uuid.toString()],
     );
 
     return this.getTokenList(result.rows);

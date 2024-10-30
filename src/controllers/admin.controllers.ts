@@ -63,25 +63,24 @@ export class AdminController {
     const [token, expiresAt] = secureToken.generate({
       email: req.body.userEmail,
     });
-    const createCompanyUserPermissionTokenBodyParams = {
-      userEmail: req.body.userEmail,
-      token: token,
-      companyId: req.body.companyId,
-      companyUserRole: req.body.companyUserRole,
-      expiresAt: expiresAt,
-    } as CreateCompanyUserPermissionTokenBodyParams;
 
-    console.log("createCompanyUserPermissionTokenBodyParams");
+    const createCompanyUserPermissionTokenBodyParams: CreateCompanyUserPermissionTokenBodyParams =
+      {
+        userEmail: req.body.userEmail,
+        token: token,
+        companyId: req.body.companyId,
+        companyUserRole: req.body.companyUserRole,
+        expiresAt: expiresAt,
+      };
+
     const existing = await companyUserPermissionTokenRepository.getByUserEmail(
       req.body.userEmail,
       req.body.companyId,
     );
-    console.log("delete");
     existing.forEach((permission) => {
       companyUserPermissionTokenRepository.delete(permission.token);
     });
 
-    console.log("companyUserPermissionTokenRepository");
     await companyUserPermissionTokenRepository.create(
       createCompanyUserPermissionTokenBodyParams,
     );

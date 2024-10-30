@@ -7,6 +7,7 @@ dotenv.config();
 const envVarsSchema = Joi.object({
   ENV: Joi.string()
     .valid(...Object.values(NodeEnv))
+    .required()
     .required(),
   HOST: Joi.string().required().description("The host url"),
   PORT: Joi.number().default(3000),
@@ -19,32 +20,36 @@ const envVarsSchema = Joi.object({
     .default(30)
     .description("days after which refresh tokens expire"),
 
-  POSTGRES_USER: Joi.string().description("postgres name"),
-  POSTGRES_HOST: Joi.string().description("postgres host"),
-  POSTGRES_PORT: Joi.number().description("postgres database port"),
-  POSTGRES_DATABASE: Joi.string().description("postgres database"),
-  POSTGRES_PASSWORD: Joi.string().description("postgres password"),
+  POSTGRES_USER: Joi.string().required().description("postgres name"),
+  POSTGRES_HOST: Joi.string().required().description("postgres host"),
+  POSTGRES_PORT: Joi.number().required().description("postgres database port"),
+  POSTGRES_DATABASE: Joi.string().required().description("postgres database"),
+  POSTGRES_PASSWORD: Joi.string().required().description("postgres password"),
   POSTGRES_POOL_MAX_SIZE: Joi.number().description(
     "postgres database pool max size",
   ),
-  POSTGRES_POOL_MIN_SIZE: Joi.number().description(
-    "postgres database pool min size",
-  ),
-  POSTGRES_POOL_IDLE_TIMEOUT_MILLIS: Joi.number().description(
-    "postgres: close idle clients after x millis",
-  ),
+  POSTGRES_POOL_MIN_SIZE: Joi.number()
+    .required()
+    .description("postgres database pool min size"),
+  POSTGRES_POOL_IDLE_TIMEOUT_MILLIS: Joi.number()
+    .required()
+    .description("postgres: close idle clients after x millis"),
 
-  GITHUB_CLIENT_ID: Joi.string().description("github client id"),
-  GITHUB_CLIENT_SECRET: Joi.string().description("github client secret"),
-  GITHUB_REQUEST_TOKEN: Joi.string().description("github request token"),
+  GITHUB_CLIENT_ID: Joi.string().required().description("github client id"),
+  GITHUB_CLIENT_SECRET: Joi.string()
+    .required()
+    .description("github client secret"),
+  GITHUB_TOKEN: Joi.string().required().description("github token"),
 
-  STRIPE_SECRET_KEY: Joi.string().description("stripe secret key"),
-  STRIPE_WEBHOOK_SECRET: Joi.string().description("stripe webhook secret"),
+  STRIPE_SECRET_KEY: Joi.string().required().description("stripe secret key"),
+  STRIPE_WEBHOOK_SECRET: Joi.string()
+    .required()
+    .description("stripe webhook secret"),
 
   POSTMARK_API_TOKEN: Joi.string().required().description("Postmark api token"),
-  EMAIL_FROM: Joi.string().description(
-    "the from field in the emails sent by the app",
-  ),
+  POSTMARK_SENDER_EMAIL: Joi.string()
+    .required()
+    .description("the from field in the emails sent by the app"),
 }).unknown();
 
 const { value: envVars, error } = envVarsSchema
@@ -102,6 +107,19 @@ interface Config {
   email: Email;
 }
 
+const postgres: Postgres = {
+  user: envVars.POSTGRES_USER,
+  host: envVars.POSTGRES_HOST,
+  port: envVars.POSTGRES_PORT,
+  database: envVars.POSTGRES_DATABASE,
+  password: envVars.POSTGRES_PASSWORD,
+  pool: {
+    maxSize: envVars.POSTGRES_POOL_MAX_SIZE,
+    minSize: envVars.POSTGRES_POOL_MIN_SIZE,
+    idleTimeoutMillis: envVars.POSTGRES_POOL_IDLE_TIMEOUT_MILLIS,
+  },
+};
+
 export const config: Config = {
   env: envVars.ENV as NodeEnv,
   host: envVars.HOST,
@@ -120,23 +138,12 @@ export const config: Config = {
   // cookie: {
   //     cookieExpirationHours: envVars.COOKIE_EXPIRATION_HOURS,
   // },
-  postgres: {
-    user: envVars.POSTGRES_USER,
-    host: envVars.POSTGRES_HOST,
-    port: envVars.POSTGRES_PORT,
-    database: envVars.POSTGRES_DATABASE,
-    password: envVars.POSTGRES_PASSWORD,
-    pool: {
-      maxSize: envVars.POSTGRES_POOL_MAX_SIZE,
-      minSize: envVars.POSTGRES_POOL_MIN_SIZE,
-      idleTimeoutMillis: envVars.POSTGRES_POOL_IDLE_TIMEOUT_MILLIS,
-    },
-  } as Postgres,
+  postgres,
 
   github: {
     clientId: envVars.GITHUB_CLIENT_ID,
     clientSecret: envVars.GITHUB_CLIENT_SECRET,
-    requestToken: envVars.GITHUB_REQUEST_TOKEN,
+    requestToken: envVars.GITHUB_TOKEN,
   } as Github,
 
   stripe: {
@@ -146,6 +153,6 @@ export const config: Config = {
 
   email: {
     postmarkApiToken: envVars.POSTMARK_API_TOKEN,
-    from: envVars.EMAIL_FROM,
+    from: envVars.POSTMARK_SENDER_EMAIL,
   } as Email,
 };
