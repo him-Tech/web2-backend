@@ -7,10 +7,10 @@ dotenv.config();
 const envVarsSchema = Joi.object({
   ENV: Joi.string()
     .valid(...Object.values(NodeEnv))
-    .required()
     .required(),
   HOST: Joi.string().required().description("The host url"),
-  PORT: Joi.number().default(3000),
+  PORT: Joi.number().required(),
+  FRONT_END_PORT: Joi.number().required(),
 
   JWT_SECRET: Joi.string().required().description("JWT secret key"),
   JWT_ACCESS_EXPIRATION_MINUTES: Joi.number()
@@ -70,6 +70,7 @@ interface Postgres {
   user: string;
   host: string;
   port: number;
+  frontEndPort: number;
   database: string;
   password: string;
   pool: {
@@ -96,10 +97,12 @@ interface Email {
 }
 
 interface Config {
-  env: NodeEnv; // Use enum type here
+  env: NodeEnv;
   host: string;
   port: number;
   baseUrl: string;
+  frontEndPort: string;
+  frontEndBaseUrl: string;
   jwt: Jwt;
   postgres: Postgres;
   github: Github;
@@ -107,24 +110,13 @@ interface Config {
   email: Email;
 }
 
-const postgres: Postgres = {
-  user: envVars.POSTGRES_USER,
-  host: envVars.POSTGRES_HOST,
-  port: envVars.POSTGRES_PORT,
-  database: envVars.POSTGRES_DATABASE,
-  password: envVars.POSTGRES_PASSWORD,
-  pool: {
-    maxSize: envVars.POSTGRES_POOL_MAX_SIZE,
-    minSize: envVars.POSTGRES_POOL_MIN_SIZE,
-    idleTimeoutMillis: envVars.POSTGRES_POOL_IDLE_TIMEOUT_MILLIS,
-  },
-};
-
 export const config: Config = {
   env: envVars.ENV as NodeEnv,
   host: envVars.HOST,
   port: envVars.PORT,
-  baseUrl: `${envVars.HOST}:${envVars.PORT}/`,
+  baseUrl: `${envVars.HOST}:${envVars.PORT}`,
+  frontEndPort: envVars.FRONT_END_PORT,
+  frontEndBaseUrl: `${envVars.HOST}:${envVars.FRONT_END_PORT}`,
   // pagination: {
   //     limit: 10,
   //     page: 1,
@@ -138,7 +130,19 @@ export const config: Config = {
   // cookie: {
   //     cookieExpirationHours: envVars.COOKIE_EXPIRATION_HOURS,
   // },
-  postgres,
+
+  postgres: {
+    user: envVars.POSTGRES_USER,
+    host: envVars.POSTGRES_HOST,
+    port: envVars.POSTGRES_PORT,
+    database: envVars.POSTGRES_DATABASE,
+    password: envVars.POSTGRES_PASSWORD,
+    pool: {
+      maxSize: envVars.POSTGRES_POOL_MAX_SIZE,
+      minSize: envVars.POSTGRES_POOL_MIN_SIZE,
+      idleTimeoutMillis: envVars.POSTGRES_POOL_IDLE_TIMEOUT_MILLIS,
+    },
+  } as Postgres,
 
   github: {
     clientId: envVars.GITHUB_CLIENT_ID,

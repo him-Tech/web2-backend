@@ -41,4 +41,9 @@ router.get(
 
 router.post("/logout", AuthController.logout);
 
+router.get(
+  "/company-user-invite-info",
+  AuthController.getCompanyUserInviteInfo,
+);
+
 export default router;

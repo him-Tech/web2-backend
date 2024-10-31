@@ -66,6 +66,7 @@ export class AdminController {
 
     const createCompanyUserPermissionTokenBodyParams: CreateCompanyUserPermissionTokenBodyParams =
       {
+        userName: req.body.userName,
         userEmail: req.body.userEmail,
         token: token,
         companyId: req.body.companyId,
@@ -77,6 +78,7 @@ export class AdminController {
       req.body.userEmail,
       req.body.companyId,
     );
+
     existing.forEach((permission) => {
       companyUserPermissionTokenRepository.delete(permission.token);
     });
@@ -85,7 +87,11 @@ export class AdminController {
       createCompanyUserPermissionTokenBodyParams,
     );
 
-    await mailService.sendCompanyAdminInvite(req.body.userEmail, token);
+    await mailService.sendCompanyAdminInvite(
+      req.body.userName,
+      req.body.userEmail,
+      token,
+    );
 
     const response: SendCompanyAdminInviteResponse = {};
     res.status(StatusCodes.OK).send({ success: response });

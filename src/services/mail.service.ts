@@ -4,7 +4,7 @@ import { config } from "../config";
 // TODO
 export class MailService {
   // TODO: make a data structure and a test to be sure to that this url exists
-  private registerURL: string = `${config.baseUrl}/api/v1/auth/register`;
+  private registerURL: string = `${config.frontEndBaseUrl}/sign-up`;
 
   private client: ServerClient;
 
@@ -22,12 +22,16 @@ export class MailService {
   }
 
   // TODO: create a good email
-  async sendCompanyAdminInvite(to: string, token: string) {
+  async sendCompanyAdminInvite(
+    toName: string | null,
+    toEmail: string,
+    token: string,
+  ) {
     const subject = "Invite to register";
     const resetPasswordUrl = `${this.registerURL}?token=${token}`;
-    const text = `Dear user,
+    const text = `Dear ${toName ? toName : ""},,
         Register to Open Source Economy: ${resetPasswordUrl}`;
-    await this.sendMail(to, subject, text);
+    await this.sendMail(toEmail, subject, text);
   }
 
   //     async sendResetPasswordEmail(to: string, token: string) {

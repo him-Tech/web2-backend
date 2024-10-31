@@ -21,7 +21,7 @@ export class CompanyUserPermissionTokenId {
 
 export class CompanyUserPermissionToken {
   id: CompanyUserPermissionTokenId;
-  userName?: string;
+  userName: string | null;
   userEmail: string;
   token: string;
   companyId: CompanyId;
@@ -30,7 +30,7 @@ export class CompanyUserPermissionToken {
 
   constructor(
     id: CompanyUserPermissionTokenId,
-    userName: string | undefined,
+    userName: string | null,
     userEmail: string,
     token: string,
     companyId: CompanyId,
@@ -66,7 +66,7 @@ export class CompanyUserPermissionToken {
 
     return new CompanyUserPermissionToken(
       new CompanyUserPermissionTokenId(id),
-      userName ?? undefined,
+      userName ?? null,
       userEmail,
       token,
       new CompanyId(companyId),

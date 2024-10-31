@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { User } from "../model";
+import { CompanyUserPermissionToken, User } from "../model";
 import { StatusCodes } from "http-status-codes";
 import { ResponseBody } from "../dtos";
 import {
@@ -20,6 +20,11 @@ import {
   getUserRepository,
 } from "../db";
 import { ApiError } from "../model/error/ApiError";
+import {
+  GetCompanyUserInviteInfoBodyParams,
+  GetCompanyUserInviteInfoQueryParams,
+  GetCompanyUserInviteInfoResponse,
+} from "../dtos/auth";
 
 const companyUserPermissionTokenRepo =
   getCompanyUserPermissionTokenRepository();
@@ -131,5 +136,32 @@ export class AuthController {
       if (err) return res.sendStatus(StatusCodes.BAD_REQUEST);
       res.sendStatus(StatusCodes.OK);
     });
+  }
+
+  static async getCompanyUserInviteInfo(
+    req: Request<
+      {},
+      {},
+      GetCompanyUserInviteInfoBodyParams,
+      GetCompanyUserInviteInfoQueryParams
+    >,
+    res: Response<ResponseBody<GetCompanyUserInviteInfoResponse>>,
+  ) {
+    // @ts-ignore TODO: why is this not working?
+    const { params }: GetCompanyUserInviteInfoQueryParams = req.params;
+    const companyUserPermissionToken: CompanyUserPermissionToken | null =
+      await companyUserPermissionTokenRepo.getByToken(params.token);
+
+    if (companyUserPermissionToken === null) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Token invalid or expired");
+    } else if (companyUserPermissionToken.expiresAt < new Date()) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Token invalid or expired");
+    } else {
+      const response: GetCompanyUserInviteInfoResponse = {
+        userName: companyUserPermissionToken.userName,
+        userEmail: companyUserPermissionToken.userEmail,
+      };
+      return res.status(StatusCodes.OK).send({ success: response });
+    }
   }
 }
