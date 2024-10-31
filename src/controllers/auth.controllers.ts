@@ -3,6 +3,8 @@ import { CompanyUserPermissionToken, User } from "../model";
 import { StatusCodes } from "http-status-codes";
 import { ResponseBody } from "../dtos";
 import {
+  GetCompanyUserInviteInfoQueryParams,
+  GetCompanyUserInviteInfoResponse,
   LoginBodyParams,
   LoginQueryParams,
   LoginResponse,
@@ -20,11 +22,6 @@ import {
   getUserRepository,
 } from "../db";
 import { ApiError } from "../model/error/ApiError";
-import {
-  GetCompanyUserInviteInfoBodyParams,
-  GetCompanyUserInviteInfoQueryParams,
-  GetCompanyUserInviteInfoResponse,
-} from "../dtos/auth";
 
 const companyUserPermissionTokenRepo =
   getCompanyUserPermissionTokenRepository();
@@ -54,14 +51,13 @@ export class AuthController {
     res: Response<ResponseBody<RegisterResponse>>,
     next: NextFunction,
   ) {
-    // @ts-ignore TODO: why is this not working?
-    const { params }: RegisterQueryParams = req;
+    const query: RegisterQueryParams = req.query;
 
-    if (params.companyToken) {
+    if (query.companyToken) {
       const companyUserPermissionToken =
-        await companyUserPermissionTokenRepo.getByToken(params.companyToken);
+        await companyUserPermissionTokenRepo.getByToken(query.companyToken);
       const tokenData = (await secureToken.verify(
-        params.companyToken,
+        query.companyToken,
       )) as TokenData;
 
       if (companyUserPermissionToken === null) {
@@ -96,8 +92,7 @@ export class AuthController {
     const companyUserPermissionToken = req.companyUserPermissionToken!; // TODO: improve
     const userId = req.user?.id!; // TODO: improve
 
-    // @ts-ignore TODO: why is this not working?
-    const { params }: RegisterQueryParams = req;
+    const query: RegisterQueryParams = req.query;
     await userRepo.validateEmail(req.body.email);
 
     await userCompanyRepo.insert(
@@ -105,7 +100,9 @@ export class AuthController {
       companyUserPermissionToken.companyId,
       companyUserPermissionToken.companyUserRole,
     );
-    await companyUserPermissionTokenRepo.delete(params.companyToken);
+    if (query.companyToken) {
+      await companyUserPermissionTokenRepo.delete(query.companyToken);
+    }
 
     res.sendStatus(StatusCodes.CREATED);
   }
@@ -139,18 +136,13 @@ export class AuthController {
   }
 
   static async getCompanyUserInviteInfo(
-    req: Request<
-      {},
-      {},
-      GetCompanyUserInviteInfoBodyParams,
-      GetCompanyUserInviteInfoQueryParams
-    >,
+    req: Request<{}, {}, {}, GetCompanyUserInviteInfoQueryParams>,
     res: Response<ResponseBody<GetCompanyUserInviteInfoResponse>>,
   ) {
-    // @ts-ignore TODO: why is this not working?
-    const { params }: GetCompanyUserInviteInfoQueryParams = req.params;
+    const query: GetCompanyUserInviteInfoQueryParams = req.query;
+
     const companyUserPermissionToken: CompanyUserPermissionToken | null =
-      await companyUserPermissionTokenRepo.getByToken(params.token);
+      await companyUserPermissionTokenRepo.getByToken(query.token);
 
     if (companyUserPermissionToken === null) {
       throw new ApiError(StatusCodes.BAD_REQUEST, "Token invalid or expired");

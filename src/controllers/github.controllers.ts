@@ -4,10 +4,8 @@ import {
   FundIssueBodyParams,
   FundIssueQueryParams,
   FundIssueResponse,
-  GetIssueBodyParams,
   GetIssueQueryParams,
   GetIssueResponse,
-  GetIssuesBodyParams,
   GetIssuesQueryParams,
   GetIssuesResponse,
   ResponseBody,
@@ -35,7 +33,7 @@ const issueFundingRepo = getIssueFundingRepository();
 
 export class GithubController {
   static async issues(
-    req: Request<{}, {}, GetIssuesBodyParams, GetIssuesQueryParams>,
+    req: Request<{}, {}, {}, GetIssuesQueryParams>,
     res: Response<ResponseBody<GetIssuesResponse>>,
   ) {
     const issues = await financialIssueRepository.getAll();
@@ -47,13 +45,13 @@ export class GithubController {
   }
 
   static async issue(
-    req: Request<{}, {}, GetIssueBodyParams, GetIssueQueryParams>,
+    req: Request<{}, {}, {}, GetIssueQueryParams>,
     res: Response<ResponseBody<GetIssueResponse>>,
   ) {
-    const { params }: GetIssueQueryParams = req;
-    const ownerId = new OwnerId(params.owner);
-    const repositoryId = new RepositoryId(ownerId, params.repo);
-    const issueId = new IssueId(repositoryId, params.number);
+    const query: GetIssueQueryParams = req.query;
+    const ownerId = new OwnerId(query.owner);
+    const repositoryId = new RepositoryId(ownerId, query.repo);
+    const issueId = new IssueId(repositoryId, query.number);
 
     const issue = await financialIssueRepository.get(issueId);
 
@@ -75,10 +73,10 @@ export class GithubController {
   ) {
     const user = req.user! as User;
 
-    const { params }: FundIssueQueryParams = req;
-    const ownerId = new OwnerId(params.owner);
-    const repositoryId = new RepositoryId(ownerId, params.repo);
-    const issueId = new IssueId(repositoryId, params.number);
+    const query: FundIssueQueryParams = req.query;
+    const ownerId = new OwnerId(query.owner);
+    const repositoryId = new RepositoryId(ownerId, query.repo);
+    const issueId = new IssueId(repositoryId, query.number);
 
     const managedIssue = await managedIssueRepository.getByIssueId(issueId);
     if (

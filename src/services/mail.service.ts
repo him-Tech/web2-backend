@@ -28,7 +28,7 @@ export class MailService {
     token: string,
   ) {
     const subject = "Invite to register";
-    const resetPasswordUrl = `${this.registerURL}?token=${token}`;
+    const resetPasswordUrl = `${this.registerURL}?company_token=${token}`;
     const text = `Dear ${toName ? toName : ""},,
         Register to Open Source Economy: ${resetPasswordUrl}`;
     await this.sendMail(toEmail, subject, text);

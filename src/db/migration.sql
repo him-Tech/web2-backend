@@ -363,7 +363,7 @@ CREATE TABLE IF NOT EXISTS company_user_permission_token
 (
     id                UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     user_name         VARCHAR(255),
-    user_email        VARCHAR(255)     NOT NULL UNIQUE,
+    user_email        VARCHAR(255)     NOT NULL,
 
     token             TEXT             NOT NULL UNIQUE,
 
@@ -374,7 +374,8 @@ CREATE TABLE IF NOT EXISTS company_user_permission_token
     created_at        TIMESTAMP        NOT NULL DEFAULT now(),
     updated_at        TIMESTAMP        NOT NULL DEFAULT now(),
 
-    CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES company (id) ON DELETE RESTRICT
+    CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES company (id) ON DELETE RESTRICT,
+    CONSTRAINT unique_user_company UNIQUE (user_email, company_id)
 );
 
 CREATE TABLE IF NOT EXISTS repository_user_permission_token
