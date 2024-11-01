@@ -1,8 +1,8 @@
 import { User } from "../../model";
 
-export interface StatusBodyParams {}
+export interface StatusBody {}
 
-export interface StatusQueryParams {}
+export interface StatusQuery {}
 
 export interface StatusResponse {
   user: User | null;

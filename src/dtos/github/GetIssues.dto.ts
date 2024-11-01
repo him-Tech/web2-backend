@@ -1,3 +1,3 @@
-export interface GetIssuesQueryParams {}
+export interface GetIssuesQuery {}
 
 export interface GetIssuesResponse {}

@@ -7,7 +7,7 @@ import {
   getRepositoryRepository,
   getUserRepository,
 } from "../../db/";
-import { CreateManagedIssueBodyParams } from "../../dtos";
+import { CreateManagedIssueBody } from "../../dtos";
 import { Fixture } from "../__helpers__/Fixture";
 import { v4 as uuidv } from "uuid";
 
@@ -22,9 +22,7 @@ describe("ManagedIssueRepository", () => {
   let validUserId: UserId;
 
   beforeEach(async () => {
-    const validUser = await userRepo.insertLocal(
-      Fixture.createUserBodyParams(),
-    );
+    const validUser = await userRepo.insertLocal(Fixture.createUserBody());
     validUserId = validUser.id;
   });
 
@@ -40,15 +38,15 @@ describe("ManagedIssueRepository", () => {
       const issue = Fixture.issue(issueId, ownerId);
       await issueRepo.createOrUpdate(issue);
 
-      const managedIssueBodyParams = Fixture.createManagedIssueBodyParams(
+      const managedIssueBody = Fixture.createManagedIssueBody(
         issueId,
         validUserId,
       );
 
-      const created = await managedIssueRepo.create(managedIssueBodyParams);
+      const created = await managedIssueRepo.create(managedIssueBody);
 
       expect(created).toEqual(
-        Fixture.managedIssueFromBodyParams(created.id, managedIssueBodyParams),
+        Fixture.managedIssueFromBody(created.id, managedIssueBody),
       );
 
       const found = await managedIssueRepo.getById(
@@ -74,35 +72,29 @@ describe("ManagedIssueRepository", () => {
       const issue = Fixture.issue(issueId, ownerId);
       await issueRepo.createOrUpdate(issue);
 
-      const managedIssueBodyParams = Fixture.createManagedIssueBodyParams(
+      const managedIssueBody = Fixture.createManagedIssueBody(
         issueId,
         validUserId,
       );
 
-      const created = await managedIssueRepo.create(managedIssueBodyParams);
+      const created = await managedIssueRepo.create(managedIssueBody);
 
       expect(created).toEqual(
-        Fixture.managedIssueFromBodyParams(created.id, managedIssueBodyParams),
+        Fixture.managedIssueFromBody(created.id, managedIssueBody),
       );
 
-      const updatedManagedIssueBodyParams: CreateManagedIssueBodyParams = {
-        ...managedIssueBodyParams,
+      const updatedManagedIssueBody: CreateManagedIssueBody = {
+        ...managedIssueBody,
         state: ManagedIssueState.SOLVED, // Update the state
       };
 
       const updated = await managedIssueRepo.update(
-        Fixture.managedIssueFromBodyParams(
-          created.id,
-          updatedManagedIssueBodyParams,
-        ),
+        Fixture.managedIssueFromBody(created.id, updatedManagedIssueBody),
       );
 
       expect(created.id).toEqual(updated.id);
       expect(updated).toEqual(
-        Fixture.managedIssueFromBodyParams(
-          created.id,
-          updatedManagedIssueBodyParams,
-        ),
+        Fixture.managedIssueFromBody(created.id, updatedManagedIssueBody),
       );
 
       const found = await managedIssueRepo.getById(updated.id);

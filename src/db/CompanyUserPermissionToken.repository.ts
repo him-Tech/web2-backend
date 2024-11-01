@@ -5,7 +5,7 @@ import {
   CompanyUserPermissionTokenId,
 } from "../model";
 import { getPool } from "../dbPool";
-import { CreateCompanyUserPermissionTokenBodyParams } from "../dtos";
+import { CreateCompanyUserPermissionTokenBody } from "../dtos";
 
 export function getCompanyUserPermissionTokenRepository(): CompanyUserPermissionTokenRepository {
   return new CompanyUserPermissionTokenRepositoryImpl(getPool());
@@ -13,7 +13,7 @@ export function getCompanyUserPermissionTokenRepository(): CompanyUserPermission
 
 export interface CompanyUserPermissionTokenRepository {
   create(
-    token: CreateCompanyUserPermissionTokenBodyParams,
+    token: CreateCompanyUserPermissionTokenBody,
   ): Promise<CompanyUserPermissionToken>;
 
   update(
@@ -79,7 +79,7 @@ class CompanyUserPermissionTokenRepositoryImpl
   }
 
   async create(
-    token: CreateCompanyUserPermissionTokenBodyParams,
+    token: CreateCompanyUserPermissionTokenBody,
   ): Promise<CompanyUserPermissionToken> {
     const client = await this.pool.connect();
 

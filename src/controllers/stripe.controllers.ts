@@ -9,9 +9,9 @@ import {
 import { StatusCodes } from "http-status-codes";
 import Stripe from "stripe";
 import {
-  CreateCustomerBodyParams,
-  CreatePaymentIntentBodyParams,
-  CreateSubscriptionBodyParams,
+  CreateCustomerBody,
+  CreatePaymentIntentBody,
+  CreateSubscriptionBody,
 } from "../dtos/stripe";
 import { StripeCustomer, StripeCustomerId, StripeInvoice } from "../model";
 import { ValidationError } from "express-validator";
@@ -99,7 +99,7 @@ export class StripeController {
   }
 
   static async createCustomer(
-    req: Request<{}, {}, CreateCustomerBodyParams, {}>,
+    req: Request<{}, {}, CreateCustomerBody, {}>,
     res: Response<StripeCustomer | ValidationError[]>,
   ) {
     if (!req.user) {
@@ -149,7 +149,7 @@ export class StripeController {
   }
 
   static async createSubscription(
-    req: Request<{}, {}, CreateSubscriptionBodyParams, {}>,
+    req: Request<{}, {}, CreateSubscriptionBody, {}>,
     res: Response<Stripe.Subscription | ValidationError[]>,
   ) {
     const items = [];
@@ -172,7 +172,7 @@ export class StripeController {
   }
 
   static async createPaymentIntent(
-    req: Request<{}, {}, CreatePaymentIntentBodyParams, {}>,
+    req: Request<{}, {}, CreatePaymentIntentBody, {}>,
     res: Response<Stripe.PaymentIntent | ValidationError[]>,
   ) {
     // Step 1: Create an invoice

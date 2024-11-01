@@ -37,13 +37,13 @@ import {
   UserRole,
 } from "../../model";
 import {
-  CreateAddressBodyParams,
-  CreateCompanyBodyParams,
-  CreateCompanyUserPermissionTokenBodyParams,
-  CreateIssueFundingBodyParams,
-  CreateLocalUserBodyParams,
-  CreateManagedIssueBodyParams,
-  CreateManualInvoiceBodyParams,
+  CreateAddressBody,
+  CreateCompanyBody,
+  CreateCompanyUserPermissionTokenBody,
+  CreateIssueFundingBody,
+  CreateLocalUserBody,
+  CreateManagedIssueBody,
+  CreateManualInvoiceBody,
 } from "../../dtos";
 import { StripePriceId } from "../../model/stripe/StripePrice";
 import { v4 as uuid } from "uuid";
@@ -73,7 +73,7 @@ export const Fixture = {
       new GithubData(Fixture.owner(Fixture.ownerId())),
     );
   },
-  createUserBodyParams(): CreateLocalUserBodyParams {
+  createUserBody(): CreateLocalUserBody {
     return {
       email: "d@gmail.com" + this.uuid(),
       password: "password",
@@ -122,7 +122,7 @@ export const Fixture = {
     const uuid = this.uuid();
     return new AddressId(uuid);
   },
-  createAddressBodyParams(): CreateAddressBodyParams {
+  createAddressBody(): CreateAddressBody {
     return {
       name: "Valid Address",
       line1: "123 Test St",
@@ -130,15 +130,12 @@ export const Fixture = {
       state: "Test State",
       postalCode: "12345",
       country: "Test Country",
-    } as CreateAddressBodyParams;
+    } as CreateAddressBody;
   },
   address(addressId: AddressId): Address {
     return new Address(addressId);
   },
-  addressFromBodyParams(
-    addressId: AddressId,
-    dto: CreateAddressBodyParams,
-  ): Address {
+  addressFromBody(addressId: AddressId, dto: CreateAddressBody): Address {
     return new Address(
       addressId,
       dto.name,
@@ -156,7 +153,7 @@ export const Fixture = {
     return new CompanyId(uuid);
   },
 
-  createCompanyBodyParams(addressId?: AddressId): CreateCompanyBodyParams {
+  createCompanyBody(addressId?: AddressId): CreateCompanyBody {
     return {
       name: "company",
       taxId: "taxId" + this.uuid(),
@@ -171,10 +168,7 @@ export const Fixture = {
       addressId !== null ? addressId : null,
     );
   },
-  companyFromBodyParams(
-    companyId: CompanyId,
-    dto: CreateCompanyBodyParams,
-  ): Company {
+  companyFromBody(companyId: CompanyId, dto: CreateCompanyBody): Company {
     return new Company(
       companyId,
       dto.taxId ?? null,
@@ -252,23 +246,23 @@ export const Fixture = {
     return new ManualInvoiceId(uuid);
   },
 
-  createManualInvoiceBodyParams(
+  createManualInvoiceBody(
     companyId?: CompanyId,
     userId?: UserId,
     paid: boolean = true,
     dowAmount: number = 100.0,
-  ): CreateManualInvoiceBodyParams {
+  ): CreateManualInvoiceBody {
     return {
       number: 1,
       companyId,
       userId,
       paid,
       dowAmount,
-    } as CreateManualInvoiceBodyParams;
+    } as CreateManualInvoiceBody;
   },
-  manualInvoiceFromBodyParams(
+  manualInvoiceFromBody(
     id: ManualInvoiceId,
-    dto: CreateManualInvoiceBodyParams,
+    dto: CreateManualInvoiceBody,
   ): ManualInvoice {
     return new ManualInvoice(
       id,
@@ -285,9 +279,9 @@ export const Fixture = {
     return new IssueFundingId(uuid);
   },
 
-  issueFundingFromBodyParams(
+  issueFundingFromBody(
     issueFundingId: IssueFundingId,
-    dto: CreateIssueFundingBodyParams,
+    dto: CreateIssueFundingBody,
   ): IssueFunding {
     return new IssueFunding(
       issueFundingId,
@@ -300,11 +294,11 @@ export const Fixture = {
     const uuid = this.uuid();
     return new ManagedIssueId(uuid);
   },
-  createManagedIssueBodyParams(
+  createManagedIssueBody(
     githubIssueId: IssueId,
     managerId: UserId,
     payload: number = 5000,
-  ): CreateManagedIssueBodyParams {
+  ): CreateManagedIssueBody {
     return {
       githubIssueId,
       requestedDowAmount: payload,
@@ -313,9 +307,9 @@ export const Fixture = {
       state: ManagedIssueState.OPEN,
     };
   },
-  managedIssueFromBodyParams(
+  managedIssueFromBody(
     managedIssueId: ManagedIssueId,
-    dto: CreateManagedIssueBodyParams,
+    dto: CreateManagedIssueBody,
   ): ManagedIssue {
     return new ManagedIssue(
       managedIssueId,
@@ -327,11 +321,11 @@ export const Fixture = {
     );
   },
 
-  createUserCompanyPermissionTokenBodyParams(
+  createUserCompanyPermissionTokenBody(
     userEmail: string,
     companyId: CompanyId,
     expiresAt: Date = new Date(Date.now() + 1000 * 60 * 60 * 24), // Default to 1 day in the future
-  ): CreateCompanyUserPermissionTokenBodyParams {
+  ): CreateCompanyUserPermissionTokenBody {
     return {
       userName: "lauriane",
       userEmail,
@@ -342,9 +336,9 @@ export const Fixture = {
     };
   },
 
-  userCompanyPermissionTokenFromBodyParams(
+  userCompanyPermissionTokenFromBody(
     tokenId: CompanyUserPermissionTokenId,
-    dto: CreateCompanyUserPermissionTokenBodyParams,
+    dto: CreateCompanyUserPermissionTokenBody,
   ): CompanyUserPermissionToken {
     return new CompanyUserPermissionToken(
       tokenId,

@@ -1,4 +1,4 @@
-export interface GetCompanyUserInviteInfoQueryParams {
+export interface GetCompanyUserInviteInfoQuery {
   token: string;
 }
 

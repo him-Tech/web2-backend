@@ -1,14 +1,14 @@
 import { Pool } from "pg";
 import { Address, AddressId, CompanyId, UserId } from "../model";
 import { getPool } from "../dbPool";
-import { CreateAddressBodyParams } from "../dtos";
+import { CreateAddressBody } from "../dtos";
 
 export function getAddressRepository(): AddressRepository {
   return new AddressRepositoryImpl(getPool());
 }
 
 export interface AddressRepository {
-  create(address: CreateAddressBodyParams): Promise<Address>;
+  create(address: CreateAddressBody): Promise<Address>;
   update(address: Address): Promise<Address>;
   getById(id: AddressId): Promise<Address | null>;
   getByCompanyId(id: CompanyId): Promise<Address | null>;
@@ -107,7 +107,7 @@ class AddressRepositoryImpl implements AddressRepository {
     return this.getOptionalAddress(result.rows);
   }
 
-  async create(address: CreateAddressBodyParams): Promise<Address> {
+  async create(address: CreateAddressBody): Promise<Address> {
     const client = await this.pool.connect();
 
     try {

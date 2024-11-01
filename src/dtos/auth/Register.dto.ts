@@ -1,12 +1,12 @@
 import { User } from "../../model";
 
-export interface RegisterBodyParams {
+export interface RegisterBody {
   name: string | null;
   email: string;
   password: string;
 }
 
-export interface RegisterQueryParams {
+export interface RegisterQuery {
   companyToken?: string;
 }
 

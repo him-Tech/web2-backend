@@ -16,12 +16,12 @@ describe("UserRepository", () => {
 
   describe("insertLocal", () => {
     it("should create and return a local user", async () => {
-      const userBodyParams = Fixture.createUserBodyParams();
-      const created = await repo.insertLocal(userBodyParams);
+      const userBody = Fixture.createUserBody();
+      const created = await repo.insertLocal(userBody);
 
       expect(created.data).toBeInstanceOf(LocalUser);
       if (created.data instanceof LocalUser) {
-        expect(created.data.email).toBe(userBodyParams.email);
+        expect(created.data.email).toBe(userBody.email);
         expect(created.data.name).toBe(null);
         expect(created.data.isEmailVerified).toBe(false);
         expect(created.data.hashedPassword).toBeDefined();
@@ -68,15 +68,15 @@ describe("UserRepository", () => {
     });
 
     it("should update the email", async () => {
-      const userBodyParams = Fixture.createUserBodyParams();
-      await repo.insertLocal(userBodyParams);
+      const userBody = Fixture.createUserBody();
+      await repo.insertLocal(userBody);
 
-      const user = await repo.validateEmail(userBodyParams.email);
+      const user = await repo.validateEmail(userBody.email);
 
       expect(user).toBeDefined();
       expect(user!.data).toBeInstanceOf(LocalUser);
       if (user!.data instanceof LocalUser) {
-        expect(user!.data.email).toBe(userBodyParams.email);
+        expect(user!.data.email).toBe(userBody.email);
         expect(user!.data.name).toBe(null);
         expect(user!.data.isEmailVerified).toBe(true);
         expect(user!.data.hashedPassword).toBeDefined();
@@ -104,7 +104,7 @@ describe("UserRepository", () => {
     });
 
     it("should return all users", async () => {
-      const user1 = Fixture.createUserBodyParams();
+      const user1 = Fixture.createUserBody();
       const user2 = Fixture.thirdPartyUser("1");
 
       const created = await repo.insertLocal(user1);
@@ -118,18 +118,18 @@ describe("UserRepository", () => {
 
   describe("findOne", () => {
     it("should find a local user by email", async () => {
-      const userBodyParams = Fixture.createUserBodyParams();
-      const created = await repo.insertLocal(userBodyParams);
+      const userBody = Fixture.createUserBody();
+      const created = await repo.insertLocal(userBody);
 
       expect(created.data).toBeInstanceOf(LocalUser);
       if (created.data instanceof LocalUser) {
-        expect(created.data.email).toBe(userBodyParams.email);
+        expect(created.data.email).toBe(userBody.email);
         expect(created.data.name).toBe(null);
         expect(created.data.isEmailVerified).toBe(false);
         expect(created.data.hashedPassword).toBeDefined();
       }
 
-      const found = await repo.findOne(userBodyParams.email);
+      const found = await repo.findOne(userBody.email);
       expect(found).toEqual(created);
     });
 

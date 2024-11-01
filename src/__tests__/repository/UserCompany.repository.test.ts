@@ -6,7 +6,7 @@ import {
   getUserCompanyRepository,
   getUserRepository,
 } from "../../db/";
-import { CreateCompanyBodyParams } from "../../dtos";
+import { CreateCompanyBody } from "../../dtos";
 
 describe("UserCompanyRepository", () => {
   const userRepo = getUserRepository();
@@ -19,14 +19,11 @@ describe("UserCompanyRepository", () => {
   let validCompanyId: CompanyId;
 
   beforeEach(async () => {
-    const validUser = await userRepo.insertLocal(
-      Fixture.createUserBodyParams(),
-    );
+    const validUser = await userRepo.insertLocal(Fixture.createUserBody());
     validUserId = validUser.id;
 
-    const companyBodyParams: CreateCompanyBodyParams =
-      Fixture.createCompanyBodyParams();
-    const createdCompany = await companyRepo.create(companyBodyParams);
+    const companyBody: CreateCompanyBody = Fixture.createCompanyBody();
+    const createdCompany = await companyRepo.create(companyBody);
     validCompanyId = createdCompany.id;
   });
 

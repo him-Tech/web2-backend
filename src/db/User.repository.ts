@@ -9,7 +9,7 @@ import {
   UserRole,
 } from "../model";
 import { getPool } from "../dbPool";
-import { CreateLocalUserBodyParams } from "../dtos";
+import { CreateLocalUserBody } from "../dtos";
 import { encrypt } from "../utils";
 
 export function getUserRepository(): UserRepository {
@@ -17,7 +17,7 @@ export function getUserRepository(): UserRepository {
 }
 
 export interface UserRepository {
-  insertLocal(user: CreateLocalUserBodyParams): Promise<User>;
+  insertLocal(user: CreateLocalUserBody): Promise<User>;
   insertGithub(user: ThirdPartyUser): Promise<User>;
   validateEmail(email: string): Promise<User | null>;
   getById(id: UserId): Promise<User | null>;
@@ -121,7 +121,7 @@ class UserRepositoryImpl implements UserRepository {
     return this.getOptionalUser(result.rows);
   }
 
-  async insertLocal(user: CreateLocalUserBodyParams): Promise<User> {
+  async insertLocal(user: CreateLocalUserBody): Promise<User> {
     const client = await this.pool.connect();
 
     const hashedPassword = await encrypt.hashPassword(user.password);

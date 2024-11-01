@@ -7,7 +7,7 @@ import {
   getUserCompanyRepository,
   getUserRepository,
 } from "../../db/";
-import { CreateAddressBodyParams } from "../../dtos";
+import { CreateAddressBody } from "../../dtos";
 
 describe("AddressRepository", () => {
   const userRepo = getUserRepository();
@@ -19,23 +19,19 @@ describe("AddressRepository", () => {
   let validUserId: UserId;
 
   beforeEach(async () => {
-    const validUser = await userRepo.insertLocal(
-      Fixture.createUserBodyParams(),
-    );
+    const validUser = await userRepo.insertLocal(Fixture.createUserBody());
     validUserId = validUser.id;
   });
 
   describe("create", () => {
     it("should create a new company address", async () => {
-      const addressBodyParams = {
+      const addressBody = {
         name: "Company Name",
-      } as CreateAddressBodyParams;
+      } as CreateAddressBody;
 
-      const created = await addressRepo.create(addressBodyParams);
+      const created = await addressRepo.create(addressBody);
 
-      expect(created).toEqual(
-        Fixture.addressFromBodyParams(created.id, addressBodyParams),
-      );
+      expect(created).toEqual(Fixture.addressFromBody(created.id, addressBody));
 
       const found = await addressRepo.getById(created.id);
       expect(found).toEqual(created);
@@ -44,25 +40,25 @@ describe("AddressRepository", () => {
 
   describe("update", () => {
     it("should update an existing company address", async () => {
-      const addressBodyParams = {
+      const addressBody = {
         name: "Company Name",
-      } as CreateAddressBodyParams;
+      } as CreateAddressBody;
 
       // First create the address
-      const created = await addressRepo.create(addressBodyParams);
+      const created = await addressRepo.create(addressBody);
 
       // Update the address
-      const updatedAddressBodyParams = {
+      const updatedAddressBody = {
         name: "Updated Company Name",
-      } as CreateAddressBodyParams;
+      } as CreateAddressBody;
 
       const updated = await addressRepo.update(
-        Fixture.addressFromBodyParams(created.id, updatedAddressBodyParams),
+        Fixture.addressFromBody(created.id, updatedAddressBody),
       );
 
       expect(created.id).toEqual(updated.id);
       expect(updated).toEqual(
-        Fixture.addressFromBodyParams(created.id, updatedAddressBodyParams),
+        Fixture.addressFromBody(created.id, updatedAddressBody),
       );
 
       const found = await addressRepo.getById(updated.id);
@@ -81,21 +77,21 @@ describe("AddressRepository", () => {
 
   describe("getByCompanyId", () => {
     it("should return the address for a given company ID", async () => {
-      const addressBodyParams = {
+      const addressBody = {
         name: "Company Name",
-      } as CreateAddressBodyParams;
+      } as CreateAddressBody;
 
       // First create the address
-      const created = await addressRepo.create(addressBodyParams);
+      const created = await addressRepo.create(addressBody);
 
       // Create a company with an associated address
-      const companyBodyParams = {
+      const companyBody = {
         name: "Test Company",
         taxId: "1234",
         addressId: created.id,
       };
 
-      const company = await companyRepo.create(companyBodyParams);
+      const company = await companyRepo.create(companyBody);
 
       // Fetch the address using getByCompanyId
       const address = await addressRepo.getByCompanyId(company.id);
@@ -105,9 +101,9 @@ describe("AddressRepository", () => {
 
     it("should return null if the company has no associated address", async () => {
       // Create a company without an associated address
-      const companyBodyParams = Fixture.createCompanyBodyParams();
+      const companyBody = Fixture.createCompanyBody();
 
-      const company = await companyRepo.create(companyBodyParams);
+      const company = await companyRepo.create(companyBody);
 
       // Fetch the address
       const address = await addressRepo.getByCompanyId(company.id);
@@ -118,21 +114,21 @@ describe("AddressRepository", () => {
 
   describe("getCompanyUserAddress", () => {
     it("should return the address associated with the user's company", async () => {
-      const addressBodyParams = {
+      const addressBody = {
         name: "Company Name",
-      } as CreateAddressBodyParams;
+      } as CreateAddressBody;
 
       // First create the address
-      const created = await addressRepo.create(addressBodyParams);
+      const created = await addressRepo.create(addressBody);
 
-      const companyBodyParams = {
+      const companyBody = {
         name: "Test Company",
         taxId: "12345",
         contactPersonId: validUserId,
         addressId: created.id,
       };
 
-      const company = await companyRepo.create(companyBodyParams);
+      const company = await companyRepo.create(companyBody);
       await userCompanyRepo.insert(
         validUserId,
         company.id,
@@ -166,7 +162,7 @@ describe("AddressRepository", () => {
 
       const address = {
         name: "Company Name",
-      } as CreateAddressBodyParams;
+      } as CreateAddressBody;
 
       const address1 = await addressRepo.create(address);
       const address2 = await addressRepo.create(address);
@@ -175,10 +171,10 @@ describe("AddressRepository", () => {
 
       expect(alladdress).toHaveLength(2);
       expect(alladdress).toContainEqual(
-        Fixture.addressFromBodyParams(address1.id, address),
+        Fixture.addressFromBody(address1.id, address),
       );
       expect(alladdress).toContainEqual(
-        Fixture.addressFromBodyParams(address2.id, address),
+        Fixture.addressFromBody(address2.id, address),
       );
     });
   });

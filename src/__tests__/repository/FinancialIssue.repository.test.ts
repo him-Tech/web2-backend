@@ -19,7 +19,7 @@ import {
   getRepositoryRepository,
   getUserRepository,
 } from "../../db/";
-import { CreateIssueFundingBodyParams } from "../../dtos";
+import { CreateIssueFundingBody } from "../../dtos";
 import { Fixture } from "../__helpers__/Fixture";
 import { getFinancialIssueRepository } from "../../db/FinancialIssue.repository";
 import { GitHubApi } from "../../services";
@@ -73,7 +73,7 @@ describe("FinancialIssueRepository", () => {
   const issue2: Issue = Fixture.issue(issueId2, ownerId2);
 
   beforeEach(async () => {
-    user = await userRepo.insertLocal(Fixture.createUserBodyParams());
+    user = await userRepo.insertLocal(Fixture.createUserBody());
     userId = user.id;
   });
 
@@ -121,33 +121,24 @@ describe("FinancialIssueRepository", () => {
       await issueRepo.createOrUpdate(issue1);
 
       /* Inserting issue fundings */
-      const issueFundingBodyParams1: CreateIssueFundingBodyParams = {
+      const issueFundingBody1: CreateIssueFundingBody = {
         githubIssueId: issueId1,
         userId: userId,
         downAmount: 5000,
       };
 
-      const issueFundingBodyParams2: CreateIssueFundingBodyParams = {
+      const issueFundingBody2: CreateIssueFundingBody = {
         githubIssueId: issueId1,
         userId: userId,
         downAmount: 10000,
       };
 
-      const issueFunding1 = await issueFundingRepo.create(
-        issueFundingBodyParams1,
-      );
-      const issueFunding2 = await issueFundingRepo.create(
-        issueFundingBodyParams2,
-      );
+      const issueFunding1 = await issueFundingRepo.create(issueFundingBody1);
+      const issueFunding2 = await issueFundingRepo.create(issueFundingBody2);
 
       /* Inserting managed issues */
-      const managedIssueBodyParams = Fixture.createManagedIssueBodyParams(
-        issueId1,
-        userId,
-      );
-      const managedIssue = await managedIssueRepo.create(
-        managedIssueBodyParams,
-      );
+      const managedIssueBody = Fixture.createManagedIssueBody(issueId1, userId);
+      const managedIssue = await managedIssueRepo.create(managedIssueBody);
 
       const financialIssuea = await financialIssueRepo.getAll();
 
@@ -178,33 +169,24 @@ describe("FinancialIssueRepository", () => {
       await issueRepo.createOrUpdate(issue2);
 
       /* Inserting issue fundings */
-      const issueFundingBodyParams1: CreateIssueFundingBodyParams = {
+      const issueFundingBody1: CreateIssueFundingBody = {
         githubIssueId: issueId1,
         userId: userId,
         downAmount: 5000,
       };
 
-      const issueFundingBodyParams2: CreateIssueFundingBodyParams = {
+      const issueFundingBody2: CreateIssueFundingBody = {
         githubIssueId: issueId1,
         userId: userId,
         downAmount: 10000,
       };
 
-      const issueFunding1 = await issueFundingRepo.create(
-        issueFundingBodyParams1,
-      );
-      const issueFunding2 = await issueFundingRepo.create(
-        issueFundingBodyParams2,
-      );
+      const issueFunding1 = await issueFundingRepo.create(issueFundingBody1);
+      const issueFunding2 = await issueFundingRepo.create(issueFundingBody2);
 
       /* Inserting managed issues */
-      const managedIssueBodyParams = Fixture.createManagedIssueBodyParams(
-        issueId2,
-        userId,
-      );
-      const managedIssue = await managedIssueRepo.create(
-        managedIssueBodyParams,
-      );
+      const managedIssueBody = Fixture.createManagedIssueBody(issueId2, userId);
+      const managedIssue = await managedIssueRepo.create(managedIssueBody);
 
       const financialIssuea = await financialIssueRepo.getAll();
 

@@ -1,6 +1,6 @@
 import { FinancialIssue } from "../../model";
 
-export interface GetIssueQueryParams {
+export interface GetIssueQuery {
   owner: string;
   repo: string;
   number: number;

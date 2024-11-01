@@ -1,11 +1,11 @@
 import { User } from "../../model";
 
-export interface LoginBodyParams {
+export interface LoginBody {
   email: string;
   password: string;
 }
 
-export interface LoginQueryParams {}
+export interface LoginQuery {}
 
 export interface LoginResponse {
   user: User;

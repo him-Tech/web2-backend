@@ -1,14 +1,14 @@
 import { Pool, QueryResult } from "pg";
 import { IssueFunding, IssueFundingId, IssueId } from "../model";
 import { getPool } from "../dbPool";
-import { CreateIssueFundingBodyParams } from "../dtos";
+import { CreateIssueFundingBody } from "../dtos";
 
 export function getIssueFundingRepository(): IssueFundingRepository {
   return new IssueFundingRepositoryImpl(getPool());
 }
 
 export interface IssueFundingRepository {
-  create(issueFunding: CreateIssueFundingBodyParams): Promise<IssueFunding>;
+  create(issueFunding: CreateIssueFundingBody): Promise<IssueFunding>;
 
   getById(id: IssueFundingId): Promise<IssueFunding | null>;
 
@@ -55,9 +55,7 @@ class IssueFundingRepositoryImpl implements IssueFundingRepository {
     });
   }
 
-  async create(
-    issueFunding: CreateIssueFundingBodyParams,
-  ): Promise<IssueFunding> {
+  async create(issueFunding: CreateIssueFundingBody): Promise<IssueFunding> {
     const client = await this.pool.connect();
 
     try {

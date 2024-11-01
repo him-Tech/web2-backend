@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 import {
-  CreateIssueFundingBodyParams,
-  FundIssueBodyParams,
-  FundIssueQueryParams,
+  CreateIssueFundingBody,
+  FundIssueBody,
+  FundIssueQuery,
   FundIssueResponse,
-  GetIssueQueryParams,
+  GetIssueQuery,
   GetIssueResponse,
-  GetIssuesQueryParams,
+  GetIssuesQuery,
   GetIssuesResponse,
   ResponseBody,
 } from "../dtos";
@@ -33,7 +33,7 @@ const issueFundingRepo = getIssueFundingRepository();
 
 export class GithubController {
   static async issues(
-    req: Request<{}, {}, {}, GetIssuesQueryParams>,
+    req: Request<{}, {}, {}, GetIssuesQuery>,
     res: Response<ResponseBody<GetIssuesResponse>>,
   ) {
     const issues = await financialIssueRepository.getAll();
@@ -45,10 +45,10 @@ export class GithubController {
   }
 
   static async issue(
-    req: Request<{}, {}, {}, GetIssueQueryParams>,
+    req: Request<{}, {}, {}, GetIssueQuery>,
     res: Response<ResponseBody<GetIssueResponse>>,
   ) {
-    const query: GetIssueQueryParams = req.query;
+    const query: GetIssueQuery = req.query;
     const ownerId = new OwnerId(query.owner);
     const repositoryId = new RepositoryId(ownerId, query.repo);
     const issueId = new IssueId(repositoryId, query.number);
@@ -68,12 +68,12 @@ export class GithubController {
 
   // TODO: security issue - this operation does not have an atomic check for the user's DoWs, user can spend DoWs that they don't have
   static async fundIssue(
-    req: Request<{}, {}, FundIssueBodyParams, FundIssueQueryParams>,
+    req: Request<{}, {}, FundIssueBody, FundIssueQuery>,
     res: Response<ResponseBody<FundIssueResponse>>,
   ) {
     const user = req.user! as User;
 
-    const query: FundIssueQueryParams = req.query;
+    const query: FundIssueQuery = req.query;
     const ownerId = new OwnerId(query.owner);
     const repositoryId = new RepositoryId(ownerId, query.repo);
     const issueId = new IssueId(repositoryId, query.number);
@@ -107,7 +107,7 @@ export class GithubController {
       issueId,
       userId: user.id,
       downAmount: req.body.dowAmount,
-    } as CreateIssueFundingBodyParams);
+    } as CreateIssueFundingBody);
 
     return res.sendStatus(StatusCodes.CREATED);
   }

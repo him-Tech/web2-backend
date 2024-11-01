@@ -3,14 +3,14 @@ import { Request, Response } from "express";
 import { getUserRepository } from "../db/";
 import { User } from "../model";
 
-const repo = getUserRepository();
+const userRepo = getUserRepository();
 
 export class UserController {
   static async getUsers(
     request: Request,
     response: Response<User[] | ValidationError[]>,
   ) {
-    const users = await repo.getAll();
+    const users = await userRepo.getAll();
     response.send(users);
   }
 

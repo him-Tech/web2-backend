@@ -1,18 +1,18 @@
 import { Request, Response } from "express";
 import {
-  CreateAddressBodyParams,
-  CreateAddressQueryParams,
+  CreateAddressBody,
+  CreateAddressQuery,
   CreateAddressResponse,
-  CreateCompanyBodyParams,
-  CreateCompanyQueryParams,
+  CreateCompanyBody,
+  CreateCompanyQuery,
   CreateCompanyResponse,
-  CreateCompanyUserPermissionTokenBodyParams,
-  CreateManualInvoiceBodyParams,
-  CreateManualInvoiceQueryParams,
+  CreateCompanyUserPermissionTokenBody,
+  CreateManualInvoiceBody,
+  CreateManualInvoiceQuery,
   CreateManualInvoiceResponse,
   ResponseBody,
-  SendCompanyAdminInviteBodyParams,
-  SendCompanyAdminInviteQueryParams,
+  SendCompanyAdminInviteBody,
+  SendCompanyAdminInviteQuery,
   SendCompanyAdminInviteResponse,
 } from "../dtos";
 import { StatusCodes } from "http-status-codes";
@@ -34,7 +34,7 @@ const mailService = new MailService();
 
 export class AdminController {
   static async createAddress(
-    req: Request<{}, {}, CreateAddressBodyParams, CreateAddressQueryParams>,
+    req: Request<{}, {}, CreateAddressBody, CreateAddressQuery>,
     res: Response<ResponseBody<CreateAddressResponse>>,
   ) {
     const created = await addressRepository.create(req.body);
@@ -46,7 +46,7 @@ export class AdminController {
   }
 
   static async createCompany(
-    req: Request<{}, {}, CreateCompanyBodyParams, CreateCompanyQueryParams>,
+    req: Request<{}, {}, CreateCompanyBody, CreateCompanyQuery>,
     res: Response<ResponseBody<CreateCompanyResponse>>,
   ) {
     const created = await companyRepository.create(req.body);
@@ -60,8 +60,8 @@ export class AdminController {
     req: Request<
       {},
       {},
-      SendCompanyAdminInviteBodyParams,
-      SendCompanyAdminInviteQueryParams
+      SendCompanyAdminInviteBody,
+      SendCompanyAdminInviteQuery
     >,
     res: Response<ResponseBody<SendCompanyAdminInviteResponse>>,
   ) {
@@ -69,7 +69,7 @@ export class AdminController {
       email: req.body.userEmail,
     });
 
-    const createCompanyUserPermissionTokenBodyParams: CreateCompanyUserPermissionTokenBodyParams =
+    const createCompanyUserPermissionTokenBody: CreateCompanyUserPermissionTokenBody =
       {
         userName: req.body.userName,
         userEmail: req.body.userEmail,
@@ -89,7 +89,7 @@ export class AdminController {
     });
 
     await companyUserPermissionTokenRepository.create(
-      createCompanyUserPermissionTokenBodyParams,
+      createCompanyUserPermissionTokenBody,
     );
 
     await mailService.sendCompanyAdminInvite(
@@ -103,12 +103,7 @@ export class AdminController {
   }
 
   static async createManualInvoice(
-    req: Request<
-      {},
-      {},
-      CreateManualInvoiceBodyParams,
-      CreateManualInvoiceQueryParams
-    >,
+    req: Request<{}, {}, CreateManualInvoiceBody, CreateManualInvoiceQuery>,
     res: Response<ResponseBody<CreateManualInvoiceResponse>>,
   ) {
     const created = await manualInvoiceRepository.create(req.body);

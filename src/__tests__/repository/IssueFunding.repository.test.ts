@@ -8,7 +8,7 @@ import {
   getRepositoryRepository,
   getUserRepository,
 } from "../../db/";
-import { CreateIssueFundingBodyParams } from "../../dtos";
+import { CreateIssueFundingBody } from "../../dtos";
 import { Fixture } from "../__helpers__/Fixture";
 
 describe("IssueFundingRepository", () => {
@@ -22,9 +22,7 @@ describe("IssueFundingRepository", () => {
   let validUserId: UserId;
 
   beforeEach(async () => {
-    const validUser = await userRepo.insertLocal(
-      Fixture.createUserBodyParams(),
-    );
+    const validUser = await userRepo.insertLocal(Fixture.createUserBody());
     validUserId = validUser.id;
   });
 
@@ -40,17 +38,17 @@ describe("IssueFundingRepository", () => {
       const issue = Fixture.issue(issueId, ownerId);
       await issueRepo.createOrUpdate(issue);
 
-      const issueFundingBodyParams: CreateIssueFundingBodyParams = {
+      const issueFundingBody: CreateIssueFundingBody = {
         githubIssueId: issueId,
         userId: validUserId,
         downAmount: 5000,
       };
 
       expect(true).toEqual(true);
-      const created = await issueFundingRepo.create(issueFundingBodyParams);
+      const created = await issueFundingRepo.create(issueFundingBody);
 
       expect(created).toEqual(
-        Fixture.issueFundingFromBodyParams(created.id, issueFundingBodyParams),
+        Fixture.issueFundingFromBody(created.id, issueFundingBody),
       );
 
       const found = await issueFundingRepo.getById(created.id);
@@ -89,39 +87,29 @@ describe("IssueFundingRepository", () => {
       const issue = Fixture.issue(issueId, ownerId);
       await issueRepo.createOrUpdate(issue);
 
-      const issueFundingBodyParams1: CreateIssueFundingBodyParams = {
+      const issueFundingBody1: CreateIssueFundingBody = {
         githubIssueId: issueId,
         userId: validUserId,
         downAmount: 5000,
       };
 
-      const issueFundingBodyParams2: CreateIssueFundingBodyParams = {
+      const issueFundingBody2: CreateIssueFundingBody = {
         githubIssueId: issueId,
         userId: validUserId,
         downAmount: 10000,
       };
 
-      const issueFunding1 = await issueFundingRepo.create(
-        issueFundingBodyParams1,
-      );
-      const issueFunding2 = await issueFundingRepo.create(
-        issueFundingBodyParams2,
-      );
+      const issueFunding1 = await issueFundingRepo.create(issueFundingBody1);
+      const issueFunding2 = await issueFundingRepo.create(issueFundingBody2);
 
       const allIssueFundings = await issueFundingRepo.getAll();
 
       expect(allIssueFundings).toHaveLength(2);
       expect(allIssueFundings).toContainEqual(
-        Fixture.issueFundingFromBodyParams(
-          issueFunding1.id,
-          issueFundingBodyParams1,
-        ),
+        Fixture.issueFundingFromBody(issueFunding1.id, issueFundingBody1),
       );
       expect(allIssueFundings).toContainEqual(
-        Fixture.issueFundingFromBodyParams(
-          issueFunding2.id,
-          issueFundingBodyParams2,
-        ),
+        Fixture.issueFundingFromBody(issueFunding2.id, issueFundingBody2),
       );
     });
   });

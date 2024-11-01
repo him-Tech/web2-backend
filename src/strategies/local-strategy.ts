@@ -4,7 +4,7 @@ import { Strategy } from "passport-local";
 import { encrypt } from "../utils";
 import { getUserRepository, UserRepository } from "../db/";
 import { LocalUser, User, UserRole } from "../model";
-import { CreateLocalUserBodyParams } from "../dtos";
+import { CreateLocalUserBody } from "../dtos";
 
 const repo: UserRepository = getUserRepository();
 
@@ -76,7 +76,7 @@ passport.use(
         // @ts-ignore TODO: improve
         const name: string | null = req.body.name;
 
-        const dto: CreateLocalUserBodyParams = {
+        const dto: CreateLocalUserBody = {
           name: name ?? undefined,
           email,
           password,

@@ -3,16 +3,16 @@ import { CompanyUserPermissionToken, User } from "../model";
 import { StatusCodes } from "http-status-codes";
 import { ResponseBody } from "../dtos";
 import {
-  GetCompanyUserInviteInfoQueryParams,
+  GetCompanyUserInviteInfoQuery,
   GetCompanyUserInviteInfoResponse,
-  LoginBodyParams,
-  LoginQueryParams,
+  LoginBody,
+  LoginQuery,
   LoginResponse,
-  RegisterBodyParams,
-  RegisterQueryParams,
+  RegisterBody,
+  RegisterQuery,
   RegisterResponse,
-  StatusBodyParams,
-  StatusQueryParams,
+  StatusBody,
+  StatusQuery,
   StatusResponse,
 } from "../dtos/auth";
 import { secureToken, TokenData } from "../utils";
@@ -30,7 +30,7 @@ const userCompanyRepo = getUserCompanyRepository();
 
 export class AuthController {
   static async status(
-    req: Request<{}, {}, StatusBodyParams, StatusQueryParams>,
+    req: Request<{}, {}, StatusBody, StatusQuery>,
     res: Response<ResponseBody<StatusResponse>>,
   ) {
     if (req.isAuthenticated() && req.user) {
@@ -47,11 +47,11 @@ export class AuthController {
   }
 
   static async verifyCompanyToken(
-    req: Request<{}, {}, RegisterBodyParams, RegisterQueryParams>,
+    req: Request<{}, {}, RegisterBody, RegisterQuery>,
     res: Response<ResponseBody<RegisterResponse>>,
     next: NextFunction,
   ) {
-    const query: RegisterQueryParams = req.query;
+    const query: RegisterQuery = req.query;
 
     if (query.companyToken) {
       const companyUserPermissionToken =
@@ -85,14 +85,14 @@ export class AuthController {
   }
 
   static async registerAsCompany(
-    req: Request<{}, {}, RegisterBodyParams, RegisterQueryParams>,
+    req: Request<{}, {}, RegisterBody, RegisterQuery>,
     res: Response<ResponseBody<RegisterResponse>>,
   ) {
     // @ts-ignore TODO: why is this not working?
     const companyUserPermissionToken = req.companyUserPermissionToken!; // TODO: improve
     const userId = req.user?.id!; // TODO: improve
 
-    const query: RegisterQueryParams = req.query;
+    const query: RegisterQuery = req.query;
     await userRepo.validateEmail(req.body.email);
 
     await userCompanyRepo.insert(
@@ -108,7 +108,7 @@ export class AuthController {
   }
 
   static async register(
-    req: Request<{}, {}, RegisterBodyParams, RegisterQueryParams>,
+    req: Request<{}, {}, RegisterBody, RegisterQuery>,
     res: Response<ResponseBody<RegisterResponse>>,
   ) {
     const response: RegisterResponse = {
@@ -118,7 +118,7 @@ export class AuthController {
   }
 
   static async login(
-    req: Request<{}, {}, LoginBodyParams, LoginQueryParams>,
+    req: Request<{}, {}, LoginBody, LoginQuery>,
     res: Response<ResponseBody<LoginResponse>>,
   ) {
     const response: LoginResponse = {
@@ -136,10 +136,10 @@ export class AuthController {
   }
 
   static async getCompanyUserInviteInfo(
-    req: Request<{}, {}, {}, GetCompanyUserInviteInfoQueryParams>,
+    req: Request<{}, {}, {}, GetCompanyUserInviteInfoQuery>,
     res: Response<ResponseBody<GetCompanyUserInviteInfoResponse>>,
   ) {
-    const query: GetCompanyUserInviteInfoQueryParams = req.query;
+    const query: GetCompanyUserInviteInfoQuery = req.query;
 
     const companyUserPermissionToken: CompanyUserPermissionToken | null =
       await companyUserPermissionTokenRepo.getByToken(query.token);

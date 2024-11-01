@@ -16,9 +16,7 @@ describe("StripeInvoiceRepository", () => {
   let validUserId: UserId;
 
   beforeEach(async () => {
-    const validUser = await userRepo.insertLocal(
-      Fixture.createUserBodyParams(),
-    );
+    const validUser = await userRepo.insertLocal(Fixture.createUserBody());
     validUserId = validUser.id;
   });
 
@@ -38,8 +36,8 @@ describe("StripeInvoiceRepository", () => {
       const stripeId2 = Fixture.stripeInvoiceLineId();
 
       // Insert user, company and customer before inserting the customer
-      await userRepo.insertLocal(Fixture.createUserBodyParams());
-      await companyRepo.create(Fixture.createCompanyBodyParams());
+      await userRepo.insertLocal(Fixture.createUserBody());
+      await companyRepo.create(Fixture.createCompanyBody());
       const customer = new StripeCustomer(customerId, validUserId);
       await customerRepo.insert(customer);
       await productRepo.insert(Fixture.stripeProduct(productId));
@@ -66,8 +64,8 @@ describe("StripeInvoiceRepository", () => {
       const stripeId2 = Fixture.stripeInvoiceLineId();
 
       // Insert user, company and customer before inserting the customer
-      await userRepo.insertLocal(Fixture.createUserBodyParams());
-      await companyRepo.create(Fixture.createCompanyBodyParams());
+      await userRepo.insertLocal(Fixture.createUserBody());
+      await companyRepo.create(Fixture.createCompanyBody());
       const customer = new StripeCustomer(customerId, validUserId);
       await customerRepo.insert(customer);
       await productRepo.insert(Fixture.stripeProduct(productId));
