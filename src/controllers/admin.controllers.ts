@@ -7,6 +7,9 @@ import {
   CreateCompanyQueryParams,
   CreateCompanyResponse,
   CreateCompanyUserPermissionTokenBodyParams,
+  CreateManualInvoiceBodyParams,
+  CreateManualInvoiceQueryParams,
+  CreateManualInvoiceResponse,
   ResponseBody,
   SendCompanyAdminInviteBodyParams,
   SendCompanyAdminInviteQueryParams,
@@ -17,6 +20,7 @@ import {
   getAddressRepository,
   getCompanyRepository,
   getCompanyUserPermissionTokenRepository,
+  getManualInvoiceRepository,
 } from "../db";
 import { secureToken } from "../utils";
 import { MailService } from "../services";
@@ -25,6 +29,7 @@ const addressRepository = getAddressRepository();
 const companyRepository = getCompanyRepository();
 const companyUserPermissionTokenRepository =
   getCompanyUserPermissionTokenRepository();
+const manualInvoiceRepository = getManualInvoiceRepository();
 const mailService = new MailService();
 
 export class AdminController {
@@ -95,5 +100,21 @@ export class AdminController {
 
     const response: SendCompanyAdminInviteResponse = {};
     res.status(StatusCodes.OK).send({ success: response });
+  }
+
+  static async createManualInvoice(
+    req: Request<
+      {},
+      {},
+      CreateManualInvoiceBodyParams,
+      CreateManualInvoiceQueryParams
+    >,
+    res: Response<ResponseBody<CreateManualInvoiceResponse>>,
+  ) {
+    const created = await manualInvoiceRepository.create(req.body);
+    const response: CreateManualInvoiceResponse = {
+      createdInvoiceId: created.id,
+    };
+    res.status(StatusCodes.CREATED).send({ success: response });
   }
 }

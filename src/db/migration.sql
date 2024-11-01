@@ -271,7 +271,7 @@ CREATE TABLE IF NOT EXISTS manual_invoice
     number     INTEGER        NOT NULL,
     company_id UUID,
     user_id    UUID,
-    paid       BOOLEAN        NOT NULL DEFAULT true,
+    paid       BOOLEAN        NOT NULL,
     dow_amount NUMERIC(10, 4) NOT NULL,
 
     created_at TIMESTAMP      NOT NULL DEFAULT now(),

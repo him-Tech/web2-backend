@@ -11,5 +11,10 @@ router.post(
   isWebsiteAdmin,
   AdminController.sendCompanyAdminInvite,
 );
+router.post(
+  "/company/create-manual-invoice",
+  isWebsiteAdmin,
+  AdminController.createManualInvoice,
+);
 
 export default router;

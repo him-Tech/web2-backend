@@ -73,8 +73,8 @@ class ManualInvoiceRepositoryImpl implements ManualInvoiceRepository {
                 `,
         [
           manualInvoice.number,
-          manualInvoice.companyId?.toString(),
-          manualInvoice.userId?.toString(),
+          manualInvoice.companyId?.uuid.toString(),
+          manualInvoice.userId?.uuid.toString(),
           manualInvoice.paid,
           manualInvoice.dowAmount,
         ],
