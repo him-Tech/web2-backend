@@ -1,4 +1,4 @@
-import { User } from "../../model";
+import { AuthInfo } from "./AuthInfo.dto";
 
 export interface RegisterBody {
   name: string | null;
@@ -10,6 +10,4 @@ export interface RegisterQuery {
   companyToken?: string;
 }
 
-export interface RegisterResponse {
-  user: User;
-}
+export interface RegisterResponse extends AuthInfo {}

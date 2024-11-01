@@ -1,5 +1,11 @@
 import { NextFunction, Request, Response } from "express";
-import { CompanyUserPermissionToken, User } from "../model";
+import {
+  Company,
+  CompanyUserPermissionToken,
+  CompanyUserRole,
+  User,
+  UserId,
+} from "../model";
 import { StatusCodes } from "http-status-codes";
 import { ResponseBody } from "../dtos";
 import {
@@ -17,30 +23,63 @@ import {
 } from "../dtos/auth";
 import { secureToken, TokenData } from "../utils";
 import {
+  getCompanyRepository,
   getCompanyUserPermissionTokenRepository,
   getUserCompanyRepository,
   getUserRepository,
 } from "../db";
 import { ApiError } from "../model/error/ApiError";
 
+const companyRepo = getCompanyRepository();
 const companyUserPermissionTokenRepo =
   getCompanyUserPermissionTokenRepository();
 const userRepo = getUserRepository();
 const userCompanyRepo = getUserCompanyRepository();
 
 export class AuthController {
+  // TODO: probably put info of the company in the session, to to much avoid request to the DB.
+  //       Now, it is not the best implementation, but it works for now
+  private static async getCompanyRoles(
+    userId: UserId,
+  ): Promise<[Company | null, CompanyUserRole | null]> {
+    let company: Company | null = null;
+    let companyRole: CompanyUserRole | null = null;
+
+    const companyRoles = await userCompanyRepo.getByUserId(userId);
+    if (companyRoles.length > 1) {
+      throw new ApiError(
+        StatusCodes.NOT_IMPLEMENTED,
+        "User has multiple company roles",
+      );
+    } else if (companyRoles.length === 1) {
+      const [companyId, role] = companyRoles[0];
+      company = await companyRepo.getById(companyId);
+      companyRole = role;
+    }
+
+    return [company, companyRole];
+  }
+
   static async status(
     req: Request<{}, {}, StatusBody, StatusQuery>,
     res: Response<ResponseBody<StatusResponse>>,
   ) {
     if (req.isAuthenticated() && req.user) {
+      const [company, companyRole] = await AuthController.getCompanyRoles(
+        req.user.id,
+      );
+
       const response: StatusResponse = {
         user: req.user as User,
+        company: company,
+        companyRole: companyRole,
       };
       return res.status(StatusCodes.OK).send({ success: response }); // TODO: json instead of send ?
     } else {
       const response: StatusResponse = {
         user: null,
+        company: null,
+        companyRole: null,
       };
       return res.status(StatusCodes.OK).send({ success: response });
     }
@@ -113,6 +152,8 @@ export class AuthController {
   ) {
     const response: RegisterResponse = {
       user: req.user as User,
+      company: null,
+      companyRole: null,
     };
     return res.status(StatusCodes.CREATED).send({ success: response });
   }
@@ -121,8 +162,15 @@ export class AuthController {
     req: Request<{}, {}, LoginBody, LoginQuery>,
     res: Response<ResponseBody<LoginResponse>>,
   ) {
+    const user = req.user as User;
+    const [company, companyRole] = await AuthController.getCompanyRoles(
+      user.id,
+    );
+
     const response: LoginResponse = {
-      user: req.user as User,
+      user: user,
+      company,
+      companyRole,
     };
     return res.status(StatusCodes.OK).send({ success: response });
   }

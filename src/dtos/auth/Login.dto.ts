@@ -1,4 +1,5 @@
 import { User } from "../../model";
+import { AuthInfo } from "./AuthInfo.dto";
 
 export interface LoginBody {
   email: string;
@@ -7,6 +8,4 @@ export interface LoginBody {
 
 export interface LoginQuery {}
 
-export interface LoginResponse {
-  user: User;
-}
+export interface LoginResponse extends AuthInfo {}
