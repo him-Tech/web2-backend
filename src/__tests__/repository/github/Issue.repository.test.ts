@@ -5,7 +5,16 @@ import {
   getOwnerRepository,
   getRepositoryRepository,
 } from "../../../db";
-import { IssueId, OwnerId, RepositoryId } from "../../../model";
+import {
+  Issue,
+  IssueId,
+  Owner,
+  OwnerId,
+  Repository,
+  RepositoryId,
+} from "../../../model";
+import fs from "fs";
+import { logger } from "../../../config";
 
 describe("IssueRepository", () => {
   setupTestDB();
@@ -48,6 +57,51 @@ describe("IssueRepository", () => {
         } catch (error: any) {
           // Check if the error is related to foreign key constraint
           expect(error.message).toMatch(/violates foreign key constraint/);
+        }
+      });
+
+      it("should work with real GitHub data", async () => {
+        const ownerData = fs.readFileSync(
+          `src/__tests__/__data__/github/owner-org.json`,
+          "utf8",
+        );
+
+        const repoData = fs.readFileSync(
+          `src/__tests__/__data__/github/repository.json`,
+          "utf8",
+        );
+
+        const issueData = fs.readFileSync(
+          `src/__tests__/__data__/github/issue.json`,
+          "utf8",
+        );
+
+        const owner = Owner.fromGithubApi(ownerData);
+        const repository = Repository.fromGithubApi(repoData);
+
+        if (owner instanceof Error) {
+          logger.error(owner);
+          fail("Owner parsing failed");
+        } else if (repository instanceof Error) {
+          logger.error(repository);
+          fail("Repository parsing failed");
+        } else {
+          const issue = Issue.fromGithubApi(repository.id, issueData);
+          const openBy = Owner.fromGithubApi(JSON.parse(issueData).user);
+          if (issue instanceof Error) {
+            logger.error(issue);
+            fail(issue);
+          } else if (openBy instanceof Error) {
+            logger.error(openBy);
+            fail(openBy);
+          } else {
+            await ownerRepo.insertOrUpdate(owner);
+            await repoRepo.insertOrUpdate(repository);
+            await ownerRepo.insertOrUpdate(openBy);
+            const created = await issueRepo.createOrUpdate(issue);
+
+            expect(created).toBeInstanceOf(Issue);
+          }
         }
       });
     });

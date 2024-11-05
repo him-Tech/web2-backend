@@ -7,7 +7,6 @@ import {
   UserId,
 } from "../model";
 import { StatusCodes } from "http-status-codes";
-import { ResponseBody } from "../dtos";
 import {
   GetCompanyUserInviteInfoQuery,
   GetCompanyUserInviteInfoResponse,
@@ -17,11 +16,12 @@ import {
   RegisterBody,
   RegisterQuery,
   RegisterResponse,
+  ResponseBody,
   StatusBody,
   StatusQuery,
   StatusResponse,
-} from "../dtos/auth";
-import { secureToken, TokenData } from "../utils";
+} from "../dtos";
+import { secureToken } from "../utils";
 import {
   getCompanyRepository,
   getCompanyUserPermissionTokenRepository,
@@ -95,9 +95,7 @@ export class AuthController {
     if (query.companyToken) {
       const companyUserPermissionToken =
         await companyUserPermissionTokenRepo.getByToken(query.companyToken);
-      const tokenData = (await secureToken.verify(
-        query.companyToken,
-      )) as TokenData;
+      const tokenData = await secureToken.verify(query.companyToken);
 
       if (companyUserPermissionToken === null) {
         next(new ApiError(StatusCodes.BAD_REQUEST, "Token invalid"));
@@ -193,9 +191,15 @@ export class AuthController {
       await companyUserPermissionTokenRepo.getByToken(query.token);
 
     if (companyUserPermissionToken === null) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, "Token invalid or expired");
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        `Token invalid or expired: ${query.token}`,
+      );
     } else if (companyUserPermissionToken.expiresAt < new Date()) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, "Token invalid or expired");
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        `Token invalid or expired: ${query.token}`,
+      );
     } else {
       const response: GetCompanyUserInviteInfoResponse = {
         userName: companyUserPermissionToken.userName,

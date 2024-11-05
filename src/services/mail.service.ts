@@ -1,5 +1,5 @@
 import { ServerClient } from "postmark";
-import { config } from "../config";
+import { config, logger } from "../config";
 
 // TODO
 export class MailService {
@@ -29,8 +29,14 @@ export class MailService {
   ) {
     const subject = "Invite to register";
     const resetPasswordUrl = `${this.registerURL}?company_token=${token}`;
+
+    logger.debug(
+      `Sending email to ${toEmail} with invite link ${resetPasswordUrl}`,
+    );
+
     const text = `Dear ${toName ? toName : ""},,
         Register to Open Source Economy: ${resetPasswordUrl}`;
+
     await this.sendMail(toEmail, subject, text);
   }
 

@@ -1,3 +1,9 @@
-export interface GetIssuesQuery {}
+import { FinancialIssue } from "../../model";
 
-export interface GetIssuesResponse {}
+export interface GetIssuesParams {}
+
+export interface GetIssuesResponse {
+  issues: FinancialIssue[];
+}
+
+export interface GetIssuesBody {}

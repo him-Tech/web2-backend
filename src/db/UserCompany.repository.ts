@@ -1,6 +1,7 @@
 import { Pool } from "pg";
 import { CompanyId, CompanyUserRole, UserId } from "../model";
 import { getPool } from "../dbPool";
+import { logger } from "../config";
 
 export function getUserCompanyRepository(): UserCompanyRepository {
   return new UserCompanyRepositoryImpl(getPool());
@@ -30,6 +31,9 @@ class UserCompanyRepositoryImpl implements UserCompanyRepository {
     role: CompanyUserRole,
   ): Promise<[UserId, CompanyId, CompanyUserRole]> {
     const client = await this.pool.connect();
+    logger.debug(
+      `Inserting user ${userId} to company ${companyId} with role ${role}...`,
+    );
 
     try {
       const result = await client.query(

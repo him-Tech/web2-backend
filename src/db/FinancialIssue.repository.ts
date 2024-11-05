@@ -17,7 +17,7 @@ import {
 } from "./github";
 import { getManagedIssueRepository } from "./ManagedIssue.repository";
 import { getIssueFundingRepository } from "./IssueFunding.repository";
-import { getGitHubAPI, GitHubApi } from "../services/github.service";
+import { getGitHubAPI, GitHubApi } from "../services";
 import { logger } from "../config";
 import { getUserRepository } from "./User.repository";
 
@@ -57,28 +57,29 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
       this.githubService.getIssue(issueId);
 
     Promise.all([githubRepoPromise, githubIssuePromise])
-      .then(([repoResult, issueResult]) => {
+      .then(async ([repoResult, issueResult]) => {
         const [owner, repo] = repoResult;
         const [issue, issueCreatedBy] = issueResult;
 
-        this.ownerRepo
+        await this.ownerRepo
           .insertOrUpdate(owner as Owner)
-          .then(() => {
-            this.repoRepo.insertOrUpdate(repo as Repository);
+          .then(async () => {
+            await this.repoRepo.insertOrUpdate(repo as Repository);
           })
-          .then(() => {
-            // Then insert the issue and its creator
-            return Promise.all([
-              this.issueRepo.createOrUpdate(issue as Issue),
-              this.ownerRepo.insertOrUpdate(issueCreatedBy as Owner),
-            ]);
+          .then(async () => {
+            await this.ownerRepo.insertOrUpdate(issueCreatedBy as Owner);
+          })
+          .then(async () => {
+            const i = issue as Issue;
+            i.setRepositoryId((repo as Repository).id); // TODO: not very elegant way to deal with the fact that github query doesn't return repository id nor owner id
+            await this.issueRepo.createOrUpdate(i);
           });
       })
       .catch((error) => {
         logger.error("Error fetching GitHub data:", error);
       });
 
-    const owner: Promise<Owner> = this.ownerRepo
+    const owner: Promise<Owner | null> = this.ownerRepo
       .getById(issueId.repositoryId.ownerId)
       .then(async (owner) => {
         if (!owner) {
@@ -86,8 +87,16 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
           return owner;
         }
         return owner;
+      })
+      .catch((error) => {
+        logger.error(
+          `Issue owner ${issueId.toString()} does not exist in the DB and go an error fetching GitHub data:`,
+          error,
+        );
+        return null;
       });
-    const repo: Promise<Repository> = this.repoRepo
+
+    const repo: Promise<Repository | null> = this.repoRepo
       .getById(issueId.repositoryId)
       .then(async (repo) => {
         if (!repo) {
@@ -95,9 +104,16 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
           return repo;
         }
         return repo;
+      })
+      .catch((error) => {
+        logger.error(
+          `Issue repository ${issueId.toString()} does not exist in the DB and go an error fetching GitHub data:`,
+          error,
+        );
+        return null;
       });
 
-    const issue: Promise<Issue> = this.issueRepo
+    const issue: Promise<Issue | null> = this.issueRepo
       .getById(issueId)
       .then(async (issue) => {
         if (!issue) {
@@ -105,29 +121,56 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
           return issue;
         }
         return issue;
+      })
+      .catch((error) => {
+        logger.error(
+          `Issue ${issueId.toString()} does not exist in the DB and go an error fetching GitHub data:`,
+          error,
+        );
+        return null;
       });
 
     const managedIssue = this.managedIssueRepo.getByIssueId(issueId);
-    const issueManager = managedIssue.then((managedIssue) => {
-      if (!managedIssue) {
+    const issueManager = managedIssue
+      .then((managedIssue) => {
+        if (!managedIssue) {
+          return null;
+        } else {
+          return this.userRepo.getById(managedIssue.managerId);
+        }
+      })
+      .catch((error) => {
+        logger.error(
+          `Got an error fetching the manager for managed issue for issue ${issueId.toString()}:`,
+          error,
+        );
         return null;
-      } else {
-        return this.userRepo.getById(managedIssue.managerId);
-      }
-    });
-    const issueFundings = this.issueFundingRepo.getAll(issueId);
-    return new FinancialIssue(
-      await owner,
-      await repo,
-      await issue,
-      await issueManager,
-      await managedIssue,
-      await issueFundings,
-    );
+      });
+
+    const o = await owner;
+    const r = await repo;
+    const i = await issue;
+
+    if (o && r && i) {
+      const issueFundings = this.issueFundingRepo.getAll(issueId);
+      return new FinancialIssue(
+        o,
+        r,
+        i,
+        await issueManager,
+        await managedIssue,
+        await issueFundings,
+      );
+    } else {
+      throw new Error(
+        `Failed to fetch all required data for managed issue ${issueId.toString()}`,
+      );
+    }
   }
 
   async getAll(): Promise<FinancialIssue[]> {
     const allManagedIssues = await this.managedIssueRepo.getAll();
+    logger.debug(`Got ${allManagedIssues.length} managed issues from the DB`);
     const managedIssues: Map<number | undefined, ManagedIssue> = new Map(
       allManagedIssues.map((m) => {
         if (!m.githubIssueId || !m.githubIssueId.githubId) {
@@ -141,9 +184,11 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
 
     const issueFundings: Map<number, IssueFunding[]> = new Map();
     const allIssueFundings = await this.issueFundingRepo.getAll();
+    logger.debug(`Got ${allIssueFundings.length} issue fundings from the DB`);
     allIssueFundings.forEach((i) => {
       const githubId = i.githubIssueId?.githubId;
       if (!githubId) {
+        // TODO: fix this mess with optional githubId
         logger.error(
           `IssueFunding of github issue id: ${i.githubIssueId}, does not have a githubId field defined in the DB`,
         );

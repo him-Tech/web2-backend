@@ -2,6 +2,7 @@ import { Pool, QueryResult } from "pg";
 import { IssueFunding, IssueFundingId, IssueId } from "../model";
 import { getPool } from "../dbPool";
 import { CreateIssueFundingBody } from "../dtos";
+import { logger } from "../config";
 
 export function getIssueFundingRepository(): IssueFundingRepository {
   return new IssueFundingRepositoryImpl(getPool());
@@ -58,6 +59,7 @@ class IssueFundingRepositoryImpl implements IssueFundingRepository {
   async create(issueFunding: CreateIssueFundingBody): Promise<IssueFunding> {
     const client = await this.pool.connect();
 
+    logger.debug("Creating issue funding", JSON.stringify(issueFunding));
     try {
       const result = await client.query(
         `
@@ -88,7 +90,7 @@ class IssueFundingRepositoryImpl implements IssueFundingRepository {
           issueFunding.githubIssueId.githubId,
           issueFunding.githubIssueId.number,
           issueFunding.userId.toString(),
-          issueFunding.downAmount,
+          issueFunding.downAmount.toString(),
         ],
       );
 

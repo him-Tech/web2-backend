@@ -47,6 +47,7 @@ import {
 } from "../../dtos";
 import { StripePriceId } from "../../model/stripe/StripePrice";
 import { v4 as uuid } from "uuid";
+import Decimal from "decimal.js";
 
 export const Fixture = {
   id(): number {
@@ -254,11 +255,11 @@ export const Fixture = {
   ): CreateManualInvoiceBody {
     return {
       number: 1,
-      companyId,
-      userId,
-      paid,
-      dowAmount,
-    } as CreateManualInvoiceBody;
+      companyId: companyId,
+      userId: userId,
+      paid: paid,
+      dowAmount: new Decimal(dowAmount),
+    };
   },
   manualInvoiceFromBody(
     id: ManualInvoiceId,
@@ -297,11 +298,11 @@ export const Fixture = {
   createManagedIssueBody(
     githubIssueId: IssueId,
     managerId: UserId,
-    payload: number = 5000,
+    requestedDowAmount: number = 5000,
   ): CreateManagedIssueBody {
     return {
       githubIssueId,
-      requestedDowAmount: payload,
+      requestedDowAmount: new Decimal(requestedDowAmount),
       managerId,
       contributorVisibility: ContributorVisibility.PUBLIC,
       state: ManagedIssueState.OPEN,

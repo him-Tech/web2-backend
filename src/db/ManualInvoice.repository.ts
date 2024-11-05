@@ -2,6 +2,7 @@ import { Pool } from "pg";
 import { CompanyId, ManualInvoice, ManualInvoiceId, UserId } from "../model";
 import { getPool } from "../dbPool";
 import { CreateManualInvoiceBody } from "../dtos";
+import { logger } from "../config";
 
 export function getManualInvoiceRepository(): ManualInvoiceRepository {
   return new ManualInvoiceRepositoryImpl(getPool());
@@ -62,6 +63,8 @@ class ManualInvoiceRepositoryImpl implements ManualInvoiceRepository {
   async create(manualInvoice: CreateManualInvoiceBody): Promise<ManualInvoice> {
     const client = await this.pool.connect();
 
+    logger.debug(`Creating manual invoice: ${JSON.stringify(manualInvoice)}`);
+
     try {
       const result = await client.query(
         `
@@ -74,7 +77,7 @@ class ManualInvoiceRepositoryImpl implements ManualInvoiceRepository {
           manualInvoice.companyId?.uuid.toString(),
           manualInvoice.userId?.uuid.toString(),
           manualInvoice.paid,
-          manualInvoice.dowAmount,
+          manualInvoice.dowAmount.toString(),
         ],
       );
 
@@ -104,7 +107,7 @@ class ManualInvoiceRepositoryImpl implements ManualInvoiceRepository {
           manualInvoice.companyId?.toString(),
           manualInvoice.userId?.toString(),
           manualInvoice.paid,
-          manualInvoice.dowAmount,
+          manualInvoice.dowAmount.toString(),
           manualInvoice.id?.toString(),
         ],
       );
@@ -143,6 +146,9 @@ class ManualInvoiceRepositoryImpl implements ManualInvoiceRepository {
     let result;
 
     if (id instanceof CompanyId) {
+      logger.debug(
+        `Getting all manual invoices paid by company: ${id.toString()}`,
+      );
       result = await this.pool.query(
         `
                         SELECT *

@@ -84,9 +84,9 @@ export class AdminController {
       req.body.companyId,
     );
 
-    existing.forEach((permission) => {
-      companyUserPermissionTokenRepository.delete(permission.token);
-    });
+    for (const permission of existing) {
+      await companyUserPermissionTokenRepository.delete(permission.token);
+    }
 
     await companyUserPermissionTokenRepository.create(
       createCompanyUserPermissionTokenBody,

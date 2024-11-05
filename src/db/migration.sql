@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS github_owner
 (
     id                UUID         NOT NULL DEFAULT gen_random_uuid(),
-    github_id         INTEGER PRIMARY KEY,
+    github_id         BIGSERIAL PRIMARY KEY,
     github_login      VARCHAR(255) NOT NULL UNIQUE,
 
     github_type       VARCHAR(127) NOT NULL,
@@ -15,14 +15,14 @@ CREATE TABLE IF NOT EXISTS github_owner
 CREATE TABLE IF NOT EXISTS github_repository
 (
     id                 UUID         NOT NULL DEFAULT gen_random_uuid(),
-    github_id          INTEGER UNIQUE,
+    github_id          BIGINT UNIQUE NOT NULL,
 
-    github_owner_id    INTEGER      NOT NULL,
+    github_owner_id    BIGINT       NOT NULL,
     github_owner_login VARCHAR(255) NOT NULL,
 
     github_name        VARCHAR(255) NOT NULL,
 
-    github_html_url    VARCHAR(510) NOT NULL,
+    github_html_url    VARCHAR(510),
     github_description VARCHAR(510),
 
     created_at         TIMESTAMP    NOT NULL DEFAULT now(),
@@ -40,22 +40,22 @@ CREATE TABLE IF NOT EXISTS github_repository
 CREATE TABLE IF NOT EXISTS github_issue
 (
     id                         UUID          NOT NULL DEFAULT gen_random_uuid(),
-    github_id                  INTEGER UNIQUE,
+    github_id                  BIGINT UNIQUE NOT NULL,
 
-    github_owner_id            INTEGER       NOT NULL,
+    github_owner_id            BIGINT        NOT NULL,
     github_owner_login         VARCHAR(255)  NOT NULL,
 
-    github_repository_id       INTEGER       NOT NULL,
+    github_repository_id       BIGINT        NOT NULL,
     github_repository_name     VARCHAR(255)  NOT NULL,
 
     github_number              INTEGER       NOT NULL,
 
-    github_open_by_owner_id    INTEGER,     -- ID of the owner who opened the issue
+    github_open_by_owner_id    BIGINT,      -- ID of the owner who opened the issue
     github_open_by_owner_login VARCHAR(255),-- Login of the owner who opened the issue
 
-    github_title               VARCHAR(510)  NOT NULL,
-    github_body                VARCHAR(1020) NOT NULL,
-    github_html_url            VARCHAR(510)  NOT NULL,
+    github_title               VARCHAR(510),
+    github_body                TEXT,
+    github_html_url            VARCHAR(510),
     github_created_at          VARCHAR(510),
     github_closed_at           VARCHAR(510),
 
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS app_user
     is_email_verified  BOOLEAN          NOT NULL,
     hashed_password    VARCHAR(255),        -- Optional, used for local users
     role               VARCHAR(50)      NOT NULL,
-    github_owner_id    INTEGER,
+    github_owner_id    BIGINT,
     github_owner_login VARCHAR(255),
 
     created_at         TIMESTAMP        NOT NULL DEFAULT now(),
@@ -167,10 +167,10 @@ CREATE TABLE IF NOT EXISTS user_company
 -- CREATE TABLE IF NOT EXISTS user_repository(
 --     user_id                UUID,
 --
---     github_owner_id        INTEGER      NOT NULL,
+--     github_owner_id        BIGINT      NOT NULL,
 --     github_owner_login     VARCHAR(255) NOT NULL,
 --
---     github_repository_id   INTEGER      NOT NULL,
+--     github_repository_id   BIGINT      NOT NULL,
 --     github_repository_name VARCHAR(255) NOT NULL,
 --
 --     role                   VARCHAR(50)  NOT NULL, -- The role of this user for this repository
@@ -222,21 +222,21 @@ CREATE TABLE IF NOT EXISTS stripe_product
 
 CREATE TABLE IF NOT EXISTS stripe_invoice
 (
-    id                 UUID           NOT NULL DEFAULT gen_random_uuid(),
-    stripe_id          VARCHAR(50)    NOT NULL PRIMARY KEY,
-    customer_id        VARCHAR(50)    NOT NULL,
-    paid               BOOLEAN        NOT NULL,
-    account_country    VARCHAR(255)   NOT NULL,
-    currency           VARCHAR(10)    NOT NULL,
-    total              NUMERIC(10, 2) NOT NULL,
-    total_excl_tax     NUMERIC(10, 2) NOT NULL,
-    subtotal           NUMERIC(10, 2) NOT NULL,
-    subtotal_excl_tax  NUMERIC(10, 2) NOT NULL,
-    hosted_invoice_url TEXT           NOT NULL,
-    invoice_pdf        TEXT           NOT NULL,
+    id                 UUID         NOT NULL DEFAULT gen_random_uuid(),
+    stripe_id          VARCHAR(50)  NOT NULL PRIMARY KEY,
+    customer_id        VARCHAR(50)  NOT NULL,
+    paid               BOOLEAN      NOT NULL,
+    account_country    VARCHAR(255) NOT NULL,
+    currency           VARCHAR(10)  NOT NULL,
+    total              NUMERIC      NOT NULL,
+    total_excl_tax     NUMERIC      NOT NULL,
+    subtotal           NUMERIC      NOT NULL,
+    subtotal_excl_tax  NUMERIC      NOT NULL,
+    hosted_invoice_url TEXT         NOT NULL,
+    invoice_pdf        TEXT         NOT NULL,
 
-    created_at         TIMESTAMP      NOT NULL DEFAULT now(),
-    updated_at         TIMESTAMP      NOT NULL DEFAULT now(),
+    created_at         TIMESTAMP    NOT NULL DEFAULT now(),
+    updated_at         TIMESTAMP    NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_customer FOREIGN KEY (customer_id) REFERENCES stripe_customer (stripe_id) ON DELETE CASCADE
 );
@@ -267,15 +267,15 @@ CREATE TABLE IF NOT EXISTS stripe_invoice_line
 
 CREATE TABLE IF NOT EXISTS manual_invoice
 (
-    id         UUID           NOT NULL DEFAULT gen_random_uuid(),
-    number     INTEGER        NOT NULL,
+    id         UUID      NOT NULL DEFAULT gen_random_uuid(),
+    number     INTEGER   NOT NULL,
     company_id UUID,
     user_id    UUID,
-    paid       BOOLEAN        NOT NULL,
-    dow_amount NUMERIC(10, 4) NOT NULL,
+    paid       BOOLEAN   NOT NULL,
+    dow_amount NUMERIC   NOT NULL,
 
-    created_at TIMESTAMP      NOT NULL DEFAULT now(),
-    updated_at TIMESTAMP      NOT NULL DEFAULT now(),
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES app_user (id) ON DELETE CASCADE,
     CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES company (id) ON DELETE CASCADE,
@@ -294,16 +294,16 @@ CREATE TABLE IF NOT EXISTS managed_issue
 (
     id                     UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
 
-    github_owner_id        INTEGER          NOT NULL,
+    github_owner_id        BIGINT          NOT NULL,
     github_owner_login     VARCHAR(255)     NOT NULL,
 
-    github_repository_id   INTEGER          NOT NULL,
+    github_repository_id   BIGINT          NOT NULL,
     github_repository_name VARCHAR(255)     NOT NULL,
 
-    github_issue_id        INTEGER          NOT NULL,
+    github_issue_id        BIGINT          NOT NULL,
     github_issue_number    INTEGER          NOT NULL,
 
-    requested_dow_amount   NUMERIC(10, 4)   NOT NULL,
+    requested_dow_amount   NUMERIC          NOT NULL,
 
     manager_id             UUID             NOT NULL,
     contributor_visibility VARCHAR(50)      NOT NULL, -- 'public' or 'private'
@@ -328,17 +328,17 @@ CREATE TABLE IF NOT EXISTS issue_funding
 (
     id                     UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
 
-    github_owner_id        INTEGER          NOT NULL,
+    github_owner_id        BIGINT          NOT NULL,
     github_owner_login     VARCHAR(255)     NOT NULL,
 
-    github_repository_id   INTEGER          NOT NULL,
+    github_repository_id   BIGINT          NOT NULL,
     github_repository_name VARCHAR(255)     NOT NULL,
 
-    github_issue_id        INTEGER          NOT NULL,
+    github_issue_id        BIGINT          NOT NULL,
     github_issue_number    INTEGER          NOT NULL,
 
     user_id                UUID             NOT NULL,
-    dow_amount             NUMERIC(10, 4)   NOT NULL,
+    dow_amount             NUMERIC          NOT NULL,
 
     created_at             TIMESTAMP        NOT NULL DEFAULT now(),
     updated_at             TIMESTAMP        NOT NULL DEFAULT now(),

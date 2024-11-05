@@ -6,6 +6,7 @@ import {
 } from "../model";
 import { getPool } from "../dbPool";
 import { CreateCompanyUserPermissionTokenBody } from "../dtos";
+import { logger } from "../config";
 
 export function getCompanyUserPermissionTokenRepository(): CompanyUserPermissionTokenRepository {
   return new CompanyUserPermissionTokenRepositoryImpl(getPool());
@@ -196,7 +197,7 @@ class CompanyUserPermissionTokenRepositoryImpl
   }
 
   async delete(token: string): Promise<void> {
-    const result = await this.pool.query(
+    await this.pool.query(
       `
                     DELETE
                     FROM company_user_permission_token
@@ -204,5 +205,6 @@ class CompanyUserPermissionTokenRepositoryImpl
             `,
       [token],
     );
+    logger.debug("Deleting permission token: ", token);
   }
 }

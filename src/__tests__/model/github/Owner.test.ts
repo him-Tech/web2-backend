@@ -4,7 +4,7 @@ import { Owner, OwnerId, OwnerType } from "../../../model";
 describe("Owner", () => {
   it("fromGithubApi does not throw an error", () => {
     const data = fs.readFileSync(
-      `src/__tests__/model/github/owner-org.json`,
+      `src/__tests__/__data__/github/owner-org.json`,
       "utf8",
     );
     const json = JSON.parse(data);

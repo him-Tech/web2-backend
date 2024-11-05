@@ -1,6 +1,7 @@
 import { ValidationError, Validator } from "./error";
 import { IssueId } from "./github";
 import { UserId } from "./user";
+import Decimal from "decimal.js";
 
 export class IssueFundingId {
   uuid: string;
@@ -18,13 +19,13 @@ export class IssueFunding {
   id: IssueFundingId;
   githubIssueId: IssueId;
   userId: UserId;
-  dowAmount: number;
+  dowAmount: Decimal;
 
   constructor(
     id: IssueFundingId,
     githubIssueId: IssueId,
     userId: UserId,
-    amount: number,
+    amount: Decimal,
   ) {
     this.id = id;
     this.githubIssueId = githubIssueId;
@@ -41,7 +42,7 @@ export class IssueFunding {
     const validator = new Validator(row);
     const id = validator.requiredString("id");
     const userId = validator.requiredString("user_id");
-    const amount = validator.requiredNumber("dow_amount");
+    const amount = validator.requiredDecimal("dow_amount");
 
     const error = validator.getFirstError();
     if (error) {

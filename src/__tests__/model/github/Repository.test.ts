@@ -5,7 +5,7 @@ import { logger } from "../../../config";
 describe("Repository", () => {
   it("fromGithubApi does not throw an error", () => {
     const data = fs.readFileSync(
-      `src/__tests__/model/github/repository.json`,
+      `src/__tests__/__data__/github/repository.json`,
       "utf8",
     );
     const json = JSON.parse(data);
