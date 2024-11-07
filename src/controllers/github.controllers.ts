@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import {
   CreateIssueFundingBody,
+  CreateManagedIssueBody,
   FundIssueBody,
   FundIssueParams,
   FundIssueQuery,
@@ -16,10 +17,12 @@ import {
 } from "../dtos";
 import {
   CompanyId,
+  ContributorVisibility,
   IssueId,
   ManagedIssueState,
   OwnerId,
   RepositoryId,
+  UserId,
 } from "../model";
 import { getFinancialIssueRepository } from "../db/FinancialIssue.repository";
 import { StatusCodes } from "http-status-codes";
@@ -31,6 +34,12 @@ import {
 } from "../db";
 import { ApiError } from "../model/error/ApiError";
 import Decimal from "decimal.js";
+import {
+  RequestIssueFundingBody,
+  RequestIssueFundingParams,
+  RequestIssueFundingQuery,
+  RequestIssueFundingResponse,
+} from "../dtos/github/RequestIssueFunding.dto";
 
 const issueRepository = getIssueRepository();
 const financialIssueRepository = getFinancialIssueRepository();
@@ -147,5 +156,60 @@ export class GithubController {
     await issueFundingRepo.create(issueFunding);
 
     return res.sendStatus(StatusCodes.CREATED);
+  }
+
+  static async requestIssueFunding(
+    req: Request<
+      RequestIssueFundingParams,
+      ResponseBody<RequestIssueFundingResponse>,
+      RequestIssueFundingBody,
+      RequestIssueFundingQuery
+    >,
+    res: Response<ResponseBody<RequestIssueFundingResponse>>,
+  ): Promise<void> {
+    if (!req.user) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Unauthorized");
+    }
+
+    const ownerId = new OwnerId(req.params.owner);
+    const repositoryId = new RepositoryId(ownerId, req.params.repo);
+    const issue = await issueRepository.getById(
+      new IssueId(repositoryId, req.params.number),
+    );
+
+    if (issue === null)
+      throw new ApiError(StatusCodes.NOT_FOUND, "Issue not found in the DB");
+    else if (issue.closedAt !== null)
+      throw new ApiError(
+        StatusCodes.FORBIDDEN,
+        "Cannot request funding for a closed issue",
+      );
+
+    const managedIssue = await managedIssueRepository.getByIssueId(issue.id);
+    if (managedIssue === null) {
+      const createManagedIssueBody: CreateManagedIssueBody = {
+        githubIssueId: issue.id,
+        requestedDowAmount: new Decimal(req.body.dowAmount),
+        managerId: req.user.id,
+        contributorVisibility: ContributorVisibility.PRIVATE,
+        state: ManagedIssueState.OPEN,
+      };
+      await managedIssueRepository.create(createManagedIssueBody);
+      res.status(StatusCodes.CREATED).send({ success: {} });
+    } else if (managedIssue.managerId !== req.user.id) {
+      throw new ApiError(
+        StatusCodes.FORBIDDEN,
+        "Someone else is already managing this issue",
+      );
+    } else if (managedIssue.state !== ManagedIssueState.OPEN) {
+      throw new ApiError(
+        StatusCodes.FORBIDDEN,
+        "This issue funding is already being REJECTED or SOLVED",
+      );
+    } else {
+      managedIssue.requestedDowAmount = new Decimal(req.body.dowAmount);
+      await managedIssueRepository.update(managedIssue);
+      res.status(StatusCodes.OK).send({ success: {} });
+    }
   }
 }

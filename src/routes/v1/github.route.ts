@@ -19,4 +19,11 @@ router.post(
   GithubController.fundIssue,
 );
 
+// TODO: add validation schema
+router.post(
+  "/:owner/:repo/issues/:number/request-funding",
+  isAuth, // TODO: security: make sure the user belongs to the company that is funding the issue
+  GithubController.requestIssueFunding,
+);
+
 export default router;
