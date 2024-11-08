@@ -7,6 +7,7 @@ import {
   CompanyUserPermissionTokenId,
   CompanyUserRole,
   ContributorVisibility,
+  DowCurrency,
   Email,
   GithubData,
   Issue,
@@ -24,6 +25,9 @@ import {
   Provider,
   Repository,
   RepositoryId,
+  RepositoryUserPermissionToken,
+  RepositoryUserPermissionTokenId,
+  RepositoryUserRole,
   StripeCustomerId,
   StripeInvoice,
   StripeInvoiceId,
@@ -48,6 +52,7 @@ import {
 import { StripePriceId } from "../../model/stripe/StripePrice";
 import { v4 as uuid } from "uuid";
 import Decimal from "decimal.js";
+import { CreateRepositoryUserPermissionTokenBody } from "../../db";
 
 export const Fixture = {
   id(): number {
@@ -348,6 +353,42 @@ export const Fixture = {
       dto.token,
       dto.companyId,
       dto.companyUserRole,
+      dto.expiresAt,
+    );
+  },
+
+  createRepositoryUserPermissionTokenBody(
+    repositoryId: RepositoryId,
+    userGithubOwnerLogin: string = `lauriane ${Fixture.uuid()}`,
+    expiresAt: Date = new Date(Date.now() + 1000 * 60 * 60 * 24), // Default to 1 day in the future
+  ): CreateRepositoryUserPermissionTokenBody {
+    return {
+      userName: "lauriane",
+      userEmail: "lauriane@gmail.com",
+      userGithubOwnerLogin,
+      token: `token-${Math.floor(Math.random() * 1000000)}`,
+      repositoryId,
+      repositoryUserRole: RepositoryUserRole.READ,
+      dowRate: new Decimal(1.0),
+      dowCurrency: DowCurrency.USD,
+      expiresAt,
+    };
+  },
+
+  repositoryUserPermissionTokenFromBody(
+    tokenId: RepositoryUserPermissionTokenId,
+    dto: CreateRepositoryUserPermissionTokenBody,
+  ): RepositoryUserPermissionToken {
+    return new RepositoryUserPermissionToken(
+      tokenId,
+      dto.userName,
+      dto.userEmail,
+      dto.userGithubOwnerLogin,
+      dto.token,
+      dto.repositoryId,
+      dto.repositoryUserRole,
+      dto.dowRate,
+      dto.dowCurrency,
       dto.expiresAt,
     );
   },

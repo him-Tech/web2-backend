@@ -14,19 +14,19 @@ CREATE TABLE IF NOT EXISTS github_owner
 
 CREATE TABLE IF NOT EXISTS github_repository
 (
-    id                 UUID         NOT NULL DEFAULT gen_random_uuid(),
+    id                 UUID          NOT NULL DEFAULT gen_random_uuid(),
     github_id          BIGINT UNIQUE NOT NULL,
 
-    github_owner_id    BIGINT       NOT NULL,
-    github_owner_login VARCHAR(255) NOT NULL,
+    github_owner_id    BIGINT        NOT NULL,
+    github_owner_login VARCHAR(255)  NOT NULL,
 
-    github_name        VARCHAR(255) NOT NULL,
+    github_name        VARCHAR(255)  NOT NULL,
 
     github_html_url    VARCHAR(510),
     github_description VARCHAR(510),
 
-    created_at         TIMESTAMP    NOT NULL DEFAULT now(),
-    updated_at         TIMESTAMP    NOT NULL DEFAULT now(),
+    created_at         TIMESTAMP     NOT NULL DEFAULT now(),
+    updated_at         TIMESTAMP     NOT NULL DEFAULT now(),
 
     CONSTRAINT pk_github_repository PRIMARY KEY (github_owner_login, github_name),
 
@@ -294,13 +294,13 @@ CREATE TABLE IF NOT EXISTS managed_issue
 (
     id                     UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
 
-    github_owner_id        BIGINT          NOT NULL,
+    github_owner_id        BIGINT           NOT NULL,
     github_owner_login     VARCHAR(255)     NOT NULL,
 
-    github_repository_id   BIGINT          NOT NULL,
+    github_repository_id   BIGINT           NOT NULL,
     github_repository_name VARCHAR(255)     NOT NULL,
 
-    github_issue_id        BIGINT          NOT NULL,
+    github_issue_id        BIGINT           NOT NULL,
     github_issue_number    INTEGER          NOT NULL,
 
     requested_dow_amount   NUMERIC          NOT NULL,
@@ -328,13 +328,13 @@ CREATE TABLE IF NOT EXISTS issue_funding
 (
     id                     UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
 
-    github_owner_id        BIGINT          NOT NULL,
+    github_owner_id        BIGINT           NOT NULL,
     github_owner_login     VARCHAR(255)     NOT NULL,
 
-    github_repository_id   BIGINT          NOT NULL,
+    github_repository_id   BIGINT           NOT NULL,
     github_repository_name VARCHAR(255)     NOT NULL,
 
-    github_issue_id        BIGINT          NOT NULL,
+    github_issue_id        BIGINT           NOT NULL,
     github_issue_number    INTEGER          NOT NULL,
 
     user_id                UUID             NOT NULL,
@@ -381,18 +381,29 @@ CREATE TABLE IF NOT EXISTS company_user_permission_token
 CREATE TABLE IF NOT EXISTS repository_user_permission_token
 (
     id                      UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
+    user_name               VARCHAR(255),
+    user_email        VARCHAR(255)     NOT NULL,
     user_github_owner_login VARCHAR(255)     NOT NULL,
 
     token                   TEXT             NOT NULL UNIQUE,
 
+    github_owner_id         BIGINT           NOT NULL,
     github_owner_login      VARCHAR(255)     NOT NULL,
+
+    github_repository_id    BIGINT           NOT NULL,
     github_repository_name  VARCHAR(255)     NOT NULL,
 
     repository_user_role    VARCHAR(50)      NOT NULL, -- 'admin', 'read'
+    dow_rate                NUMERIC          NOT NULL, -- The rate of DoW per issue
+    dow_currency            VARCHAR(10)      NOT NULL,
 
     expires_at              TIMESTAMP        NOT NULL,
     created_at              TIMESTAMP        NOT NULL DEFAULT now(),
     updated_at              TIMESTAMP        NOT NULL DEFAULT now(),
 
+    CONSTRAINT fk_github_owner_id FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_github_owner_login FOREIGN KEY (github_owner_login) REFERENCES github_owner (github_login) ON DELETE RESTRICT,
+
+    CONSTRAINT fk_github_repository_id FOREIGN KEY (github_repository_id) REFERENCES github_repository (github_id) ON DELETE RESTRICT,
     CONSTRAINT fk_github_repository FOREIGN KEY (github_owner_login, github_repository_name) REFERENCES github_repository (github_owner_login, github_name) ON DELETE RESTRICT
 );
