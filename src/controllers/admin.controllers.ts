@@ -14,13 +14,18 @@ import {
   SendCompanyAdminInviteBody,
   SendCompanyAdminInviteQuery,
   SendCompanyAdminInviteResponse,
+  SendRepositoryAdminInviteBody,
+  SendRepositoryAdminInviteQuery,
+  SendRepositoryAdminInviteResponse,
 } from "../dtos";
 import { StatusCodes } from "http-status-codes";
 import {
+  CreateRepositoryUserPermissionTokenDto,
   getAddressRepository,
   getCompanyRepository,
   getCompanyUserPermissionTokenRepository,
   getManualInvoiceRepository,
+  getRepositoryUserPermissionTokenRepository,
 } from "../db";
 import { secureToken } from "../utils";
 import { MailService } from "../services";
@@ -29,6 +34,8 @@ const addressRepository = getAddressRepository();
 const companyRepository = getCompanyRepository();
 const companyUserPermissionTokenRepository =
   getCompanyUserPermissionTokenRepository();
+const repositoryUserPermissionTokenRepository =
+  getRepositoryUserPermissionTokenRepository();
 const manualInvoiceRepository = getManualInvoiceRepository();
 const mailService = new MailService();
 
@@ -99,6 +106,55 @@ export class AdminController {
     );
 
     const response: SendCompanyAdminInviteResponse = {};
+    res.status(StatusCodes.OK).send({ success: response });
+  }
+
+  static async sendRepositoryAdminInvite(
+    req: Request<
+      {},
+      {},
+      SendRepositoryAdminInviteBody,
+      SendRepositoryAdminInviteQuery
+    >,
+    res: Response<ResponseBody<SendCompanyAdminInviteResponse>>,
+  ) {
+    const [token, expiresAt] = secureToken.generate({
+      email: req.body.userEmail,
+    });
+
+    const createRepositoryUserPermissionTokenDto: CreateRepositoryUserPermissionTokenDto =
+      {
+        userName: req.body.userName,
+        userEmail: req.body.userEmail,
+        userGithubOwnerLogin: req.body.userGithubOwnerLogin,
+        token: token,
+        repositoryId: req.body.repositoryId,
+        repositoryUserRole: req.body.repositoryUserRole,
+        dowRate: req.body.dowRate,
+        dowCurrency: req.body.dowCurrency,
+        expiresAt: expiresAt,
+      };
+
+    const existing =
+      await repositoryUserPermissionTokenRepository.getByUserGithubOwnerLogin(
+        req.body.userGithubOwnerLogin,
+      );
+
+    for (const permission of existing) {
+      await repositoryUserPermissionTokenRepository.delete(permission.token);
+    }
+
+    await repositoryUserPermissionTokenRepository.create(
+      createRepositoryUserPermissionTokenDto,
+    );
+
+    await mailService.sendRepositoryAdminInvite(
+      req.body.userName,
+      req.body.userEmail,
+      token,
+    );
+
+    const response: SendRepositoryAdminInviteResponse = {};
     res.status(StatusCodes.OK).send({ success: response });
   }
 

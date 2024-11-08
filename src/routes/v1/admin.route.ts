@@ -17,4 +17,10 @@ router.post(
   AdminController.createManualInvoice,
 );
 
+router.post(
+  "/repository/admin-invite",
+  isWebsiteAdmin,
+  AdminController.sendRepositoryAdminInvite,
+);
+
 export default router;

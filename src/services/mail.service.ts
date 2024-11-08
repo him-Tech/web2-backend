@@ -40,6 +40,24 @@ export class MailService {
     await this.sendMail(toEmail, subject, text);
   }
 
+  async sendRepositoryAdminInvite(
+    toName: string | null,
+    toEmail: string,
+    token: string,
+  ) {
+    const subject = "Invite to register";
+    const resetPasswordUrl = `${this.registerURL}?company_token=${token}`;
+
+    logger.debug(
+      `Sending email to ${toEmail} with invite link ${resetPasswordUrl}`,
+    );
+
+    const text = `Dear ${toName ? toName : ""},,
+        Register to Open Source Economy: ${resetPasswordUrl}`;
+
+    await this.sendMail(toEmail, subject, text);
+  }
+
   //     async sendResetPasswordEmail(to: string, token: string) {
   //         const subject = "Reset password";
   //         const resetPasswordUrl = `http://link-to-app/reset-password?token=${token}`;

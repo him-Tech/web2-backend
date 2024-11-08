@@ -1,6 +1,6 @@
 import { setupTestDB } from "../__helpers__/jest.setup";
 import {
-  CreateRepositoryUserPermissionTokenBody,
+  CreateRepositoryUserPermissionTokenDto,
   getOwnerRepository,
   getRepositoryRepository,
   getRepositoryUserPermissionTokenRepository,
@@ -41,7 +41,7 @@ describe("RepositoryUserPermissionTokenRepository", () => {
 
       const created = await tokenRepo.create(tokenBody);
 
-      const updatedTokenBody: CreateRepositoryUserPermissionTokenBody = {
+      const updatedTokenBody: CreateRepositoryUserPermissionTokenDto = {
         ...tokenBody,
         userGithubOwnerLogin: "updatedUser",
       };

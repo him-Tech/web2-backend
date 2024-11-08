@@ -52,7 +52,7 @@ import {
 import { StripePriceId } from "../../model/stripe/StripePrice";
 import { v4 as uuid } from "uuid";
 import Decimal from "decimal.js";
-import { CreateRepositoryUserPermissionTokenBody } from "../../db";
+import { CreateRepositoryUserPermissionTokenDto } from "../../db";
 
 export const Fixture = {
   id(): number {
@@ -361,7 +361,7 @@ export const Fixture = {
     repositoryId: RepositoryId,
     userGithubOwnerLogin: string = `lauriane ${Fixture.uuid()}`,
     expiresAt: Date = new Date(Date.now() + 1000 * 60 * 60 * 24), // Default to 1 day in the future
-  ): CreateRepositoryUserPermissionTokenBody {
+  ): CreateRepositoryUserPermissionTokenDto {
     return {
       userName: "lauriane",
       userEmail: "lauriane@gmail.com",
@@ -377,7 +377,7 @@ export const Fixture = {
 
   repositoryUserPermissionTokenFromBody(
     tokenId: RepositoryUserPermissionTokenId,
-    dto: CreateRepositoryUserPermissionTokenBody,
+    dto: CreateRepositoryUserPermissionTokenDto,
   ): RepositoryUserPermissionToken {
     return new RepositoryUserPermissionToken(
       tokenId,
