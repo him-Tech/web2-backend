@@ -8,12 +8,12 @@ import {
   CompanyUserRole,
   ContributorVisibility,
   DowCurrency,
-  Email,
   GithubData,
   Issue,
   IssueFunding,
   IssueFundingId,
   IssueId,
+  LocalUser,
   ManagedIssue,
   ManagedIssueId,
   ManagedIssueState,
@@ -38,6 +38,7 @@ import {
   ThirdPartyUser,
   ThirdPartyUserId,
   UserId,
+  UserRepository,
   UserRole,
 } from "../../model";
 import {
@@ -45,14 +46,13 @@ import {
   CreateCompanyBody,
   CreateCompanyUserPermissionTokenBody,
   CreateIssueFundingBody,
-  CreateLocalUserBody,
   CreateManagedIssueBody,
   CreateManualInvoiceBody,
 } from "../../dtos";
 import { StripePriceId } from "../../model/stripe/StripePrice";
 import { v4 as uuid } from "uuid";
 import Decimal from "decimal.js";
-import { CreateRepositoryUserPermissionTokenDto } from "../../db";
+import { CreateRepositoryUserPermissionTokenDto, CreateUser } from "../../db";
 
 export const Fixture = {
   id(): number {
@@ -67,6 +67,9 @@ export const Fixture = {
     return new UserId(id);
   },
 
+  localUser(): LocalUser {
+    return new LocalUser("d@gmail.com" + this.uuid(), false, "password");
+  },
   thirdPartyUser(
     id: string,
     provider: Provider = Provider.Github,
@@ -75,14 +78,14 @@ export const Fixture = {
     return new ThirdPartyUser(
       provider,
       new ThirdPartyUserId(id),
-      [new Email(email, null)],
+      email,
       new GithubData(Fixture.owner(Fixture.ownerId())),
     );
   },
-  createUserBody(): CreateLocalUserBody {
+  createUser(data: LocalUser | ThirdPartyUser): CreateUser {
     return {
-      email: "d@gmail.com" + this.uuid(),
-      password: "password",
+      name: null,
+      data: data,
       role: UserRole.USER,
     };
   },
@@ -390,6 +393,22 @@ export const Fixture = {
       dto.dowRate,
       dto.dowCurrency,
       dto.expiresAt,
+    );
+  },
+
+  userRepository(
+    userId: UserId,
+    repositoryId: RepositoryId,
+    repositoryUserRole: RepositoryUserRole = RepositoryUserRole.READ,
+    dowRate: number = 1.0,
+    dowCurrency: string = "USD",
+  ): UserRepository {
+    return new UserRepository(
+      userId,
+      repositoryId,
+      repositoryUserRole,
+      new Decimal(dowRate),
+      dowCurrency,
     );
   },
 };

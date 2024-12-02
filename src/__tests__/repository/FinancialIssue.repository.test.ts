@@ -74,7 +74,7 @@ describe("FinancialIssueRepository", () => {
   const issue2: Issue = Fixture.issue(issueId2, ownerId2);
 
   beforeEach(async () => {
-    user = await userRepo.insertLocal(Fixture.createUserBody());
+    user = await userRepo.insert(Fixture.createUser(Fixture.localUser()));
     userId = user.id;
   });
 

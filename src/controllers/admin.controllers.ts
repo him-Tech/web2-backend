@@ -29,6 +29,8 @@ import {
 } from "../db";
 import { secureToken } from "../utils";
 import { MailService } from "../services";
+import Decimal from "decimal.js";
+import { getFinancialIssueRepository } from "../db/FinancialIssue.repository";
 
 const addressRepository = getAddressRepository();
 const companyRepository = getCompanyRepository();
@@ -37,6 +39,8 @@ const companyUserPermissionTokenRepository =
 const repositoryUserPermissionTokenRepository =
   getRepositoryUserPermissionTokenRepository();
 const manualInvoiceRepository = getManualInvoiceRepository();
+
+const financialIssueRepository = getFinancialIssueRepository();
 const mailService = new MailService();
 
 export class AdminController {
@@ -122,15 +126,20 @@ export class AdminController {
       email: req.body.userEmail,
     });
 
+    // TODO: that is a hack to put the repositoryId in DB if it does not exist
+    const [owner, repository] = await financialIssueRepository.getRepository(
+      req.body.repositoryId,
+    );
+
     const createRepositoryUserPermissionTokenDto: CreateRepositoryUserPermissionTokenDto =
       {
         userName: req.body.userName,
         userEmail: req.body.userEmail,
         userGithubOwnerLogin: req.body.userGithubOwnerLogin,
         token: token,
-        repositoryId: req.body.repositoryId,
+        repositoryId: repository.id,
         repositoryUserRole: req.body.repositoryUserRole,
-        dowRate: req.body.dowRate,
+        dowRate: new Decimal(req.body.dowRate),
         dowCurrency: req.body.dowCurrency,
         expiresAt: expiresAt,
       };
@@ -140,8 +149,8 @@ export class AdminController {
         req.body.userGithubOwnerLogin,
       );
 
-    for (const permission of existing) {
-      await repositoryUserPermissionTokenRepository.delete(permission.token);
+    if (existing) {
+      await repositoryUserPermissionTokenRepository.delete(existing.token);
     }
 
     await repositoryUserPermissionTokenRepository.create(

@@ -46,7 +46,7 @@ export class MailService {
     token: string,
   ) {
     const subject = "Invite to register";
-    const resetPasswordUrl = `${this.registerURL}?company_token=${token}`;
+    const resetPasswordUrl = `${this.registerURL}?repository_token=${token}`;
 
     logger.debug(
       `Sending email to ${toEmail} with invite link ${resetPasswordUrl}`,

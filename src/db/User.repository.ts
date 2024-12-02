@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import {
+  LocalUser,
   Owner,
   Provider,
   ThirdPartyUser,
@@ -9,16 +10,20 @@ import {
   UserRole,
 } from "../model";
 import { getPool } from "../dbPool";
-import { CreateLocalUserBody } from "../dtos";
 import { encrypt } from "../utils";
 
 export function getUserRepository(): UserRepository {
   return new UserRepositoryImpl(getPool());
 }
 
+export interface CreateUser {
+  name: string | null;
+  data: LocalUser | ThirdPartyUser;
+  role: UserRole;
+}
+
 export interface UserRepository {
-  insertLocal(user: CreateLocalUserBody): Promise<User>;
-  insertGithub(user: ThirdPartyUser): Promise<User>;
+  insert(user: CreateUser): Promise<User>;
   validateEmail(email: string): Promise<User | null>;
   getById(id: UserId): Promise<User | null>;
   getAll(): Promise<User[]>;
@@ -121,40 +126,34 @@ class UserRepositoryImpl implements UserRepository {
     return this.getOptionalUser(result.rows);
   }
 
-  async insertLocal(user: CreateLocalUserBody): Promise<User> {
+  async insert(user: CreateUser): Promise<User> {
     const client = await this.pool.connect();
 
-    const hashedPassword = await encrypt.hashPassword(user.password);
-
-    try {
-      const result = await client.query(
-        `
+    if (user.data instanceof LocalUser) {
+      const hashedPassword = await encrypt.hashPassword(user.data.password);
+      try {
+        const result = await client.query(
+          `
                 INSERT INTO app_user (name, email, is_email_verified, hashed_password, role)
                 VALUES ($1, $2, $3, $4, $5) RETURNING *
             `,
-        [user.name, user.email, false, hashedPassword, user.role],
-      );
+          [user.name, user.data.email, false, hashedPassword, user.role],
+        );
 
-      return this.getOneUser(result.rows);
-    } finally {
-      client.release();
-    }
-  }
+        return this.getOneUser(result.rows);
+      } finally {
+        client.release();
+      }
+    } else if (user.data.provider === Provider.Github) {
+      const client = await this.pool.connect();
+      try {
+        await client.query("BEGIN"); // Start a transaction
 
-  async insertGithub(user: ThirdPartyUser): Promise<User> {
-    if (user.provider !== Provider.Github) {
-      throw new Error("Invalid provider, was expecting Github");
-    }
+        const owner = user.data.providerData.owner;
 
-    const client = await this.pool.connect();
-    try {
-      await client.query("BEGIN"); // Start a transaction
-
-      const owner = user.providerData.owner;
-
-      // Insert or update the Github owner
-      const ownerResult = await client.query(
-        `
+        // Insert or update the Github owner
+        const ownerResult = await client.query(
+          `
                     INSERT INTO github_owner (github_id, github_type, github_login, github_html_url, github_avatar_url)
                     VALUES ($1, $2, $3, $4, $5)
                     ON CONFLICT (github_id) DO UPDATE
@@ -164,26 +163,33 @@ class UserRepositoryImpl implements UserRepository {
                             github_avatar_url = EXCLUDED.github_avatar_url
                     RETURNING *
                 `,
-        [
-          owner.id.githubId,
-          owner.type,
-          owner.id.login,
-          owner.htmlUrl,
-          owner.avatarUrl,
-        ],
-      );
+          [
+            owner.id.githubId,
+            owner.type,
+            owner.id.login,
+            owner.htmlUrl,
+            owner.avatarUrl,
+          ],
+        );
 
-      // TODO: refactor
-      const githubOwner = Owner.fromBackend(ownerResult.rows[0]);
-      if (githubOwner instanceof Error) {
-        throw githubOwner;
-      }
+        // TODO: refactor
+        const githubOwner = Owner.fromBackend(ownerResult.rows[0]);
+        if (githubOwner instanceof Error) {
+          throw githubOwner;
+        }
 
-      // Insert or update the ThirdPartyUser
-      const userResult = await client.query(
-        `
-                    INSERT INTO app_user (provider, third_party_id, name, email, is_email_verified, role,
-                                          github_owner_id, github_owner_login)
+        // Insert or update the ThirdPartyUser
+        const userResult = await client.query(
+          `
+                    INSERT INTO app_user (provider, 
+                                          third_party_id, 
+                                          name, 
+                                          email, 
+                                          is_email_verified, 
+                                          role,
+                                          github_owner_id, 
+                                          github_owner_login
+                )
                     VALUES ($1, $2, $3, $4, TRUE, $5, $6, $7)
                     ON CONFLICT (third_party_id) DO UPDATE
                         SET provider           = EXCLUDED.provider,
@@ -194,25 +200,28 @@ class UserRepositoryImpl implements UserRepository {
                             github_owner_login = EXCLUDED.github_owner_login
                     RETURNING *
                 `,
-        [
-          user.provider,
-          user.id.id,
-          user.providerData.owner.id.login || null, // Use the owner's name from providerData
-          user.email(),
-          UserRole.USER,
-          githubOwner.id.githubId,
-          githubOwner.id.login,
-        ],
-      );
+          [
+            user.data.provider,
+            user.data.id.id,
+            user.name,
+            user.data.email,
+            UserRole.USER,
+            githubOwner.id.githubId,
+            githubOwner.id.login,
+          ],
+        );
 
-      const insertedUser = this.getOneUser(userResult.rows, githubOwner);
-      await client.query("COMMIT"); // Commit the transaction if everything is successful
-      return insertedUser;
-    } catch (error) {
-      await client.query("ROLLBACK"); // Rollback the transaction if there's an error
-      throw error;
-    } finally {
-      client.release(); // Release the client back to the pool
+        const insertedUser = this.getOneUser(userResult.rows, githubOwner);
+        await client.query("COMMIT"); // Commit the transaction if everything is successful
+        return insertedUser;
+      } catch (error) {
+        await client.query("ROLLBACK"); // Rollback the transaction if there's an error
+        throw error;
+      } finally {
+        client.release(); // Release the client back to the pool
+      }
+    } else {
+      throw new Error("Invalid provider, was expecting Github");
     }
   }
 

@@ -19,7 +19,9 @@ describe("ManualInvoiceRepository", () => {
   let companyId: CompanyId;
 
   beforeEach(async () => {
-    const companyUser = await userRepo.insertLocal(Fixture.createUserBody());
+    const companyUser = await userRepo.insert(
+      Fixture.createUser(Fixture.localUser()),
+    );
     userId = companyUser.id;
 
     const company = await companyRepo.create(Fixture.createCompanyBody());

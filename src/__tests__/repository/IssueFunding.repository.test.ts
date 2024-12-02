@@ -23,7 +23,9 @@ describe("IssueFundingRepository", () => {
   let validUserId: UserId;
 
   beforeEach(async () => {
-    const validUser = await userRepo.insertLocal(Fixture.createUserBody());
+    const validUser = await userRepo.insert(
+      Fixture.createUser(Fixture.localUser()),
+    );
     validUserId = validUser.id;
   });
 

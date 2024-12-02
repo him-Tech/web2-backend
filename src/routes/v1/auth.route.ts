@@ -21,6 +21,12 @@ router.post(
 );
 
 router.post(
+  "/register-as-maintainer",
+  AuthController.verifyRepositoryToken,
+  passport.authenticate("github"),
+);
+
+router.post(
   "/login",
   passport.authenticate("local-login"),
   AuthController.login,
@@ -30,13 +36,8 @@ router.get("/github", passport.authenticate("github"));
 
 router.get(
   "/redirect/github",
-  passport.authenticate("github", {
-    successRedirect: "http://localhost:3000/", // TODO: change this to the frontend URL
-    failureRedirect: "http://localhost:3000/",
-  }),
-  (request, response) => {
-    return response.status(StatusCodes.OK).send(request.user);
-  },
+  passport.authenticate("github"),
+  AuthController.registerForRepository,
 );
 
 router.post("/logout", AuthController.logout);
@@ -44,6 +45,11 @@ router.post("/logout", AuthController.logout);
 router.get(
   "/company-user-invite-info",
   AuthController.getCompanyUserInviteInfo,
+);
+
+router.get(
+  "/repository-user-invite-info",
+  AuthController.getRepositoryUserInviteInfo,
 );
 
 export default router;

@@ -22,7 +22,6 @@ import {
   ManagedIssueState,
   OwnerId,
   RepositoryId,
-  UserId,
 } from "../model";
 import { getFinancialIssueRepository } from "../db/FinancialIssue.repository";
 import { StatusCodes } from "http-status-codes";

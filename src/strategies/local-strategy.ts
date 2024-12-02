@@ -2,9 +2,8 @@ import passport from "passport";
 import { Strategy } from "passport-local";
 
 import { encrypt } from "../utils";
-import { getUserRepository, UserRepository } from "../db/";
+import { CreateUser, getUserRepository, UserRepository } from "../db/";
 import { LocalUser, User, UserRole } from "../model";
-import { CreateLocalUserBody } from "../dtos";
 
 const repo: UserRepository = getUserRepository();
 
@@ -30,9 +29,7 @@ passport.use(
           return done(null, false, {
             message: "Already registered with a third party",
           });
-        } else if (
-          !encrypt.comparePassword(password, user.data.hashedPassword)
-        ) {
+        } else if (!encrypt.comparePassword(password, user.data.password)) {
           return done(null, false, {
             message: "Incorrect username or password.",
           });
@@ -62,9 +59,7 @@ passport.use(
             return done(null, false, {
               message: "Already registered with a third party",
             });
-          } else if (
-            !encrypt.comparePassword(password, user.data.hashedPassword)
-          ) {
+          } else if (!encrypt.comparePassword(password, user.data.password)) {
             return done(null, false, {
               message: "Incorrect username or password.",
             });
@@ -73,18 +68,14 @@ passport.use(
           }
         }
 
-        // @ts-ignore TODO: improve
-        const name: string | null = req.body.name;
-
-        const dto: CreateLocalUserBody = {
-          name: name ?? undefined,
-          email,
-          password,
+        const createUser: CreateUser = {
+          name: req.body.name,
+          data: new LocalUser(email, false, password),
           role: superAdminEmails.includes(email.trim())
             ? UserRole.SUPER_ADMIN
             : UserRole.USER,
         };
-        const savedUser = await repo.insertLocal(dto);
+        const savedUser = await repo.insert(createUser);
         return done(null, savedUser);
       } catch (err) {
         return done(err);

@@ -10,8 +10,10 @@ export class Migration {
 
   public async migrate(): Promise<void> {
     const sql = fs.readFileSync("src/db/migration.sql").toString();
+    const stripe = fs.readFileSync("src/db/stripe.sql").toString();
 
     await this.pool.query(sql);
+    await this.pool.query(stripe);
     await this.pool.query(`SET timezone = 'UTC';`);
   }
 
@@ -36,6 +38,7 @@ export class Migration {
         DROP TABLE IF EXISTS company_user_permission_token CASCADE;
         DROP TABLE IF EXISTS repository_user_permission_token CASCADE;
         DROP TABLE IF EXISTS manual_invoice CASCADE;
+        DROP TABLE IF EXISTS user_repository CASCADE;
     `);
   }
 }

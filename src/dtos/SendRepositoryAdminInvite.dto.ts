@@ -1,5 +1,4 @@
 import { DowCurrency, RepositoryId, RepositoryUserRole } from "../model";
-import Decimal from "decimal.js";
 
 // TODO: should be renamed to SendRepositoryRoleInviteBody
 export interface SendRepositoryAdminInviteBody {
@@ -8,7 +7,7 @@ export interface SendRepositoryAdminInviteBody {
   userGithubOwnerLogin: string;
   repositoryId: RepositoryId;
   repositoryUserRole: RepositoryUserRole;
-  dowRate: Decimal;
+  dowRate: number;
   dowCurrency: DowCurrency;
 }
 

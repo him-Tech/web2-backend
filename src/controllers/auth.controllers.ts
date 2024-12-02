@@ -3,8 +3,12 @@ import {
   Company,
   CompanyUserPermissionToken,
   CompanyUserRole,
+  RepositoryId,
+  RepositoryUserPermissionToken,
+  ThirdPartyUser,
   User,
   UserId,
+  UserRepository,
 } from "../model";
 import { StatusCodes } from "http-status-codes";
 import {
@@ -16,6 +20,7 @@ import {
   RegisterBody,
   RegisterQuery,
   RegisterResponse,
+  RepositoryInfo,
   ResponseBody,
   StatusBody,
   StatusQuery,
@@ -25,16 +30,28 @@ import { secureToken } from "../utils";
 import {
   getCompanyRepository,
   getCompanyUserPermissionTokenRepository,
+  getRepositoryUserPermissionTokenRepository,
   getUserCompanyRepository,
   getUserRepository,
+  getUserRepositoryRepository,
 } from "../db";
 import { ApiError } from "../model/error/ApiError";
+import {
+  GetRepositoryUserInviteInfoQuery,
+  GetRepositoryUserInviteInfoResponse,
+} from "../dtos/auth/GetRepositoryUserInviteInfo.dto";
+import { logger } from "../config";
+
+const userRepo = getUserRepository();
 
 const companyRepo = getCompanyRepository();
 const companyUserPermissionTokenRepo =
   getCompanyUserPermissionTokenRepository();
-const userRepo = getUserRepository();
 const userCompanyRepo = getUserCompanyRepository();
+
+const repositoryUserPermissionTokenRepo =
+  getRepositoryUserPermissionTokenRepository();
+const userRepositoryRepo = getUserRepositoryRepository();
 
 export class AuthController {
   // TODO: probably put info of the company in the session, to to much avoid request to the DB.
@@ -60,6 +77,20 @@ export class AuthController {
     return [company, companyRole];
   }
 
+  private static async getRepositoryInfos(
+    userId: UserId,
+  ): Promise<[RepositoryId, RepositoryInfo][]> {
+    const userRepos: UserRepository[] = await userRepositoryRepo.getAll(userId);
+    return userRepos.map((userRepo) => {
+      const info: RepositoryInfo = {
+        role: userRepo.repositoryUserRole,
+        dowRate: userRepo.dowRate.toString(),
+        dowCurrency: userRepo.dowCurrency,
+      };
+      return [userRepo.repositoryId, info];
+    });
+  }
+
   static async status(
     req: Request<{}, {}, StatusBody, StatusQuery>,
     res: Response<ResponseBody<StatusResponse>>,
@@ -68,11 +99,13 @@ export class AuthController {
       const [company, companyRole] = await AuthController.getCompanyRoles(
         req.user.id,
       );
+      const repositories = await AuthController.getRepositoryInfos(req.user.id);
 
       const response: StatusResponse = {
         user: req.user as User,
         company: company,
         companyRole: companyRole,
+        repositories: repositories,
       };
       return res.status(StatusCodes.OK).send({ success: response }); // TODO: json instead of send ?
     } else {
@@ -80,6 +113,7 @@ export class AuthController {
         user: null,
         company: null,
         companyRole: null,
+        repositories: [],
       };
       return res.status(StatusCodes.OK).send({ success: response });
     }
@@ -90,12 +124,12 @@ export class AuthController {
     res: Response<ResponseBody<RegisterResponse>>,
     next: NextFunction,
   ) {
-    const query: RegisterQuery = req.query;
+    const token = req.query.companyToken;
 
-    if (query.companyToken) {
+    if (token) {
       const companyUserPermissionToken =
-        await companyUserPermissionTokenRepo.getByToken(query.companyToken);
-      const tokenData = await secureToken.verify(query.companyToken);
+        await companyUserPermissionTokenRepo.getByToken(token);
+      const tokenData = await secureToken.verify(token);
 
       if (companyUserPermissionToken === null) {
         next(new ApiError(StatusCodes.BAD_REQUEST, "Token invalid"));
@@ -117,7 +151,9 @@ export class AuthController {
         next();
       }
     } else {
-      return next(new ApiError(StatusCodes.BAD_REQUEST, "No token provided"));
+      return next(
+        new ApiError(StatusCodes.BAD_REQUEST, "No company token provided"),
+      );
     }
   }
 
@@ -125,11 +161,11 @@ export class AuthController {
     req: Request<{}, {}, RegisterBody, RegisterQuery>,
     res: Response<ResponseBody<RegisterResponse>>,
   ) {
+    // TODO: improve
     // @ts-ignore TODO: why is this not working?
-    const companyUserPermissionToken = req.companyUserPermissionToken!; // TODO: improve
+    const companyUserPermissionToken = req.companyUserPermissionToken!;
     const userId = req.user?.id!; // TODO: improve
 
-    const query: RegisterQuery = req.query;
     await userRepo.validateEmail(req.body.email);
 
     await userCompanyRepo.insert(
@@ -137,11 +173,83 @@ export class AuthController {
       companyUserPermissionToken.companyId,
       companyUserPermissionToken.companyUserRole,
     );
-    if (query.companyToken) {
-      await companyUserPermissionTokenRepo.delete(query.companyToken);
+
+    if (companyUserPermissionToken.token) {
+      await companyUserPermissionTokenRepo.delete(
+        companyUserPermissionToken.token,
+      );
     }
 
     res.sendStatus(StatusCodes.CREATED);
+  }
+
+  static async verifyRepositoryToken(
+    req: Request<{}, {}, RegisterBody, RegisterQuery>,
+    res: Response<ResponseBody<RegisterResponse>>,
+    next: NextFunction,
+  ) {
+    console.log("verifyRepositoryToken");
+    const token = req.query.repositoryToken;
+    if (token) {
+      const repositoryUserPermissionToken =
+        await repositoryUserPermissionTokenRepo.getByToken(token);
+      const tokenData = await secureToken.verify(token);
+
+      if (repositoryUserPermissionToken === null) {
+        next(new ApiError(StatusCodes.BAD_REQUEST, "Token invalid"));
+      } else if (repositoryUserPermissionToken.expiresAt < new Date()) {
+        next(new ApiError(StatusCodes.BAD_REQUEST, "Token expired"));
+      } else {
+        // Pass the verified token if needed
+        // @ts-ignore TODO: why is this not working?
+        req.repositoryUserPermissionToken = repositoryUserPermissionToken;
+        next();
+      }
+    } else {
+      return next(
+        new ApiError(StatusCodes.BAD_REQUEST, "No repository token provided"),
+      );
+    }
+  }
+
+  static async registerForRepository(
+    req: Request<{}, {}, RegisterBody, RegisterQuery>,
+    res: Response<ResponseBody<RegisterResponse>>,
+  ) {
+    const userData = req.user?.data!;
+    const userId = req.user?.id!; // TODO: improve
+
+    if (!(userData instanceof ThirdPartyUser)) {
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        "User is not a third party user",
+      );
+    }
+
+    const repositoryUserPermissionToken =
+      await repositoryUserPermissionTokenRepo.getByUserGithubOwnerLogin(
+        userData.providerData.owner.id.login,
+      );
+
+    if (repositoryUserPermissionToken) {
+      const userRepository = new UserRepository(
+        userId,
+        repositoryUserPermissionToken.repositoryId,
+        repositoryUserPermissionToken.repositoryUserRole,
+        repositoryUserPermissionToken.dowRate,
+        repositoryUserPermissionToken.dowCurrency,
+      );
+
+      await userRepositoryRepo.create(userRepository);
+
+      if (repositoryUserPermissionToken.token) {
+        await repositoryUserPermissionTokenRepo.delete(
+          repositoryUserPermissionToken.token,
+        );
+      }
+    }
+    const redirectUrl = `http://localhost:3000/`; // TODO: IMPORTANT
+    res.redirect(redirectUrl);
   }
 
   static async register(
@@ -152,6 +260,7 @@ export class AuthController {
       user: req.user as User,
       company: null,
       companyRole: null,
+      repositories: [],
     };
     return res.status(StatusCodes.CREATED).send({ success: response });
   }
@@ -160,17 +269,24 @@ export class AuthController {
     req: Request<{}, {}, LoginBody, LoginQuery>,
     res: Response<ResponseBody<LoginResponse>>,
   ) {
-    const user = req.user as User;
-    const [company, companyRole] = await AuthController.getCompanyRoles(
-      user.id,
-    );
+    if (req.isAuthenticated() && req.user) {
+      // TODO: refactor this: copy-paste in status
+      const user = req.user as User;
+      const [company, companyRole] = await AuthController.getCompanyRoles(
+        req.user.id,
+      );
+      const repositories = await AuthController.getRepositoryInfos(req.user.id);
 
-    const response: LoginResponse = {
-      user: user,
-      company,
-      companyRole,
-    };
-    return res.status(StatusCodes.OK).send({ success: response });
+      const response: LoginResponse = {
+        user: user,
+        company,
+        companyRole,
+        repositories,
+      };
+      return res.status(StatusCodes.OK).send({ success: response });
+    } else {
+      return res.sendStatus(StatusCodes.UNAUTHORIZED);
+    }
   }
 
   static async logout(req: Request, res: Response) {
@@ -191,19 +307,41 @@ export class AuthController {
       await companyUserPermissionTokenRepo.getByToken(query.token);
 
     if (companyUserPermissionToken === null) {
-      throw new ApiError(
-        StatusCodes.BAD_REQUEST,
-        `Token invalid or expired: ${query.token}`,
-      );
+      logger.debug(`Token invalid or expired: ${query.token}`);
+      throw new ApiError(StatusCodes.BAD_REQUEST, `Token invalid or expired`);
     } else if (companyUserPermissionToken.expiresAt < new Date()) {
-      throw new ApiError(
-        StatusCodes.BAD_REQUEST,
-        `Token invalid or expired: ${query.token}`,
-      );
+      logger.debug(`Token invalid or expired: ${query.token}`);
+      throw new ApiError(StatusCodes.BAD_REQUEST, `Token invalid or expired`);
     } else {
       const response: GetCompanyUserInviteInfoResponse = {
         userName: companyUserPermissionToken.userName,
         userEmail: companyUserPermissionToken.userEmail,
+      };
+      return res.status(StatusCodes.OK).send({ success: response });
+    }
+  }
+
+  static async getRepositoryUserInviteInfo(
+    req: Request<{}, {}, {}, GetRepositoryUserInviteInfoQuery>,
+    res: Response<ResponseBody<GetRepositoryUserInviteInfoResponse>>,
+  ) {
+    const query: GetRepositoryUserInviteInfoQuery = req.query;
+
+    const repositoryUserPermissionToken: RepositoryUserPermissionToken | null =
+      await repositoryUserPermissionTokenRepo.getByToken(query.token);
+
+    if (repositoryUserPermissionToken === null) {
+      logger.debug(`Token invalid or expired: ${query.token}`);
+      throw new ApiError(StatusCodes.BAD_REQUEST, `Token invalid or expired`);
+    } else if (repositoryUserPermissionToken.expiresAt < new Date()) {
+      logger.debug(`Token invalid or expired: ${query.token}`);
+      throw new ApiError(StatusCodes.BAD_REQUEST, `Token invalid or expired`);
+    } else {
+      const response: GetRepositoryUserInviteInfoResponse = {
+        userName: repositoryUserPermissionToken.userName,
+        userGithubOwnerLogin:
+          repositoryUserPermissionToken.userGithubOwnerLogin,
+        repositoryId: repositoryUserPermissionToken.repositoryId,
       };
       return res.status(StatusCodes.OK).send({ success: response });
     }

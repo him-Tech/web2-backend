@@ -35,7 +35,7 @@ describe("/api/v1/auth", () => {
     expect(response.body).toHaveProperty("success");
     expect(response.body).toHaveProperty("success.user");
     expect(response.body).toHaveProperty("success.user.id");
-    expect(response.body).toHaveProperty("success.user.data.name", "Lauriane");
+    expect(response.body).toHaveProperty("success.user.name", "Lauriane");
     expect(response.body).toHaveProperty("success.user.data.email", email);
     expect(response.body).toHaveProperty("success.user.role", "user");
   });
@@ -57,6 +57,9 @@ describe("/api/v1/auth", () => {
       password: password,
     });
 
+    console.log("Response Body:", loginResponse.body);
+    console.log("Response Status:", loginResponse.status);
+
     expect(loginResponse.status).toBe(200);
 
     // should be logged in
@@ -73,7 +76,7 @@ describe("/api/v1/auth", () => {
     expect(response.body).toHaveProperty("success");
     expect(response.body).toHaveProperty("success.user");
     expect(response.body).toHaveProperty("success.user.id");
-    expect(response.body).toHaveProperty("success.user.data.name", null);
+    expect(response.body).toHaveProperty("success.user.name", null);
     expect(response.body).toHaveProperty("success.user.data.email", email);
     expect(response.body).toHaveProperty("success.user.role", "user");
   });

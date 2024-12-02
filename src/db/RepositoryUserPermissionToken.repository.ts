@@ -167,7 +167,7 @@ class RepositoryUserPermissionTokenRepositoryImpl
 
     try {
       logger.debug(
-        "Updating RepositoryUserPermissionToken with ID: ",
+        "Updating RepositoryUserPermissionToken with ID: {}",
         token.id,
       );
       const result = await client.query(
@@ -251,7 +251,7 @@ class RepositoryUserPermissionTokenRepositoryImpl
     userGithubOwnerLogin: string,
   ): Promise<RepositoryUserPermissionToken | null> {
     logger.debug(
-      "Retrieving RepositoryUserPermissionToken by userGithubOwnerLogin: ",
+      "Retrieving RepositoryUserPermissionToken by userGithubOwnerLogin: {}",
       userGithubOwnerLogin,
     );
     const result = await this.pool.query(
@@ -269,7 +269,10 @@ class RepositoryUserPermissionTokenRepositoryImpl
   async getByToken(
     token: string,
   ): Promise<RepositoryUserPermissionToken | null> {
-    logger.debug("Retrieving RepositoryUserPermissionToken by token: ", token);
+    logger.debug(
+      "Retrieving RepositoryUserPermissionToken by token: {}",
+      token,
+    );
     const result = await this.pool.query(
       `
                 SELECT *
@@ -295,7 +298,7 @@ class RepositoryUserPermissionTokenRepositoryImpl
   }
 
   async delete(token: string): Promise<void> {
-    logger.debug("Deleting permission token: ", token);
+    logger.debug("Deleting permission token: {}", token);
     await this.pool.query(
       `
                 DELETE FROM repository_user_permission_token

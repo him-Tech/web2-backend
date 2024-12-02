@@ -13,29 +13,6 @@ export enum Provider {
   Github = "github",
 }
 
-export class Email {
-  value: string;
-  type: string | null;
-
-  constructor(value: string, type: string | null) {
-    this.value = value;
-    this.type = type;
-  }
-
-  static fromJson(json: any): Email | ValidationError {
-    const validator = new Validator(json);
-    validator.requiredString("value");
-    validator.optionalString("type");
-
-    const error = validator.getFirstError();
-    if (error) {
-      return error;
-    }
-
-    return new Email(json.value, json.type ?? null);
-  }
-}
-
 export class GithubData {
   owner: Owner;
 
@@ -47,48 +24,34 @@ export class GithubData {
 export class ThirdPartyUser {
   provider: Provider;
   id: ThirdPartyUserId;
-  emails: Email[];
+  email: string | null;
   providerData: GithubData;
 
   constructor(
     provider: Provider,
     id: ThirdPartyUserId,
-    emails: Email[],
+    email: string | null,
     providerData: GithubData,
   ) {
     this.provider = provider;
     this.id = id;
-    this.emails = emails;
+    this.email = email;
     this.providerData = providerData;
   }
 
-  email(): string | null {
-    if (this.emails.length > 0) {
-      return this.emails[0].value;
-    } else return null;
-  }
-
+  // TODO: check
   static fromJson(json: any): ThirdPartyUser | ValidationError {
     const validator = new Validator(json);
-    validator.requiredString("provider");
-    validator.requiredString("id");
+    const provider = validator.requiredEnum(
+      "provider",
+      Object.values(Provider) as Provider[],
+    );
+    const id = validator.requiredString("id");
     validator.optionalObject("_json");
-    validator.optionalArray("emails");
 
     const error = validator.getFirstError();
     if (error) {
       return error;
-    }
-
-    const emails: Email[] = [];
-    if (json.emails) {
-      for (const email of json.emails) {
-        const e = Email.fromJson(email);
-        if (e instanceof ValidationError) {
-          return e;
-        }
-        emails.push(e);
-      }
     }
 
     const owner = Owner.fromGithubApi(json._json);
@@ -98,9 +61,9 @@ export class ThirdPartyUser {
     const providerData = new GithubData(owner as Owner);
 
     return new ThirdPartyUser(
-      json.provider as Provider,
+      provider,
       new ThirdPartyUserId(json.id),
-      emails,
+      null,
       providerData,
     );
   }
@@ -110,19 +73,16 @@ export class ThirdPartyUser {
     owner: Owner | null = null,
   ): ThirdPartyUser | ValidationError {
     const validator = new Validator(row);
-    validator.requiredString("provider");
-    validator.requiredString("third_party_id");
-    validator.optionalString("display_name");
-    validator.optionalString("email");
+    const provider = validator.requiredEnum(
+      "provider",
+      Object.values(Provider) as Provider[],
+    );
+    const thirdPartyId = validator.requiredString("third_party_id");
+    const email = validator.optionalString("email");
 
     const error = validator.getFirstError();
     if (error) {
       return error;
-    }
-
-    const emails: Email[] = [];
-    if (row.email) {
-      emails.push(new Email(row.email, null));
     }
 
     if (owner === null) {
@@ -135,9 +95,9 @@ export class ThirdPartyUser {
     const providerData = new GithubData(owner!); // TODO: refactor
 
     return new ThirdPartyUser(
-      row.provider as Provider,
-      new ThirdPartyUserId(row.third_party_id),
-      emails,
+      provider,
+      new ThirdPartyUserId(thirdPartyId),
+      email ?? null,
       providerData,
     );
   }

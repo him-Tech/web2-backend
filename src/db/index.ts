@@ -10,3 +10,4 @@ export * from "./DowNumber.repository";
 export * from "./UserCompany.repository";
 export * from "./CompanyUserPermissionToken.repository";
 export * from "./RepositoryUserPermissionToken.repository";
+export * from "./UserRepository.repository";

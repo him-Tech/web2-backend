@@ -36,13 +36,17 @@ describe("DowNumberRepository", () => {
   let validIssueId: IssueId;
 
   beforeEach(async () => {
-    const lonelyUser = await userRepo.insertLocal(Fixture.createUserBody());
+    const lonelyUser = await userRepo.insert(
+      Fixture.createUser(Fixture.localUser()),
+    );
     lonelyUserId = lonelyUser.id;
 
     const validCompany = await companyRepo.create(Fixture.createCompanyBody());
     validCompanyId = validCompany.id;
 
-    const companyUser1 = await userRepo.insertLocal(Fixture.createUserBody());
+    const companyUser1 = await userRepo.insert(
+      Fixture.createUser(Fixture.localUser()),
+    );
     companyUserId1 = companyUser1.id;
     await userCompanyRepo.insert(
       companyUserId1,
@@ -50,7 +54,9 @@ describe("DowNumberRepository", () => {
       CompanyUserRole.ADMIN,
     );
 
-    const companyUser2 = await userRepo.insertLocal(Fixture.createUserBody());
+    const companyUser2 = await userRepo.insert(
+      Fixture.createUser(Fixture.localUser()),
+    );
     companyUserId2 = companyUser2.id;
     await userCompanyRepo.insert(
       companyUserId2,

@@ -7,6 +7,7 @@ import {
   ManagedIssue,
   Owner,
   Repository,
+  RepositoryId,
   User,
 } from "../model";
 import { getPool } from "../dbPool";
@@ -29,6 +30,9 @@ export function getFinancialIssueRepository(
 
 // TODO: optimize this implementation
 export interface FinancialIssueRepository {
+  // TODO: this function should not be here. And there is a copy-paste get
+  getRepository(repositoryId: RepositoryId): Promise<[Owner, Repository]>;
+
   get(issueId: IssueId): Promise<FinancialIssue | null>;
 
   getAll(): Promise<FinancialIssue[]>;
@@ -48,6 +52,73 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
   constructor(pool: Pool, githubService = getGitHubAPI()) {
     this.pool = pool;
     this.githubService = githubService;
+  }
+
+  async getRepository(
+    repositoryId: RepositoryId,
+  ): Promise<[Owner, Repository]> {
+    const githubRepoPromise: Promise<[Owner, Repository]> =
+      this.githubService.getOwnerAndRepository(repositoryId);
+
+    githubRepoPromise
+      .then(async ([owner, repo]) => {
+        this.ownerRepo
+          .insertOrUpdate(owner as Owner)
+          .then(async () => {
+            await this.repoRepo.insertOrUpdate(repo as Repository);
+          })
+          .catch((error) => {
+            logger.error("Error updating the DB", error);
+          });
+
+        return [owner, repo];
+      })
+      .catch((error) => {
+        logger.error("Error fetching GitHub data:", error);
+        return null;
+      });
+
+    const owner: Owner | null = await this.ownerRepo
+      .getById(repositoryId.ownerId)
+      .then(async (owner) => {
+        if (!owner) {
+          const [owner, _] = await githubRepoPromise;
+          return owner;
+        }
+        return owner;
+      })
+      .catch((error) => {
+        logger.error(
+          `Owner ${repositoryId.ownerId.toString()} does not exist in the DB and go an error fetching GitHub data:`,
+          error,
+        );
+        return null;
+      });
+
+    const repo: Repository | null = await this.repoRepo
+      .getById(repositoryId)
+      .then(async (repo) => {
+        if (!repo) {
+          const [_, repo] = await githubRepoPromise;
+          return repo;
+        }
+        return repo;
+      })
+      .catch((error) => {
+        logger.error(
+          `Repository ${repositoryId.toString()} does not exist in the DB and go an error fetching GitHub data:`,
+          error,
+        );
+        return null;
+      });
+
+    if (owner && repo) {
+      return [owner, repo];
+    } else {
+      throw new Error(
+        `Failed to fetch all required data for repository ${JSON.stringify(repositoryId)}`,
+      );
+    }
   }
 
   async get(issueId: IssueId): Promise<FinancialIssue> {
@@ -90,7 +161,7 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
       })
       .catch((error) => {
         logger.error(
-          `Issue owner ${issueId.toString()} does not exist in the DB and go an error fetching GitHub data:`,
+          `Issue owner ${JSON.stringify(issueId)} does not exist in the DB and go an error fetching GitHub data:`,
           error,
         );
         return null;
@@ -107,7 +178,7 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
       })
       .catch((error) => {
         logger.error(
-          `Issue repository ${issueId.toString()} does not exist in the DB and go an error fetching GitHub data:`,
+          `Issue repository ${JSON.stringify(issueId)} does not exist in the DB and go an error fetching GitHub data:`,
           error,
         );
         return null;
@@ -124,7 +195,7 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
       })
       .catch((error) => {
         logger.error(
-          `Issue ${issueId.toString()} does not exist in the DB and go an error fetching GitHub data:`,
+          `Issue ${JSON.stringify(issueId)} does not exist in the DB and go an error fetching GitHub data:`,
           error,
         );
         return null;
@@ -141,7 +212,7 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
       })
       .catch((error) => {
         logger.error(
-          `Got an error fetching the manager for managed issue for issue ${issueId.toString()}:`,
+          `Got an error fetching the manager for managed issue for issue ${JSON.stringify(issueId)}:`,
           error,
         );
         return null;
@@ -163,7 +234,7 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
       );
     } else {
       throw new Error(
-        `Failed to fetch all required data for managed issue ${issueId.toString()}`,
+        `Failed to fetch all required data for managed issue ${JSON.stringify(issueId)}`,
       );
     }
   }

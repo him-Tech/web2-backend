@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS github_owner
     github_html_url   VARCHAR(510) NOT NULL,
     github_avatar_url VARCHAR(510),
 
+    email             VARCHAR(255),
+
     created_at        TIMESTAMP    NOT NULL DEFAULT now(),
     updated_at        TIMESTAMP    NOT NULL DEFAULT now()
 );
@@ -151,8 +153,8 @@ CREATE TABLE IF NOT EXISTS company
 
 CREATE TABLE IF NOT EXISTS user_company
 (
-    user_id    UUID,
-    company_id UUID,
+    user_id    UUID NOT NULL,
+    company_id UUID NOT NULL,
     role       VARCHAR(50) NOT NULL, -- The role of this user for this company: 'admin', 'suggest', 'read'
 
     created_at TIMESTAMP   NOT NULL DEFAULT now(),
@@ -164,103 +166,32 @@ CREATE TABLE IF NOT EXISTS user_company
     CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES company (id) ON DELETE CASCADE
 );
 
--- CREATE TABLE IF NOT EXISTS user_repository(
---     user_id                UUID,
---
---     github_owner_id        BIGINT      NOT NULL,
---     github_owner_login     VARCHAR(255) NOT NULL,
---
---     github_repository_id   BIGINT      NOT NULL,
---     github_repository_name VARCHAR(255) NOT NULL,
---
---     role                   VARCHAR(50)  NOT NULL, -- The role of this user for this repository
---
---     created_at             TIMESTAMP    NOT NULL DEFAULT now(),
---     updated_at             TIMESTAMP    NOT NULL DEFAULT now(),
---
---     PRIMARY KEY (user_id, github_owner_login, github_repository_name),
---
---     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES app_user (id) ON DELETE CASCADE,
---
---     CONSTRAINT fk_github_owner_id FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT,
---     CONSTRAINT fk_github_owner_login FOREIGN KEY (github_owner_login) REFERENCES github_owner (github_login) ON DELETE RESTRICT,
---
---     CONSTRAINT fk_github_repository_id FOREIGN KEY (github_repository_id) REFERENCES github_repository (github_id) ON DELETE RESTRICT,
---     CONSTRAINT fk_github_repository FOREIGN KEY (github_owner_login, github_repository_name) REFERENCES github_repository (github_owner_login, github_name) ON DELETE RESTRICT
--- );
+CREATE TABLE IF NOT EXISTS user_repository(
+    user_id                UUID NOT NULL,
 
----------------------
---- Stripe tables ---
----------------------
+    github_owner_id        BIGINT      NOT NULL,
+    github_owner_login     VARCHAR(255) NOT NULL,
 
-CREATE TABLE IF NOT EXISTS stripe_customer
-(
-    id         UUID        NOT NULL DEFAULT gen_random_uuid(),
-    stripe_id  VARCHAR(50) NOT NULL PRIMARY KEY,
-    user_id    UUID        NOT NULL,
+    github_repository_id   BIGINT      NOT NULL,
+    github_repository_name VARCHAR(255) NOT NULL,
 
-    created_at TIMESTAMP   NOT NULL DEFAULT now(),
-    updated_at TIMESTAMP   NOT NULL DEFAULT now(),
+    repository_user_role    VARCHAR(50)      NOT NULL, -- 'admin', 'read'
+    dow_rate                NUMERIC          NOT NULL, -- The rate of DoW per issue
+    dow_currency            VARCHAR(10)      NOT NULL,
 
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES app_user (id) ON DELETE CASCADE
+    created_at             TIMESTAMP    NOT NULL DEFAULT now(),
+    updated_at             TIMESTAMP    NOT NULL DEFAULT now(),
+
+    PRIMARY KEY (user_id, github_owner_login, github_repository_name),
+
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES app_user (id) ON DELETE CASCADE,
+
+    CONSTRAINT fk_github_owner_id FOREIGN KEY (github_owner_id) REFERENCES github_owner (github_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_github_owner_login FOREIGN KEY (github_owner_login) REFERENCES github_owner (github_login) ON DELETE RESTRICT,
+
+    CONSTRAINT fk_github_repository_id FOREIGN KEY (github_repository_id) REFERENCES github_repository (github_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_github_repository FOREIGN KEY (github_owner_login, github_repository_name) REFERENCES github_repository (github_owner_login, github_name) ON DELETE RESTRICT
 );
-
--- example: represent the product 0.01 DoW
-CREATE TABLE IF NOT EXISTS stripe_product
-(
-    id          UUID        NOT NULL DEFAULT gen_random_uuid(),
-    stripe_id   VARCHAR(50) NOT NULL PRIMARY KEY,
-    unit        VARCHAR(50) NOT NULL, -- 'DoW'
-    unit_amount INTEGER     NOT NULL,
-    recurring   BOOLEAN     NOT NULL,
-
-    created_at  TIMESTAMP   NOT NULL DEFAULT now(),
-    updated_at  TIMESTAMP   NOT NULL DEFAULT now(),
-
-    CONSTRAINT positive_quantity CHECK (unit_amount > 0)
-);
-
-CREATE TABLE IF NOT EXISTS stripe_invoice
-(
-    id                 UUID         NOT NULL DEFAULT gen_random_uuid(),
-    stripe_id          VARCHAR(50)  NOT NULL PRIMARY KEY,
-    customer_id        VARCHAR(50)  NOT NULL,
-    paid               BOOLEAN      NOT NULL,
-    account_country    VARCHAR(255) NOT NULL,
-    currency           VARCHAR(10)  NOT NULL,
-    total              NUMERIC      NOT NULL,
-    total_excl_tax     NUMERIC      NOT NULL,
-    subtotal           NUMERIC      NOT NULL,
-    subtotal_excl_tax  NUMERIC      NOT NULL,
-    hosted_invoice_url TEXT         NOT NULL,
-    invoice_pdf        TEXT         NOT NULL,
-
-    created_at         TIMESTAMP    NOT NULL DEFAULT now(),
-    updated_at         TIMESTAMP    NOT NULL DEFAULT now(),
-
-    CONSTRAINT fk_customer FOREIGN KEY (customer_id) REFERENCES stripe_customer (stripe_id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS stripe_invoice_line
-(
-    id          UUID        NOT NULL DEFAULT gen_random_uuid(),
-    stripe_id   VARCHAR(50) NOT NULL PRIMARY KEY,
-    invoice_id  VARCHAR(50) NOT NULL,
-    customer_id VARCHAR(50) NOT NULL,
-    product_id  VARCHAR(50) NOT NULL,
-    price_id    VARCHAR(50) NOT NULL,
-    quantity    INTEGER     NOT NULL, -- Quantity of the product
-
-    created_at  TIMESTAMP   NOT NULL DEFAULT now(),
-    updated_at  TIMESTAMP   NOT NULL DEFAULT now(),
-
-    CONSTRAINT fk_invoice FOREIGN KEY (invoice_id) REFERENCES stripe_invoice (stripe_id) ON DELETE CASCADE,
-    CONSTRAINT fk_customer FOREIGN KEY (customer_id) REFERENCES stripe_customer (stripe_id) ON DELETE CASCADE,
-    CONSTRAINT fk_product FOREIGN KEY (product_id) REFERENCES stripe_product (stripe_id) ON DELETE CASCADE,
-
-    CONSTRAINT positive_quantity CHECK (quantity > 0)
-);
-
 -----------------------------
 --- Manual invoice tables ---
 -----------------------------
