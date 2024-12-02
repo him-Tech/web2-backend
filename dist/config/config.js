@@ -45,6 +45,7 @@ const envVarsSchema = joi_1.default.object({
     JWT_REFRESH_EXPIRATION_DAYS: joi_1.default.number()
         .default(30)
         .description("days after which refresh tokens expire"),
+    DATABASE_URL: joi_1.default.string().required().description("postgres database url"),
     POSTGRES_USER: joi_1.default.string().required().description("postgres name"),
     POSTGRES_HOST: joi_1.default.string().required().description("postgres host"),
     POSTGRES_PORT: joi_1.default.number().required().description("postgres database port"),
@@ -98,6 +99,7 @@ exports.config = {
     //     cookieExpirationHours: envVars.COOKIE_EXPIRATION_HOURS,
     // },
     postgres: {
+        connectionString: envVars.DATABASE_URL,
         user: envVars.POSTGRES_USER,
         host: envVars.POSTGRES_HOST,
         port: envVars.POSTGRES_PORT,

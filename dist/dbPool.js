@@ -30,13 +30,9 @@ const config_1 = require("./config");
 dotenv.config();
 function getPool() {
     return new pg_1.Pool({
-        user: config_1.config.postgres.user,
-        password: config_1.config.postgres.password,
-        host: config_1.config.postgres.host,
-        port: config_1.config.postgres.port,
-        database: config_1.config.postgres.database,
-        max: config_1.config.postgres.pool.maxSize,
-        min: config_1.config.postgres.pool.minSize,
-        idleTimeoutMillis: config_1.config.postgres.pool.idleTimeoutMillis,
+        connectionString: config_1.config.postgres.connectionString,
+        ssl: {
+            rejectUnauthorized: false,
+        },
     });
 }

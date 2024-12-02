@@ -20,6 +20,7 @@ const envVarsSchema = Joi.object({
     .default(30)
     .description("days after which refresh tokens expire"),
 
+  DATABASE_URL: Joi.string().required().description("postgres database url"),
   POSTGRES_USER: Joi.string().required().description("postgres name"),
   POSTGRES_HOST: Joi.string().required().description("postgres host"),
   POSTGRES_PORT: Joi.number().required().description("postgres database port"),
@@ -67,6 +68,7 @@ interface Jwt {
 }
 
 interface Postgres {
+  connectionString: string;
   user: string;
   host: string;
   port: number;
@@ -132,6 +134,7 @@ export const config: Config = {
   // },
 
   postgres: {
+    connectionString: envVars.DATABASE_URL,
     user: envVars.POSTGRES_USER,
     host: envVars.POSTGRES_HOST,
     port: envVars.POSTGRES_PORT,
