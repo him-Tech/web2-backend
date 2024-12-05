@@ -2,7 +2,6 @@ import { ServerClient } from "postmark";
 import { config, logger } from "../config";
 import { Owner, Repository } from "../model";
 
-// TODO
 export class MailService {
   // TODO: make a data structure and a test to be sure to that this url exists
   private registerURL: string = `${config.frontEndUrl}/sign-up`;

@@ -141,7 +141,6 @@ export class Validator {
     }
   }
 
-  // TODO: lolo
   // @ts-ignore
   requiredDecimal(path: string | string[]): Decimal {
     let value = this.getValue(path);
