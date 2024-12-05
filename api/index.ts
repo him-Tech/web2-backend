@@ -1,5 +1,5 @@
-import { createApp } from "./createApp";
-import { config, logger } from "./config";
+import { createApp } from "../src/createApp";
+import { config, logger } from "../src/config";
 
 const app = createApp();
 
