@@ -16,11 +16,20 @@ const envVarsSchema = Joi.object({
 
   JWT_SECRET: Joi.string().required().description("JWT secret key"),
   JWT_ACCESS_EXPIRATION_MINUTES: Joi.number()
-    .default(30)
+    .default(60 * 24 * 10) // 10 days
     .description("minutes after which access tokens expire"),
   JWT_REFRESH_EXPIRATION_DAYS: Joi.number()
     .default(30)
     .description("days after which refresh tokens expire"),
+  JWT_RESET_PASSWORD_EXPIRATION_MINUTES: Joi.number()
+    .default(10)
+    .description("minutes after which reset password tokens expire"),
+
+  SALT_ROUNDS: Joi.number()
+    .integer()
+    .min(8)
+    .default(12)
+    .description("Number of salt rounds for bcrypt hashing"),
 
   DATABASE_URL: Joi.string().required().description("postgres database url"),
   PGUSER: Joi.string().required().description("postgres name"),
@@ -65,6 +74,7 @@ interface Jwt {
   secret: string;
   accessExpirationMinutes: number;
   refreshExpirationDays: number;
+  resetPasswordExpirationMinutes: number;
 }
 
 interface Postgres {
@@ -98,6 +108,10 @@ interface Email {
   from: string;
 }
 
+interface Encrypt {
+  saltRounds: number;
+}
+
 interface Config {
   env: NodeEnv;
   host: string;
@@ -108,6 +122,7 @@ interface Config {
   github: Github;
   stripe: Stripe;
   email: Email;
+  encrypt: Encrypt;
 }
 
 export const config: Config = {
@@ -115,19 +130,14 @@ export const config: Config = {
   host: envVars.HOST,
   port: envVars.PORT,
   frontEndUrl: envVars.FRONT_END_URL,
-  // pagination: {
-  //     limit: 10,
-  //     page: 1,
-  // },
+
   jwt: {
     secret: envVars.JWT_SECRET,
     accessExpirationMinutes: envVars.JWT_ACCESS_EXPIRATION_MINUTES,
     refreshExpirationDays: envVars.JWT_REFRESH_EXPIRATION_DAYS,
-    resetPasswordExpirationMinutes: 10,
+    resetPasswordExpirationMinutes:
+      envVars.JWT_RESET_PASSWORD_EXPIRATION_MINUTES,
   } as Jwt,
-  // cookie: {
-  //     cookieExpirationHours: envVars.COOKIE_EXPIRATION_HOURS,
-  // },
 
   postgres: {
     connectionString: envVars.DATABASE_URL,
@@ -158,4 +168,8 @@ export const config: Config = {
     postmarkApiToken: envVars.POSTMARK_API_TOKEN,
     from: envVars.POSTMARK_SENDER_EMAIL,
   } as Email,
+
+  encrypt: {
+    saltRounds: envVars.SALT_ROUNDS,
+  } as Encrypt,
 };

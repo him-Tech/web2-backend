@@ -1,11 +1,10 @@
-var bcrypt = require("bcryptjs");
+import { config } from "../config";
 
-// TODO
-const saltRounds = 10;
+var bcrypt = require("bcryptjs");
 
 export class encrypt {
   static async hashPassword(password: string) {
-    const salt = bcrypt.genSaltSync(saltRounds);
+    const salt = bcrypt.genSaltSync(config.encrypt.saltRounds);
     return bcrypt.hashSync(password, salt);
   }
 

@@ -40,7 +40,7 @@ import {
   GetRepositoryUserInviteInfoQuery,
   GetRepositoryUserInviteInfoResponse,
 } from "../dtos/auth/GetRepositoryUserInviteInfo.dto";
-import { logger } from "../config";
+import { config, logger } from "../config";
 
 const userRepo = getUserRepository();
 
@@ -248,8 +248,7 @@ export class AuthController {
         );
       }
     }
-    const redirectUrl = `http://localhost:3000/`; // TODO: IMPORTANT
-    res.redirect(redirectUrl);
+    res.redirect(config.frontEndUrl);
   }
 
   static async register(
