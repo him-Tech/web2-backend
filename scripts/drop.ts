@@ -1,5 +1,5 @@
 import { getPool } from "../src/dbPool";
-import { Migration } from "../src/db/migration";
+import { Migration } from "../src/db/migration/migration";
 
 async function main() {
   const pool = getPool();

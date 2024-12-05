@@ -9,8 +9,8 @@ export class Migration {
   }
 
   public async migrate(): Promise<void> {
-    const sql = fs.readFileSync("src/db/migration.sql").toString();
-    const stripe = fs.readFileSync("src/db/stripe.sql").toString();
+    const sql = fs.readFileSync("src/db/migration/1.sql").toString();
+    const stripe = fs.readFileSync("src/db/migration/stripe.sql").toString();
 
     await this.pool.query(sql);
     await this.pool.query(stripe);
