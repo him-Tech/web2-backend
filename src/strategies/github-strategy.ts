@@ -6,6 +6,7 @@ import { config } from "../config";
 import { ValidationError } from "../model/error";
 import { ApiError } from "../model/error/ApiError";
 import { StatusCodes } from "http-status-codes";
+import { ensureNoEndingTrailingSlash } from "../utils";
 
 const repo: UserRepository = getUserRepository();
 
@@ -14,7 +15,7 @@ passport.use(
     {
       clientID: config.github.clientId,
       clientSecret: config.github.clientSecret,
-      callbackURL: "/api/v1/auth/redirect/github",
+      callbackURL: `${ensureNoEndingTrailingSlash(config.host)}/api/v1/auth/redirect/github`,
       scope: ["user:email"], // Request additional GitHub user data like email
       passReqToCallback: true,
     },

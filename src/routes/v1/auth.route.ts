@@ -1,7 +1,6 @@
 import { Router } from "express";
 import passport from "passport";
 import { AuthController } from "../../controllers/auth.controllers";
-import { StatusCodes } from "http-status-codes";
 
 const router = Router();
 

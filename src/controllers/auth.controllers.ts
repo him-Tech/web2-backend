@@ -26,7 +26,7 @@ import {
   StatusQuery,
   StatusResponse,
 } from "../dtos";
-import { secureToken } from "../utils";
+import {ensureNoEndingTrailingSlash, secureToken} from "../utils";
 import {
   getCompanyRepository,
   getCompanyUserPermissionTokenRepository,
@@ -248,7 +248,7 @@ export class AuthController {
         );
       }
     }
-    res.redirect(config.frontEndUrl);
+    res.redirect(ensureNoEndingTrailingSlash(config.frontEndUrl));
   }
 
   static async register(
