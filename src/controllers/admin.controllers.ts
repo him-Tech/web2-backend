@@ -31,6 +31,7 @@ import { secureToken } from "../utils";
 import { MailService } from "../services";
 import Decimal from "decimal.js";
 import { getFinancialIssueRepository } from "../db/FinancialIssue.repository";
+import { OwnerId } from "../model";
 
 const addressRepository = getAddressRepository();
 const companyRepository = getCompanyRepository();
@@ -126,7 +127,9 @@ export class AdminController {
       email: req.body.userEmail,
     });
 
-    // TODO: that is a hack to put the repositoryId in DB if it does not exist
+    const user = await financialIssueRepository.getOwner(
+      new OwnerId(req.body.userGithubOwnerLogin),
+    );
     const [owner, repository] = await financialIssueRepository.getRepository(
       req.body.repositoryId,
     );
@@ -160,6 +163,8 @@ export class AdminController {
     await mailService.sendRepositoryAdminInvite(
       req.body.userName,
       req.body.userEmail,
+      user,
+      repository,
       token,
     );
 

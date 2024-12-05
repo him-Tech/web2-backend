@@ -1,5 +1,6 @@
 import { ServerClient } from "postmark";
 import { config, logger } from "../config";
+import { Owner, Repository } from "../model";
 
 // TODO
 export class MailService {
@@ -26,7 +27,7 @@ export class MailService {
     toName: string | null,
     toEmail: string,
     token: string,
-  ) {
+  ): Promise<void> {
     const subject = "Invite to register";
     const resetPasswordUrl = `${this.registerURL}?company_token=${token}`;
 
@@ -43,35 +44,31 @@ export class MailService {
   async sendRepositoryAdminInvite(
     toName: string | null,
     toEmail: string,
+    owner: Owner,
+    repository: Repository,
     token: string,
-  ) {
+  ): Promise<void> {
     const subject = "Invite to register";
-    const resetPasswordUrl = `${this.registerURL}?repository_token=${token}`;
+    const setUpYourAccountLink = `${this.registerURL}?repository_token=${token}`;
+
+    const ownerLogin: string = owner.id.login;
+    const ownerProfileUrl: string | undefined = owner.avatarUrl;
+
+    const repositoryName: string = repository.id.name;
+    const repositoryUrl: string | null = repository.htmlUrl;
+
+    // URL could be:
+    // https://avatars.githubusercontent.com/u/141809657?v=4
+    // https://avatars.githubusercontent.com/u/6135171?v=4
+    // https://avatars.githubusercontent.com/u/47359?v=4
 
     logger.debug(
-      `Sending email to ${toEmail} with invite link ${resetPasswordUrl}`,
+      `Sending email to ${toEmail} with invite link ${setUpYourAccountLink}`,
     );
 
-    const text = `Dear ${toName ? toName : ""},,
-        Register to Open Source Economy: ${resetPasswordUrl}`;
+    const text = `Dear ${toName ? toName : ownerLogin},,
+        Register to Open Source Economy: ${setUpYourAccountLink}`;
 
     await this.sendMail(toEmail, subject, text);
   }
-
-  //     async sendResetPasswordEmail(to: string, token: string) {
-  //         const subject = "Reset password";
-  //         const resetPasswordUrl = `http://link-to-app/reset-password?token=${token}`;
-  //         const text = `Dear user,
-  // To reset your password, click on this link: ${resetPasswordUrl}
-  // If you did not request any password resets, then ignore this email.`;
-  //         await this.sendMail(to, subject, text);
-  //     }
-  //
-  //     async sendVerificationEmail(to: string, token: string) {
-  //         const subject = "Email Verification";
-  //         const verificationEmailUrl = `http://localhost:3000/api/v1/auth/login/email/verify?token=${token}`;
-  //         const text = `Dear user, To verify your email, click on this link: ${verificationEmailUrl}`;
-  //
-  //         await this.sendMail(to, subject, text);
-  //     }
 }

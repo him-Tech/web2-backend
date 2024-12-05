@@ -1,4 +1,11 @@
-import { Issue, IssueId, Owner, Repository, RepositoryId } from "../model";
+import {
+  Issue,
+  IssueId,
+  Owner,
+  OwnerId,
+  Repository,
+  RepositoryId,
+} from "../model";
 import { config, logger } from "../config";
 import { ValidationError } from "../model/error";
 
@@ -7,19 +14,23 @@ export function getGitHubAPI(): GitHubApi {
 }
 
 export interface GitHubApi {
-  // returns the issue and the owner that opened the issue
-  getIssue(issueId: IssueId): Promise<[Issue, Owner]>;
+  getOwner(ownerId: OwnerId): Promise<Owner>;
 
   getOwnerAndRepository(
     repositoryId: RepositoryId,
   ): Promise<[Owner, Repository]>;
+
+  // returns the issue and the owner that opened the issue
+  getIssue(issueId: IssueId): Promise<[Issue, Owner]>;
 }
 
 class GitHubApiImpl implements GitHubApi {
-  async getIssue(issueId: IssueId): Promise<[Issue, Owner]> {
+  async getOwner(ownerId: OwnerId): Promise<Owner> {
     try {
+      // https://api.github.com/users/laurianemollier (for users and organizations)
+      // https://api.github.com/orgs/open-source-economy (for organizations)
       const response: Response = await fetch(
-        `https://api.github.com/repos/${issueId.repositoryId.ownerId.login.trim()}/${issueId.repositoryId.name.trim()}/issues/${issueId.number}`,
+        `https://api.github.com/users/${ownerId.login.trim()}`,
         {
           method: "GET",
           headers: {
@@ -30,35 +41,26 @@ class GitHubApiImpl implements GitHubApi {
       );
       if (response.ok) {
         const json = await response.json();
-        const issue: Issue | ValidationError = Issue.fromGithubApi(
-          issueId.repositoryId,
-          json,
-        );
-        const openBy: Owner | ValidationError = Owner.fromGithubApi(json.user);
-        if (issue instanceof ValidationError) {
-          logger.error(
-            `Invalid JSON response: Issue parsing failed. URL: ${response.url}`,
-          );
-          return Promise.reject(issue);
-        } else if (openBy instanceof ValidationError) {
+        const owner: Owner | ValidationError = Owner.fromGithubApi(json);
+        if (owner instanceof ValidationError) {
           logger.error(
             `Invalid JSON response: Owner parsing failed. URL: ${response.url}`,
           );
-          return Promise.reject(openBy);
+          return Promise.reject(owner);
         } else {
-          return [issue, openBy];
+          return owner;
         }
       } else {
-        const errorDetails = `Error fetching issue: Status ${response.status} - ${response.statusText}. URL: ${response.url}`;
+        const errorDetails = `Error fetching owner: Status ${response.status} - ${response.statusText}. URL: ${response.url}`;
         logger.error(errorDetails);
         return Promise.reject(
           new Error(
-            `Failed to fetch issue from GitHub. Status: ${response.status} - ${response.statusText}`,
+            `Failed to fetch owner from GitHub. Status: ${response.status} - ${response.statusText}`,
           ),
         );
       }
     } catch (error) {
-      logger.error(`Failed to call GitHub API for getIssue: ${error}`);
+      logger.error(`Failed to call GitHub API for getOwner: ${error}`);
       return Promise.reject(new Error("Call to GitHub API failed: " + error));
     }
   }
@@ -114,6 +116,53 @@ class GitHubApiImpl implements GitHubApi {
       logger.error(
         `Failed to call GitHub API for getOwnerAndRepository: ${error}`,
       );
+      return Promise.reject(new Error("Call to GitHub API failed: " + error));
+    }
+  }
+
+  async getIssue(issueId: IssueId): Promise<[Issue, Owner]> {
+    try {
+      const response: Response = await fetch(
+        `https://api.github.com/repos/${issueId.repositoryId.ownerId.login.trim()}/${issueId.repositoryId.name.trim()}/issues/${issueId.number}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: "Token " + config.github.requestToken,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        },
+      );
+      if (response.ok) {
+        const json = await response.json();
+        const issue: Issue | ValidationError = Issue.fromGithubApi(
+          issueId.repositoryId,
+          json,
+        );
+        const openBy: Owner | ValidationError = Owner.fromGithubApi(json.user);
+        if (issue instanceof ValidationError) {
+          logger.error(
+            `Invalid JSON response: Issue parsing failed. URL: ${response.url}`,
+          );
+          return Promise.reject(issue);
+        } else if (openBy instanceof ValidationError) {
+          logger.error(
+            `Invalid JSON response: Owner parsing failed. URL: ${response.url}`,
+          );
+          return Promise.reject(openBy);
+        } else {
+          return [issue, openBy];
+        }
+      } else {
+        const errorDetails = `Error fetching issue: Status ${response.status} - ${response.statusText}. URL: ${response.url}`;
+        logger.error(errorDetails);
+        return Promise.reject(
+          new Error(
+            `Failed to fetch issue from GitHub. Status: ${response.status} - ${response.statusText}`,
+          ),
+        );
+      }
+    } catch (error) {
+      logger.error(`Failed to call GitHub API for getIssue: ${error}`);
       return Promise.reject(new Error("Call to GitHub API failed: " + error));
     }
   }

@@ -45,6 +45,11 @@ describe("FinancialIssueRepository", () => {
       this.repository = repository;
       this.issue = issue;
     }
+
+    async getOwner(ownerId: OwnerId): Promise<Owner> {
+      return this.owner;
+    }
+
     async getOwnerAndRepository(
       repositoryId: RepositoryId,
     ): Promise<[Owner, Repository]> {

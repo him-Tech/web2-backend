@@ -6,6 +6,7 @@ import {
   IssueId,
   ManagedIssue,
   Owner,
+  OwnerId,
   Repository,
   RepositoryId,
   User,
@@ -30,6 +31,8 @@ export function getFinancialIssueRepository(
 
 // TODO: optimize this implementation
 export interface FinancialIssueRepository {
+  getOwner(ownerId: OwnerId): Promise<Owner>;
+
   // TODO: this function should not be here. And there is a copy-paste get
   getRepository(repositoryId: RepositoryId): Promise<[Owner, Repository]>;
 
@@ -52,6 +55,41 @@ class FinancialIssueRepositoryImpl implements FinancialIssueRepository {
   constructor(pool: Pool, githubService = getGitHubAPI()) {
     this.pool = pool;
     this.githubService = githubService;
+  }
+
+  async getOwner(ownerId: OwnerId): Promise<Owner> {
+    const githubOwnerPromise = this.githubService.getOwner(ownerId);
+    githubOwnerPromise
+      .then(async (owner) => {
+        await this.ownerRepo.insertOrUpdate(owner as Owner);
+      })
+      .catch((error) => {
+        logger.error("Error fetching GitHub data:", error);
+      });
+
+    const owner = await this.ownerRepo
+      .getById(ownerId)
+      .then(async (owner) => {
+        if (!owner) {
+          return githubOwnerPromise;
+        }
+        return owner;
+      })
+      .catch((error) => {
+        logger.error(
+          `Owner ${ownerId.toString()} does not exist in the DB and go an error fetching GitHub data:`,
+          error,
+        );
+        return null;
+      });
+
+    if (owner) {
+      return owner;
+    } else {
+      throw new Error(
+        `Failed to fetch all required data for repository ${JSON.stringify(ownerId)}`,
+      );
+    }
   }
 
   async getRepository(
