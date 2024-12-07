@@ -1,6 +1,11 @@
 import passport from "passport";
 import { Strategy } from "passport-github";
-import { CreateUser, getUserRepository, UserRepository } from "../db/";
+import {
+  CreateUser,
+  getRepositoryUserPermissionTokenRepository,
+  getUserRepository,
+  UserRepository,
+} from "../db/";
 import { Provider, ThirdPartyUser, ThirdPartyUserId, UserRole } from "../model";
 import { config } from "../config";
 import { ValidationError } from "../model/error";
@@ -9,6 +14,8 @@ import { StatusCodes } from "http-status-codes";
 import { ensureNoEndingTrailingSlash } from "../utils";
 
 const repo: UserRepository = getUserRepository();
+const repositoryUserPermissionTokenRepository =
+  getRepositoryUserPermissionTokenRepository();
 
 passport.use(
   <passport.Strategy>new Strategy(
@@ -27,16 +34,21 @@ passport.use(
           Provider.Github,
         );
 
-        // TODO: does not work, repositoryUserPermissionToken is undefined...
-        // @ts-ignore
-        const repositoryUserPermissionToken = req.repositoryUserPermissionToken;
-
         if (!findUser) {
           const thirdPartyUser = ThirdPartyUser.fromJson(profile);
           let createUser: CreateUser;
+
           if (thirdPartyUser instanceof ValidationError) {
             return done(thirdPartyUser); // Properly handling the validation error
-          } else if (repositoryUserPermissionToken) {
+          }
+
+          // const repositoryUserPermissionToken = req.repositoryUserPermissionToken; // TODO: does not work, repositoryUserPermissionToken is undefined...
+          const repositoryUserPermissionToken =
+            await repositoryUserPermissionTokenRepository.getByUserGithubOwnerLogin(
+              thirdPartyUser.providerData.owner.id.login,
+            );
+
+          if (repositoryUserPermissionToken) {
             // if the user has received a repository user permission token (to get some rights about a repository)
             if (
               thirdPartyUser.providerData.owner.id.login !==

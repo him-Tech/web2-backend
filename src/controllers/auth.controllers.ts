@@ -26,7 +26,7 @@ import {
   StatusQuery,
   StatusResponse,
 } from "../dtos";
-import {ensureNoEndingTrailingSlash, secureToken} from "../utils";
+import { ensureNoEndingTrailingSlash, secureToken } from "../utils";
 import {
   getCompanyRepository,
   getCompanyUserPermissionTokenRepository,
