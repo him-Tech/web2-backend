@@ -10,12 +10,24 @@ import { StatusCodes } from "http-status-codes";
 import Stripe from "stripe";
 import {
   CreateCustomerBody,
+  CreateCustomerParams,
+  CreateCustomerQuery,
+  CreateCustomerResponse,
   CreatePaymentIntentBody,
+  CreatePaymentIntentParams,
+  CreatePaymentIntentQuery,
+  CreatePaymentIntentResponse,
   CreateSubscriptionBody,
-} from "../dtos/stripe";
+  CreateSubscriptionParams,
+  CreateSubscriptionQuery,
+  CreateSubscriptionResponse,
+  GetDowPricesBody,
+  GetDowPricesParams,
+  GetDowPricesQuery,
+  GetDowPricesResponse,
+  ResponseBody,
+} from "../dtos";
 import { StripeCustomer, StripeCustomerId, StripeInvoice } from "../model";
-import { ValidationError } from "express-validator";
-import { GetDowPricesResponse, ResponseBody } from "../dtos";
 import { config, logger } from "../config";
 
 // https://github.com/stripe-samples/subscriptions-with-card-and-direct-debit/blob/main/server/node/server.js
@@ -57,7 +69,12 @@ export class StripeController {
   }
 
   static async getDowPrices(
-    req: Request,
+    req: Request<
+      GetDowPricesParams,
+      ResponseBody<GetDowPricesResponse>,
+      GetDowPricesBody,
+      GetDowPricesQuery
+    >,
     res: Response<ResponseBody<GetDowPricesResponse>>,
   ) {
     const products = await stripeProductRepo.getAll();
@@ -99,8 +116,13 @@ export class StripeController {
   }
 
   static async createCustomer(
-    req: Request<{}, {}, CreateCustomerBody, {}>,
-    res: Response<StripeCustomer | ValidationError[]>,
+    req: Request<
+      CreateCustomerParams,
+      ResponseBody<CreateCustomerResponse>,
+      CreateCustomerBody,
+      CreateCustomerQuery
+    >,
+    res: Response<ResponseBody<CreateCustomerResponse>>,
   ) {
     if (!req.user) {
       return res.status(StatusCodes.UNAUTHORIZED).send();
@@ -143,14 +165,23 @@ export class StripeController {
           customer: customer.id,
         });
 
-        return res.status(StatusCodes.CREATED).send(stripeCustomer);
+        const response: CreateCustomerResponse = {
+          stripeCustomer: stripeCustomer,
+        };
+
+        return res.status(StatusCodes.CREATED).send({ success: response });
       }
     }
   }
 
   static async createSubscription(
-    req: Request<{}, {}, CreateSubscriptionBody, {}>,
-    res: Response<Stripe.Subscription | ValidationError[]>,
+    req: Request<
+      CreateSubscriptionParams,
+      ResponseBody<CreateSubscriptionResponse>,
+      CreateSubscriptionBody,
+      CreateSubscriptionQuery
+    >,
+    res: Response<ResponseBody<CreateSubscriptionResponse>>,
   ) {
     const items = [];
     for (const item of req.body.priceItems) {
@@ -167,13 +198,21 @@ export class StripeController {
       expand: ["latest_invoice.payment_intent"],
     });
 
+    const response: CreateSubscriptionResponse = {
+      subscription: subscription,
+    };
     // At this point the Subscription is inactive and awaiting payment.
-    res.send(subscription);
+    res.status(StatusCodes.CREATED).send({ success: response });
   }
 
   static async createPaymentIntent(
-    req: Request<{}, {}, CreatePaymentIntentBody, {}>,
-    res: Response<Stripe.PaymentIntent | ValidationError[]>,
+    req: Request<
+      CreatePaymentIntentParams,
+      ResponseBody<CreatePaymentIntentResponse>,
+      CreatePaymentIntentBody,
+      CreatePaymentIntentQuery
+    >,
+    res: Response<ResponseBody<CreatePaymentIntentResponse>>,
   ) {
     // Step 1: Create an invoice
     // Step 2: Create an invoice item
@@ -183,7 +222,7 @@ export class StripeController {
       await stripe.invoices.create({
         customer: req.body.stripeCustomerId.toString(),
         automatic_tax: {
-          enabled: true,
+          enabled: false,
         },
       });
 
@@ -207,8 +246,11 @@ export class StripeController {
 
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
+    const response: CreatePaymentIntentResponse = {
+      paymentIntent: paymentIntent,
+    };
     // Send publishable key and PaymentIntent client_secret to client.
-    res.status(StatusCodes.OK).send(paymentIntent);
+    res.status(StatusCodes.OK).send({ success: response });
   }
 
   static async webhook(req: Request, res: Response) {
