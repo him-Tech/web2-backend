@@ -27,7 +27,12 @@ import {
   GetDowPricesResponse,
   ResponseBody,
 } from "../dtos";
-import { StripeCustomer, StripeCustomerId, StripeInvoice } from "../model";
+import {
+  StripeCustomer,
+  StripeCustomerId,
+  StripeInvoice,
+  StripeProduct,
+} from "../model";
 import { config, logger } from "../config";
 
 // https://github.com/stripe-samples/subscriptions-with-card-and-direct-debit/blob/main/server/node/server.js
@@ -77,7 +82,7 @@ export class StripeController {
     >,
     res: Response<ResponseBody<GetDowPricesResponse>>,
   ) {
-    const products = await stripeProductRepo.getAll();
+    const products: StripeProduct[] = await stripeProductRepo.getAll();
 
     // TODO: For the POC, we should have only one product of each type
     const subscriptionProducts = products.find((p) => p.recurring);
@@ -189,14 +194,17 @@ export class StripeController {
     }
 
     // Create the subscription.
-    // Note we're expanding the Subscription's latest invoice and that invoice's payment_intent so we can pass it to the front end to confirm the payment
-    const subscription = await stripe.subscriptions.create({
-      customer: req.body.stripeCustomerId.toString(),
-      items: items,
-      payment_behavior: "default_incomplete",
-      payment_settings: { save_default_payment_method: "on_subscription" },
-      expand: ["latest_invoice.payment_intent"],
-    });
+    // Note we're expanding the Subscription's latest invoice and that invoice's payment_intent,
+    // so we can pass it to the front end to confirm the payment
+    const subscription: Stripe.Subscription = await stripe.subscriptions.create(
+      {
+        customer: req.body.stripeCustomerId.toString(),
+        items: items,
+        payment_behavior: "default_incomplete",
+        payment_settings: { save_default_payment_method: "on_subscription" },
+        expand: ["latest_invoice.payment_intent"],
+      },
+    );
 
     const response: CreateSubscriptionResponse = {
       subscription: subscription,
