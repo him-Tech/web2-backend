@@ -188,7 +188,6 @@ export class AuthController {
     res: Response<ResponseBody<RegisterResponse>>,
     next: NextFunction,
   ) {
-    console.log("verifyRepositoryToken");
     const token = req.query.repositoryToken;
     if (token) {
       const repositoryUserPermissionToken =
@@ -226,6 +225,7 @@ export class AuthController {
       );
     }
 
+    // TODO: could be not only one
     const repositoryUserPermissionToken =
       await repositoryUserPermissionTokenRepo.getByUserGithubOwnerLogin(
         userData.providerData.owner.id.login,

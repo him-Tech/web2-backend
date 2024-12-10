@@ -42,6 +42,11 @@ export interface RepositoryUserPermissionTokenRepository {
     userGithubOwnerLogin: string,
   ): Promise<RepositoryUserPermissionToken | null>;
 
+  getByUserGithubOwnerLoginAndRepository(
+    userGithubOwnerLogin: string,
+    repositoryId: RepositoryId,
+  ): Promise<RepositoryUserPermissionToken[]>;
+
   getByRepositoryId(
     repositoryId: RepositoryId,
   ): Promise<RepositoryUserPermissionToken[]>;
@@ -51,6 +56,8 @@ export interface RepositoryUserPermissionTokenRepository {
   getAll(): Promise<RepositoryUserPermissionToken[]>;
 
   delete(token: string): Promise<void>;
+
+  setHasBeenUsed(token: string): Promise<void>;
 }
 
 class RepositoryUserPermissionTokenRepositoryImpl
@@ -121,22 +128,24 @@ class RepositoryUserPermissionTokenRepositoryImpl
       logger.debug("Creating RepositoryUserPermissionToken with data: ", token);
       const result = await client.query(
         `
-                    INSERT INTO repository_user_permission_token (
-                                                                  user_name,
-                                                                  user_email,
-                                                                  user_github_owner_login, 
-                                                                  token,
-                                                                  github_owner_id,
-                                                                  github_owner_login,
-                                                                  github_repository_id,
-                                                                  github_repository_name,
-                                                                  repository_user_role, 
-                                                                  dow_rate, 
-                                                                  dow_currency, 
-                                                                  expires_at)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-                    RETURNING *
-                `,
+          INSERT INTO repository_user_permission_token (
+            user_name,
+            user_email,
+            user_github_owner_login,
+            token,
+            github_owner_id,
+            github_owner_login,
+            github_repository_id,
+            github_repository_name,
+            repository_user_role,
+            dow_rate,
+            dow_currency,
+            expires_at,
+            has_been_used
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+          RETURNING *
+        `,
         [
           token.userName,
           token.userEmail,
@@ -150,6 +159,7 @@ class RepositoryUserPermissionTokenRepositoryImpl
           token.dowRate.toString(),
           token.dowCurrency.toString(),
           token.expiresAt,
+          false, // Default for has_been_used
         ],
       );
 
@@ -266,6 +276,28 @@ class RepositoryUserPermissionTokenRepositoryImpl
     return this.getOptionalToken(result.rows);
   }
 
+  async getByUserGithubOwnerLoginAndRepository(
+    userGithubOwnerLogin: string,
+    repositoryId: RepositoryId,
+  ): Promise<RepositoryUserPermissionToken[]> {
+    logger.debug(
+      "Retrieving RepositoryUserPermissionToken by userGithubOwnerLogin: {}",
+      userGithubOwnerLogin,
+    );
+    const result = await this.pool.query(
+      `
+                SELECT *
+                FROM repository_user_permission_token
+                WHERE user_github_owner_login = $1
+                  AND    github_owner_login = $2
+                  AND github_repository_name = $3
+            `,
+      [userGithubOwnerLogin, repositoryId.ownerLogin(), repositoryId.name],
+    );
+
+    return this.getTokenList(result.rows);
+  }
+
   async getByToken(
     token: string,
   ): Promise<RepositoryUserPermissionToken | null> {
@@ -306,5 +338,29 @@ class RepositoryUserPermissionTokenRepositoryImpl
             `,
       [token],
     );
+  }
+
+  async setHasBeenUsed(token: string): Promise<void> {
+    const client = await this.pool.connect();
+    try {
+      logger.debug(`Marking token as used: ${token}`);
+      const result = await client.query(
+        `
+          UPDATE repository_user_permission_token
+          SET has_been_used = TRUE
+          WHERE token = $1
+          RETURNING *
+        `,
+        [token],
+      );
+
+      if (result.rows.length === 0) {
+        throw new Error(`Token not found: ${token}`);
+      }
+
+      logger.info(`Token ${token} marked as used successfully.`);
+    } finally {
+      client.release();
+    }
   }
 }
