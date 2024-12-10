@@ -306,10 +306,10 @@ export class AuthController {
       await companyUserPermissionTokenRepo.getByToken(query.token);
 
     if (companyUserPermissionToken === null) {
-      logger.debug(`Token invalid or expired: ${query.token}`);
+      logger.info(`Token invalid or expired: ${query.token}`);
       throw new ApiError(StatusCodes.BAD_REQUEST, `Token invalid or expired`);
     } else if (companyUserPermissionToken.expiresAt < new Date()) {
-      logger.debug(`Token invalid or expired: ${query.token}`);
+      logger.info(`Token invalid or expired: ${query.token}`);
       throw new ApiError(StatusCodes.BAD_REQUEST, `Token invalid or expired`);
     } else {
       const response: GetCompanyUserInviteInfoResponse = {
@@ -330,10 +330,10 @@ export class AuthController {
       await repositoryUserPermissionTokenRepo.getByToken(query.token);
 
     if (repositoryUserPermissionToken === null) {
-      logger.debug(`Token invalid or expired: ${query.token}`);
+      logger.info(`Token invalid or expired: ${query.token}`);
       throw new ApiError(StatusCodes.BAD_REQUEST, `Token invalid or expired`);
     } else if (repositoryUserPermissionToken.expiresAt < new Date()) {
-      logger.debug(`Token invalid or expired: ${query.token}`);
+      logger.info(`Token invalid or expired: ${query.token}`);
       throw new ApiError(StatusCodes.BAD_REQUEST, `Token invalid or expired`);
     } else {
       const response: GetRepositoryUserInviteInfoResponse = {

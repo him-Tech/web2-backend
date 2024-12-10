@@ -210,7 +210,7 @@ class CompanyUserPermissionTokenRepositoryImpl
             `,
       [token],
     );
-    logger.debug("Deleting permission token: ", token);
+    logger.info("Deleting permission token: ", token);
   }
 
   async setHasBeenUsed(token: string): Promise<void> {

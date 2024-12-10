@@ -241,7 +241,7 @@ export class StripeController {
           throw invoice;
         }
 
-        logger.debug(`🔔  Webhook received: ${eventType}!`);
+        logger.info(`🔔  Webhook received: ${eventType}!`);
 
         await stripeInvoiceRepo.insert(invoice);
         break;
@@ -252,14 +252,14 @@ export class StripeController {
         // Funds have been captured
         // Fulfill any orders, e-mail receipts, etc
         // To cancel the payment after capture you will need to issue a Refund (https://stripe.com/docs/api/refunds).
-        logger.debug(`🔔  Webhook received: ${data.object}!`);
-        logger.debug("💰 Payment captured!");
+        logger.info(`🔔  Webhook received: ${data.object}!`);
+        logger.info("💰 Payment captured!");
         break;
 
       case "payment_intent.payment_failed":
         // const paymentIntent = data as Stripe.PaymentIntent.DA;
-        logger.debug(`🔔  Webhook received: ${data.object}!`);
-        logger.debug("❌ Payment failed.");
+        logger.info(`🔔  Webhook received: ${data.object}!`);
+        logger.info("❌ Payment failed.");
         break;
       default:
     }

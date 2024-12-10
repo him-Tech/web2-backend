@@ -32,7 +32,7 @@ export class MailService {
 
     const setUpYourAccountLink = `${this.registerURL}?company_token=${token}`;
 
-    logger.debug(
+    logger.info(
       `Sending email to ${toEmail} with compnay invite link ${setUpYourAccountLink}`,
     );
 
@@ -69,7 +69,7 @@ export class MailService {
     const repositoryAvatarUrl: string =
       owner.avatarUrl ?? `https://i.imghippo.com/files/Jyuv9682tIk.png`;
 
-    logger.debug(
+    logger.info(
       `Sending email to ${toEmail} with repository invite link ${setUpYourAccountLink}`,
     );
 

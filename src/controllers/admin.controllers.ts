@@ -108,7 +108,7 @@ export class AdminController {
     );
 
     for (const permission of existing) {
-      logger.debug(
+      logger.info(
         `Deleting existing company permission token ${permission.token}`,
       );
       await companyUserPermissionTokenRepository.delete(permission.token);
@@ -168,7 +168,7 @@ export class AdminController {
       );
 
     if (existing) {
-      logger.debug(
+      logger.info(
         `Deleting existing repository permission token ${existing.token}`,
       );
       await repositoryUserPermissionTokenRepository.delete(existing.token);
