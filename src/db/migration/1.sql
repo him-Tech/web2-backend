@@ -300,7 +300,7 @@ CREATE TABLE IF NOT EXISTS company_user_permission_token
     token             TEXT             NOT NULL UNIQUE,
 
     company_id        UUID             NOT NULL,
-    company_user_role VARCHAR(50)      NOT NULL  CHECK (company_user_role IN ('admin', 'suggest', 'read')),
+    company_user_role VARCHAR(50)      NOT NULL CHECK (company_user_role IN ('admin', 'suggest', 'read')),
 
     expires_at        TIMESTAMP        NOT NULL,
     created_at        TIMESTAMP        NOT NULL DEFAULT now(),
